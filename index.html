@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Text:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     
     <!-- Konva.js for advanced canvas rendering -->
@@ -34,12 +35,36 @@
             <div class="template-badge">Template: Animated Title Card</div>
         </div>
         <div class="header-right">
-            <button class="export-btn" aria-label="Export project">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 1v10M4 7l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Export
-            </button>
+            <div class="export-dropdown">
+                <button class="export-btn" aria-label="Export project" aria-expanded="false">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 1v10M4 7l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Export
+                    <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="export-menu" role="menu">
+                    <button class="export-option" data-format="mp4" role="menuitem">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <rect x="2" y="3" width="12" height="8" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <circle cx="6" cy="6.5" r="1" fill="currentColor"/>
+                            <path d="M10 8.5L8.5 7L7 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Export as MP4
+                        <span class="format-desc">Video file</span>
+                    </button>
+                    <button class="export-option" data-format="png" role="menuitem">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 2h8v12H4z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <path d="M6 6h4M6 8h4M6 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        Export PNG Sequence
+                        <span class="format-desc">Frame images with alpha</span>
+                    </button>
+                </div>
+            </div>
             <div class="account-dropdown">
                 <button class="account-btn" aria-label="Account menu">
                     <div class="avatar">H</div>
@@ -56,34 +81,6 @@
                 <h2>Properties</h2>
             </div>
             
-            <!-- Template Selector Section -->
-            <section class="panel-section" data-section="templates">
-                <div class="section-header">
-                    <h3>Template</h3>
-                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle template section">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="section-content">
-                    <div class="template-grid">
-                        <div class="template-card active">
-                            <div class="template-thumbnail">
-                                <div class="placeholder-thumbnail">Animated Title</div>
-                            </div>
-                            <div class="template-name">Title Card</div>
-                        </div>
-                        <div class="template-card">
-                            <div class="template-thumbnail">
-                                <div class="placeholder-thumbnail">Logo Intro</div>
-                            </div>
-                            <div class="template-name">Logo Reveal</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             <!-- Text Properties Section -->
             <section class="panel-section" data-section="text">
                 <div class="section-header">
@@ -107,17 +104,20 @@
                         <div class="form-group">
                             <label for="font-family">Font Family</label>
                             <select id="font-family">
-                                <option value="inter">Inter</option>
-                                <option value="roboto">Roboto</option>
-                                <option value="helvetica">Helvetica</option>
+                                <option value="Wix Madefor Text" selected>Wix Madefor Text</option>
+                                <option value="Inter">Inter</option>
+                                <option value="Roboto">Roboto</option>
+                                <option value="Helvetica">Helvetica</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="font-weight">Weight</label>
                             <select id="font-weight">
-                                <option value="300">Thin</option>
                                 <option value="400" selected>Regular</option>
                                 <option value="500">Medium</option>
+                                <option value="600">Semi Bold</option>
+                                <option value="700">Bold</option>
+                                <option value="800">Extra Bold</option>
                             </select>
                         </div>
                     </div>
@@ -160,7 +160,21 @@
                             <button class="color-swatch" style="background-color: #1A1A1A" data-color="#1A1A1A" aria-label="Dark Gray"></button>
                             <button class="color-swatch" style="background-color: #2C3E50" data-color="#2C3E50" aria-label="Dark Blue"></button>
                             <button class="color-swatch" style="background-color: #34495E" data-color="#34495E" aria-label="Slate"></button>
+                            <button class="color-swatch transparent-swatch" data-color="transparent" aria-label="Transparent" title="Transparent Background">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <rect width="16" height="16" fill="url(#checkerboard)"/>
+                                    <defs>
+                                        <pattern id="checkerboard" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+                                            <rect x="0" y="0" width="4" height="4" fill="#E5E5E5"/>
+                                            <rect x="4" y="4" width="4" height="4" fill="#E5E5E5"/>
+                                            <rect x="4" y="0" width="4" height="4" fill="#CCCCCC"/>
+                                            <rect x="0" y="4" width="4" height="4" fill="#CCCCCC"/>
+                                        </pattern>
+                                    </defs>
+                                </svg>
+                            </button>
                         </div>
+
                     </div>
                 </div>
             </section>
@@ -288,6 +302,7 @@
             
             <div class="canvas-container" id="canvas-container">
                 <div class="canvas-wrapper" id="canvas-wrapper">
+                    <div class="transparency-checkerboard" id="transparency-checkerboard"></div>
                     <div id="konva-container" aria-label="Template preview"></div>
                     <div class="canvas-overlay">
                         <!-- Overlay for selection handles, guides, etc. -->
@@ -428,6 +443,75 @@
             </div>
         </div>
     </footer>
+
+    <!-- Export Modal -->
+    <div class="export-modal" id="export-modal" role="dialog" aria-labelledby="export-modal-title" aria-hidden="true">
+        <div class="export-modal-content">
+            <div class="export-modal-header">
+                <h2 id="export-modal-title">Export Project</h2>
+                <button class="export-modal-close" aria-label="Close export modal">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="export-modal-body">
+                <div class="export-format-info">
+                    <div class="export-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" id="export-format-icon">
+                            <!-- Will be updated based on selected format -->
+                        </svg>
+                    </div>
+                    <div class="export-details">
+                        <h3 id="export-format-title">Export Format</h3>
+                        <p id="export-format-description">Format description</p>
+                        <div class="export-specs">
+                            <span class="spec-item">Resolution: 1920×1080</span>
+                            <span class="spec-item">Duration: 10 seconds</span>
+                            <span class="spec-item" id="export-spec-format">30 FPS</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="export-progress" id="export-progress" style="display: none;">
+                    <div class="progress-header">
+                        <span class="progress-label">Processing...</span>
+                        <span class="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-details">
+                        <span class="progress-frame">Frame 0 of 300</span>
+                        <span class="progress-eta">Estimated time remaining: --</span>
+                    </div>
+                </div>
+                
+                <div class="export-complete" id="export-complete" style="display: none;">
+                    <div class="complete-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="#22c55e" stroke-width="2" fill="none"/>
+                            <path d="M8 12l2 2 6-6" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3>Export Complete!</h3>
+                    <p id="export-complete-message">Your export has been completed successfully.</p>
+                    <button class="download-btn" id="download-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 1v10M4 7l4 4 4-4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Download
+                    </button>
+                </div>
+            </div>
+            
+            <div class="export-modal-footer">
+                <button class="export-cancel-btn" id="export-cancel-btn">Cancel</button>
+                <button class="export-start-btn" id="export-start-btn">Start Export</button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

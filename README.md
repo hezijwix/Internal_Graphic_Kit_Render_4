@@ -99,8 +99,9 @@ A professional web-based motion graphics template editor for creating animated v
 - **Accent Blue**: `#0066FF` (Primary action color)
 
 ### Typography
-- **Font Family**: Inter (with system fallbacks)
-- **Weights**: 300 (Thin), 400 (Regular), 500 (Medium)
+- **Primary Font**: Wix Madefor Text (official Wix brand font)
+- **Fallbacks**: Inter, system fonts
+- **Weights**: 400 (Regular), 500 (Medium), 600 (Semi Bold), 700 (Bold), 800 (Extra Bold)
 - **Hierarchy**: Uppercase section headers with letter spacing
 - **Monospace**: SF Mono for timecodes and technical displays
 
@@ -140,6 +141,7 @@ Internal_Graphic_Kit_Render_4/
 ### Dependencies
 - **Konva.js 9.2.0**: 2D canvas library for professional rendering
 - **GSAP 3.12.2**: Professional animation library for timeline control
+- **Wix Madefor Text**: Official Wix brand font via Google Fonts
 - CSS Grid and Flexbox
 - ES6+ JavaScript features
 - Local Storage API
@@ -202,8 +204,8 @@ Internal_Graphic_Kit_Render_4/
 
 ### Text Properties
 - **Content**: Main title and subtitle text
-- **Font Family**: Inter, Roboto, Helvetica
-- **Font Weight**: Thin (300), Regular (400), Medium (500)
+- **Font Family**: Wix Madefor Text (default), Inter, Roboto, Helvetica
+- **Font Weight**: Regular (400), Medium (500), Semi Bold (600), Bold (700), Extra Bold (800)
 - **Font Size**: 12px - 120px range slider
 
 ### Color System

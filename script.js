@@ -26,6 +26,10 @@ class TemplateEditor {
         this.timeline = null;
         this.animationDuration = 10; // seconds
         
+        // Background transparency
+        this.currentBackgroundColor = '#0D0D0D';
+        this.isTransparent = false;
+        
         // Zoom and pan state
         this.zoomLevel = 100;
         this.minZoom = 10;
@@ -84,15 +88,10 @@ class TemplateEditor {
     }
     
     setupEventListeners() {
-        // Header interactions
-        const exportBtn = document.querySelector('.export-btn');
-        exportBtn.addEventListener('click', () => this.handleExport());
+        // Header interactions - Export dropdown
+        this.setupExportDropdown();
         
-        // Template selection
-        const templateCards = document.querySelectorAll('.template-card');
-        templateCards.forEach(card => {
-            card.addEventListener('click', (e) => this.selectTemplate(e.target.closest('.template-card')));
-        });
+        // Template selection removed - editing specific template only
         
         // Color swatches
         const colorSwatches = document.querySelectorAll('.color-swatch');
@@ -190,7 +189,12 @@ class TemplateEditor {
                 case 'e':
                     if (e.metaKey || e.ctrlKey) {
                         e.preventDefault();
-                        this.handleExport();
+                        // Toggle export dropdown
+                        const exportDropdown = document.querySelector('.export-dropdown');
+                        exportDropdown.classList.toggle('open');
+                        const exportBtn = document.querySelector('.export-btn');
+                        const isOpen = exportDropdown.classList.contains('open');
+                        exportBtn.setAttribute('aria-expanded', isOpen);
                     }
                     break;
                 case '=':
@@ -263,6 +267,8 @@ class TemplateEditor {
         // Zoom controls
         const zoomSelect = document.querySelector('.zoom-select');
         zoomSelect.addEventListener('change', () => this.setZoom(parseInt(zoomSelect.value)));
+        
+
     }
     
     setupPlaybackControls() {
@@ -324,17 +330,7 @@ class TemplateEditor {
         });
     }
     
-    // Template and Asset Management
-    selectTemplate(templateCard) {
-        document.querySelectorAll('.template-card').forEach(card => card.classList.remove('active'));
-        templateCard.classList.add('active');
-        
-        const templateName = templateCard.querySelector('.template-name').textContent;
-        document.querySelector('.template-badge').textContent = `Template: ${templateName}`;
-        
-        this.renderDefaultTemplate();
-        console.log(`Selected template: ${templateName}`);
-    }
+    // Asset Management
     
     selectColor(colorSwatch) {
         const colorGroup = colorSwatch.closest('.color-group');
@@ -453,12 +449,85 @@ class TemplateEditor {
             if (this.templateObjects.mainTitle) this.templateObjects.mainTitle.fill(color);
             if (this.templateObjects.subtitle) this.templateObjects.subtitle.fill(color);
         } else if (type === 'Background Color') {
-            if (this.templateObjects.background) this.templateObjects.background.fill(color);
+            if (color === 'transparent') {
+                // Set transparency mode
+                this.setBackgroundTransparency(true);
+            } else {
+                // Set background color mode
+                this.setBackgroundTransparency(false);
+                this.currentBackgroundColor = color;
+                if (this.templateObjects.background) {
+                    this.templateObjects.background.fill(color);
+                }
+            }
+            
+            // Refresh timeline to current position without disrupting animation
+            this.refreshTimelinePosition();
         }
         
         this.updateTemplateProperties();
         
         console.log(`Updated ${type}: ${color}`);
+    }
+    
+    setBackgroundTransparency(isTransparent) {
+        const canvasContainer = document.getElementById('canvas-container');
+        const konvaContainer = document.getElementById('konva-container');
+        
+        // Store the current state
+        this.isTransparent = isTransparent;
+        
+        if (isTransparent) {
+            // Set background to be invisible for export/animation
+            if (this.templateObjects.background) {
+                this.templateObjects.background.visible(false);
+            }
+            
+            // Make canvas transparent and show checkerboard immediately
+            konvaContainer.style.backgroundColor = 'transparent';
+            canvasContainer.classList.add('transparency-preview');
+            
+            // Force immediate redraw to apply changes
+            this.stage.batchDraw();
+            
+        } else {
+            // Set background to be visible for export/animation
+            if (this.templateObjects.background) {
+                this.templateObjects.background.visible(true);
+            }
+            
+            // Restore canvas background and hide checkerboard immediately
+            konvaContainer.style.backgroundColor = '';
+            canvasContainer.classList.remove('transparency-preview');
+            
+            // Force immediate redraw to apply changes
+            this.stage.batchDraw();
+        }
+        
+        console.log(`Background transparency: ${isTransparent ? 'enabled' : 'disabled'}`);
+    }
+    
+    refreshTimelinePosition() {
+        if (this.timeline) {
+            // Get current timeline progress
+            const currentProgress = this.timeline.progress();
+            const currentTime = this.timeline.time();
+            
+            // Only redraw if not currently playing
+            if (!this.isPlaying) {
+                this.stage.batchDraw();
+            }
+            
+            // Maintain current position without disrupting playback
+            if (this.isPlaying) {
+                // Let the animation continue naturally
+                return;
+            } else {
+                // Update to current frame position
+                this.timeline.progress(currentProgress);
+                this.stage.batchDraw();
+            }
+        }
     }
     
     setupZoomControls() {
@@ -787,7 +856,7 @@ class TemplateEditor {
             y: 0,
             width: 1920,
             height: 1080,
-            fill: '#0D0D0D'
+            fill: this.currentBackgroundColor
         });
         this.backgroundLayer.add(this.templateObjects.background);
         
@@ -797,8 +866,8 @@ class TemplateEditor {
             y: 400,
             text: 'Welcome to Wix',
             fontSize: 72,
-            fontFamily: 'Inter',
-            fontStyle: '400',
+            fontFamily: 'Wix Madefor Text',
+            fontStyle: '600', // Semi Bold for impact
             fill: '#FFFFFF',
             align: 'center',
             verticalAlign: 'middle',
@@ -814,8 +883,8 @@ class TemplateEditor {
             y: 500,
             text: 'Create Amazing Videos',
             fontSize: 29,
-            fontFamily: 'Inter',
-            fontStyle: '400',
+            fontFamily: 'Wix Madefor Text',
+            fontStyle: '400', // Regular for subtitle
             fill: '#FFFFFF',
             align: 'center',
             verticalAlign: 'middle',
@@ -1068,21 +1137,318 @@ class TemplateEditor {
         this.saveProject();
     }
     
-    handleExport() {
-        console.log('Export initiated');
-        
-        // Show export progress (simulated)
+    setupExportDropdown() {
         const exportBtn = document.querySelector('.export-btn');
-        const originalText = exportBtn.innerHTML;
+        const exportDropdown = document.querySelector('.export-dropdown');
+        const exportOptions = document.querySelectorAll('.export-option');
+        const exportModal = document.getElementById('export-modal');
+        const exportModalClose = document.querySelector('.export-modal-close');
+        const exportCancelBtn = document.getElementById('export-cancel-btn');
+        const exportStartBtn = document.getElementById('export-start-btn');
         
-        exportBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="2" stroke-dasharray="18.85" stroke-dashoffset="18.85" transform="rotate(-90 8 8)"><animate attributeName="stroke-dashoffset" values="18.85;0" dur="1s" repeatCount="indefinite"/></circle></svg>Exporting...';
-        exportBtn.disabled = true;
+        // Toggle dropdown
+        exportBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = exportDropdown.classList.contains('open');
+            exportDropdown.classList.toggle('open', !isOpen);
+            exportBtn.setAttribute('aria-expanded', !isOpen);
+        });
         
-        setTimeout(() => {
-            exportBtn.innerHTML = originalText;
-            exportBtn.disabled = false;
-            console.log('Export completed');
-        }, 3000);
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            exportDropdown.classList.remove('open');
+            exportBtn.setAttribute('aria-expanded', 'false');
+        });
+        
+        // Handle export format selection
+        exportOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const format = option.dataset.format;
+                this.openExportModal(format);
+                exportDropdown.classList.remove('open');
+                exportBtn.setAttribute('aria-expanded', 'false');
+            });
+        });
+        
+        // Modal close handlers
+        exportModalClose.addEventListener('click', () => this.closeExportModal());
+        exportCancelBtn.addEventListener('click', () => this.closeExportModal());
+        exportStartBtn.addEventListener('click', () => this.startExport());
+        
+        // Close modal on backdrop click
+        exportModal.addEventListener('click', (e) => {
+            if (e.target === exportModal) {
+                this.closeExportModal();
+            }
+        });
+        
+        // Prevent modal content clicks from closing modal
+        document.querySelector('.export-modal-content').addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+    
+    openExportModal(format) {
+        this.currentExportFormat = format;
+        const modal = document.getElementById('export-modal');
+        const formatIcon = document.getElementById('export-format-icon');
+        const formatTitle = document.getElementById('export-format-title');
+        const formatDescription = document.getElementById('export-format-description');
+        const formatSpec = document.getElementById('export-spec-format');
+        
+        // Reset modal state
+        document.getElementById('export-progress').style.display = 'none';
+        document.getElementById('export-complete').style.display = 'none';
+        document.querySelector('.export-format-info').style.display = 'flex';
+        document.querySelector('.export-modal-footer').style.display = 'flex';
+        
+        // Update modal content based on format
+        if (format === 'mp4') {
+            formatIcon.innerHTML = `
+                <rect x="2" y="3" width="20" height="12" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>
+                <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
+                <path d="M15 11L13 9.5L12 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            `;
+            formatTitle.textContent = 'Export as MP4';
+            formatDescription.textContent = 'High-quality video file perfect for social media, presentations, and web use.';
+            formatSpec.textContent = '30 FPS • H.264';
+        } else {
+            formatIcon.innerHTML = `
+                <path d="M6 2h12v20H6z" stroke="currentColor" stroke-width="2" fill="none"/>
+                <path d="M9 8h6M9 11h6M9 14h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M2 6v12l4-6-4-6z" fill="currentColor"/>
+            `;
+            formatTitle.textContent = 'Export PNG Sequence';
+            formatDescription.textContent = 'Individual frame images with transparency support, perfect for compositing and editing.';
+            formatSpec.textContent = '300 Frames • Alpha Channel';
+        }
+        
+        // Show modal
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        
+        // Focus management
+        document.getElementById('export-start-btn').focus();
+    }
+    
+    closeExportModal() {
+        const modal = document.getElementById('export-modal');
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        
+        // Cancel any ongoing export
+        if (this.exportCancelled !== undefined) {
+            this.exportCancelled = true;
+        }
+    }
+    
+    async startExport() {
+        // Hide initial UI and show progress
+        document.querySelector('.export-format-info').style.display = 'none';
+        document.querySelector('.export-modal-footer').style.display = 'none';
+        document.getElementById('export-progress').style.display = 'block';
+        
+        this.exportCancelled = false;
+        
+        try {
+            if (this.currentExportFormat === 'mp4') {
+                await this.exportMP4();
+            } else {
+                await this.exportPNGSequence();
+            }
+        } catch (error) {
+            console.error('Export failed:', error);
+            this.showExportError(error.message);
+        }
+    }
+    
+    async exportMP4() {
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentage = document.querySelector('.progress-percentage');
+        const progressFrame = document.querySelector('.progress-frame');
+        const progressEta = document.querySelector('.progress-eta');
+        const progressLabel = document.querySelector('.progress-label');
+        
+        progressLabel.textContent = 'Rendering video frames...';
+        
+        // Create offscreen canvas for rendering
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1920;
+        canvas.height = 1080;
+        
+        // MediaRecorder setup for WebM (browsers don't support MP4 recording directly)
+        const stream = canvas.captureStream(30);
+        const mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm;codecs=vp9'
+        });
+        
+        const chunks = [];
+        let startTime = Date.now();
+        
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                chunks.push(event.data);
+            }
+        };
+        
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            this.downloadBlob(blob, 'wix-video-export.webm');
+            this.showExportComplete('Your video has been exported as WebM format.');
+        };
+        
+        mediaRecorder.start();
+        
+        // Render each frame
+        for (let frame = 0; frame < this.totalFrames; frame++) {
+            if (this.exportCancelled) {
+                mediaRecorder.stop();
+                return;
+            }
+            
+            // Update timeline to current frame
+            const timelineTime = (frame / this.totalFrames) * this.animationDuration;
+            this.timeline.seek(timelineTime);
+            
+            // Render stage to canvas
+            const stageCanvas = this.stage.getCanvas()._canvas;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(stageCanvas, 0, 0);
+            
+            // Update progress
+            const progress = ((frame + 1) / this.totalFrames) * 100;
+            progressFill.style.width = `${progress}%`;
+            progressPercentage.textContent = `${Math.round(progress)}%`;
+            progressFrame.textContent = `Frame ${frame + 1} of ${this.totalFrames}`;
+            
+            // Calculate ETA
+            const elapsed = Date.now() - startTime;
+            const eta = (elapsed / (frame + 1)) * (this.totalFrames - frame - 1);
+            progressEta.textContent = `Estimated time remaining: ${this.formatTime(eta)}`;
+            
+            // Allow UI to update
+            await new Promise(resolve => setTimeout(resolve, 1));
+        }
+        
+        mediaRecorder.stop();
+    }
+    
+    async exportPNGSequence() {
+        const progressFill = document.querySelector('.progress-fill');
+        const progressPercentage = document.querySelector('.progress-percentage');
+        const progressFrame = document.querySelector('.progress-frame');
+        const progressEta = document.querySelector('.progress-eta');
+        const progressLabel = document.querySelector('.progress-label');
+        
+        progressLabel.textContent = 'Generating PNG frames...';
+        
+        // Use JSZip to create a zip file
+        const JSZip = window.JSZip || await this.loadJSZip();
+        const zip = new JSZip();
+        
+        let startTime = Date.now();
+        
+        // Render each frame
+        for (let frame = 0; frame < this.totalFrames; frame++) {
+            if (this.exportCancelled) {
+                return;
+            }
+            
+            // Update timeline to current frame
+            const timelineTime = (frame / this.totalFrames) * this.animationDuration;
+            this.timeline.seek(timelineTime);
+            this.stage.batchDraw();
+            
+            // Get canvas data URL with alpha channel
+            const dataURL = this.stage.toDataURL({
+                mimeType: 'image/png',
+                quality: 1,
+                pixelRatio: 1
+            });
+            
+            // Convert data URL to blob and add to zip
+            const response = await fetch(dataURL);
+            const blob = await response.blob();
+            const filename = `frame_${String(frame + 1).padStart(4, '0')}.png`;
+            zip.file(filename, blob);
+            
+            // Update progress
+            const progress = ((frame + 1) / this.totalFrames) * 100;
+            progressFill.style.width = `${progress}%`;
+            progressPercentage.textContent = `${Math.round(progress)}%`;
+            progressFrame.textContent = `Frame ${frame + 1} of ${this.totalFrames}`;
+            
+            // Calculate ETA
+            const elapsed = Date.now() - startTime;
+            const eta = (elapsed / (frame + 1)) * (this.totalFrames - frame - 1);
+            progressEta.textContent = `Estimated time remaining: ${this.formatTime(eta)}`;
+            
+            // Allow UI to update every 10 frames
+            if (frame % 10 === 0) {
+                await new Promise(resolve => setTimeout(resolve, 1));
+            }
+        }
+        
+        // Generate and download zip file
+        progressLabel.textContent = 'Creating download package...';
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        this.downloadBlob(zipBlob, 'wix-video-frames.zip');
+        this.showExportComplete('Your PNG sequence has been exported with alpha channel support.');
+    }
+    
+    async loadJSZip() {
+        // Load JSZip dynamically
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+            script.onload = () => resolve(window.JSZip);
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+    
+    downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    showExportComplete(message) {
+        document.getElementById('export-progress').style.display = 'none';
+        document.getElementById('export-complete').style.display = 'block';
+        document.getElementById('export-complete-message').textContent = message;
+        
+        // Setup download button (in case user wants to download again)
+        const downloadBtn = document.getElementById('download-btn');
+        downloadBtn.onclick = () => {
+            this.closeExportModal();
+        };
+    }
+    
+    showExportError(message) {
+        // Reset to initial state and show error
+        document.getElementById('export-progress').style.display = 'none';
+        document.querySelector('.export-format-info').style.display = 'flex';
+        document.querySelector('.export-modal-footer').style.display = 'flex';
+        
+        alert(`Export failed: ${message}`);
+    }
+    
+    formatTime(ms) {
+        const seconds = Math.floor(ms / 1000);
+        if (seconds < 60) {
+            return `${seconds}s`;
+        }
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}m ${remainingSeconds}s`;
     }
     
     // Load saved project on initialization
@@ -1095,8 +1461,8 @@ class TemplateEditor {
             document.getElementById('main-text').value = projectData.mainText || 'Welcome to Wix';
             document.getElementById('subtitle-text').value = projectData.subtitle || 'Create Amazing Videos';
             document.getElementById('font-size').value = projectData.fontSize || '72';
-            document.getElementById('font-family').value = projectData.fontFamily || 'inter';
-            document.getElementById('font-weight').value = projectData.fontWeight || '400';
+            document.getElementById('font-family').value = projectData.fontFamily || 'Wix Madefor Text';
+            document.getElementById('font-weight').value = projectData.fontWeight || '600';
             
             // Update slider display
             document.querySelector('.slider-value').textContent = projectData.fontSize + 'px' || '72px';
