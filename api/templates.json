@@ -1,0 +1,29 @@
+{
+  "templates": [
+    {
+      "id": "template_001",
+      "name": "Animated Title Card",
+      "description": "Professional animated title card with icons and multiple text elements",
+      "category": "titles",
+      "thumbnail": "shared/assets/thumbnails/template_001.jpg",
+      "file": "template_001.html",
+      "version": "1.0.0",
+      "created": "2024-01-15",
+      "features": [
+        "Icon Upload Support",
+        "Color Customization", 
+        "Multiple Text Layers",
+        "GSAP Animations"
+      ],
+      "elements": {
+        "topIcon": true,
+        "topTitle": true,
+        "mainTitle": true,
+        "subtitle1": true,
+        "subtitle2": true,
+        "bottomIcons": true
+      }
+    }
+  ],
+  "presets": []
+} 

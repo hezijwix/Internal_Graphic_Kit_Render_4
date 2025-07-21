@@ -3,22 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wix Video Asset Creator - Template Editor</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Wix Video Asset Creator - Template Gallery</title>
+    <link rel="stylesheet" href="shared/css/gallery.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-    
-    <!-- Konva.js for advanced canvas rendering -->
-    <script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
-    
-    <!-- GSAP for professional animations and timeline -->
-    <script src="https://unpkg.com/gsap@3.12.2/dist/gsap.min.js"></script>
 </head>
 <body>
-    <!-- Header Bar (60px height) -->
-    <header class="header-bar">
+    <header class="gallery-header">
         <div class="header-left">
             <div class="wix-logo">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -26,729 +18,94 @@
                     <path d="M12 12h8v8h-8z" fill="#fff"/>
                 </svg>
             </div>
-            <div class="project-name" contenteditable="true" aria-label="Project name">Untitled Project</div>
-            <div class="auto-save-indicator">
-                <span class="save-status">Auto-saved</span>
-            </div>
-        </div>
-        <div class="header-center">
-            <div class="template-badge">Template: Animated Title Card</div>
+            <h1>Video Template Gallery</h1>
         </div>
         <div class="header-right">
-            <div class="export-dropdown">
-                <button class="export-btn" aria-label="Export project" aria-expanded="false">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M8 1v10M4 7l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Export
-                    <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <div class="export-menu" role="menu">
-                    <button class="export-option" data-format="mp4" role="menuitem">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <rect x="2" y="3" width="12" height="8" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                            <circle cx="6" cy="6.5" r="1" fill="currentColor"/>
-                            <path d="M10 8.5L8.5 7L7 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Export as MP4
-                        <span class="format-desc">Video file</span>
-                    </button>
-                    <button class="export-option" data-format="png" role="menuitem">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M4 2h8v12H4z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                            <path d="M6 6h4M6 8h4M6 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
-                        Export PNG Sequence
-                        <span class="format-desc">Frame images with alpha</span>
-                    </button>
-                </div>
-            </div>
-            <div class="account-dropdown">
-                <button class="account-btn" aria-label="Account menu">
-                    <div class="avatar">H</div>
-                </button>
-            </div>
+            <button class="new-project-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                New Project
+            </button>
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="main-content">
-        <!-- Left Tool Panel (300px width) -->
-        <aside class="tool-panel">
-            <div class="panel-header">
-                <h2>Properties</h2>
+    <main class="gallery-main">
+        <section class="template-categories">
+            <div class="category-filters">
+                <button class="category-btn active" data-category="all">All Templates</button>
+                <button class="category-btn" data-category="titles">Title Cards</button>
+                <button class="category-btn" data-category="overlays">Overlays</button>
+                <button class="category-btn" data-category="intros">Intros</button>
+                <button class="category-btn" data-category="outros">Outros</button>
             </div>
-            
-            <!-- Top Icon Section -->
-            <section class="panel-section" data-section="top-icon">
-                <div class="section-header">
-                    <h3>Top Icon</h3>
-                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle top icon section">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <div class="layer-visibility-toggle">
-                        <label class="visibility-switch">
-                            <input type="checkbox" id="top-icon-visible" checked>
-                            <span class="visibility-slider"></span>
-                        </label>
-                        <span class="visibility-label">Visible</span>
+        </section>
+
+        <section class="templates-section">
+            <div class="template-grid" id="template-grid">
+                <!-- Templates will be loaded here -->
+                <div class="template-card" data-template="template_001">
+                    <div class="template-thumbnail">
+                        <div class="template-preview">
+                            <div class="preview-content">
+                                <div class="preview-icon">●</div>
+                                <div class="preview-title">ANIMATED</div>
+                                <div class="preview-title">TITLE CARD</div>
+                                <div class="preview-subtitle">Subtitle Text</div>
+                                <div class="preview-icons">● ○ ▶ ♥</div>
+                            </div>
+                        </div>
+                        <div class="template-overlay">
+                            <button class="use-template-btn" onclick="window.location.href='template_001.html'">
+                                Use Template
+                            </button>
+                            <button class="preview-btn" onclick="window.location.href='template_001.html?mode=preview'">
+                                Preview
+                            </button>
+                        </div>
+                    </div>
+                    <div class="template-info">
+                        <h3>Animated Title Card</h3>
+                        <p>Professional animated title card with icons and multiple text elements</p>
+                        <div class="template-features">
+                            <span class="feature-tag">Icon Upload</span>
+                            <span class="feature-tag">Color Control</span>
+                            <span class="feature-tag">Multi-Text</span>
+                            <span class="feature-tag">GSAP Animation</span>
+                        </div>
                     </div>
                 </div>
-                <div class="section-content">
-                    <div class="upload-area">
-                        <button class="upload-btn" id="upload-top-icon">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <path d="M10 1v12M4 9l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+                <!-- Placeholder for future templates -->
+                <div class="template-card placeholder">
+                    <div class="template-thumbnail">
+                        <div class="placeholder-content">
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                <path d="M24 12v24M12 24h24" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                             </svg>
-                            Upload Icon
-                        </button>
-                        <span class="upload-hint">PNG, SVG up to 2MB</span>
-                    </div>
-                    <div class="icon-presets">
-                        <h4>Preset Icons</h4>
-                        <div class="icon-grid">
-                            <button class="icon-preset active" data-icon="circle">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                </svg>
-                            </button>
-                            <button class="icon-preset" data-icon="star">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="currentColor"/>
-                                </svg>
-                            </button>
-                            <button class="icon-preset" data-icon="heart">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path d="M20.84 4.61A5.5 5.5 0 0 0 16.5 2.03A5.5 5.5 0 0 0 12 5.96A5.5 5.5 0 0 0 7.5 2.03A5.5 5.5 0 0 0 3.16 4.61C2.09 7.85 4.79 12.97 12 19.18C19.21 12.97 21.91 7.85 20.84 4.61Z" fill="currentColor"/>
-                                </svg>
-                            </button>
+                            <p>More templates<br>coming soon</p>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            <!-- Text Properties Section -->
-            <section class="panel-section" data-section="text">
-                <div class="section-header">
-                    <h3>Text Content</h3>
-                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle text properties section">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="section-content">
-                    <div class="form-group">
-                        <label for="top-title">Top Title</label>
-                        <input type="text" id="top-title" placeholder="Enter top title" value="Top Title">
-                    </div>
-                    <div class="form-group">
-                        <label for="main-title">Main Title (Auto Uppercase)</label>
-                        <textarea id="main-title" rows="2" placeholder="Enter main title (up to 2 lines)">MAIN TITLE
-TWO LINES</textarea>
-                        <span class="form-hint">Text will be automatically converted to uppercase and wrapped to 2 lines. Max width: 1490px (215px margins)</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="subtitle1">Subtitle 1</label>
-                        <input type="text" id="subtitle1" placeholder="Enter subtitle 1" value="Subtitle 1">
-                    </div>
-                    <div class="form-group">
-                        <label for="subtitle2">Subtitle 2</label>
-                        <input type="text" id="subtitle2" placeholder="Enter subtitle 2" value="Subtitle 2">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="font-family">Font Family</label>
-                            <select id="font-family">
-                                <option value="Wix Madefor Display" selected>Wix Madefor Display</option>
-                                <option value="Inter">Inter</option>
-                                <option value="Roboto">Roboto</option>
-                                <option value="Helvetica">Helvetica</option>
-                            </select>
+                    <div class="template-info">
+                        <h3>Lower Third Template</h3>
+                        <p>Professional lower third overlay for speaker introductions</p>
+                        <div class="template-features">
+                            <span class="feature-tag">Coming Soon</span>
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Color Properties Section -->
-            <section class="panel-section" data-section="colors">
-                <div class="section-header">
-                    <h3>Colors</h3>
-                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle colors section">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="section-content">
-                    <div class="color-group">
-                        <label>Text Color</label>
-                        <div class="color-swatches">
-                            <button class="color-swatch active" style="background-color: #FFFFFF" data-color="#FFFFFF" aria-label="White"></button>
-                            <button class="color-swatch" style="background-color: #0066FF" data-color="#0066FF" aria-label="Blue"></button>
-                            <button class="color-swatch" style="background-color: #FF6B6B" data-color="#FF6B6B" aria-label="Red"></button>
-                            <button class="color-swatch" style="background-color: #4ECDC4" data-color="#4ECDC4" aria-label="Teal"></button>
-                            <button class="color-swatch" style="background-color: #45B7D1" data-color="#45B7D1" aria-label="Light Blue"></button>
-                            <button class="color-swatch" style="background-color: #96CEB4" data-color="#96CEB4" aria-label="Green"></button>
-                        </div>
-                    </div>
-                    <div class="color-group">
-                        <label>Background Color</label>
-                        <div class="color-swatches">
-                            <button class="color-swatch active" style="background-color: #0D0D0D" data-color="#0D0D0D" aria-label="Black"></button>
-                            <button class="color-swatch" style="background-color: #1A1A1A" data-color="#1A1A1A" aria-label="Dark Gray"></button>
-                            <button class="color-swatch" style="background-color: #2C3E50" data-color="#2C3E50" aria-label="Dark Blue"></button>
-                            <button class="color-swatch" style="background-color: #34495E" data-color="#34495E" aria-label="Slate"></button>
-                            <button class="color-swatch transparent-swatch" data-color="transparent" aria-label="Transparent" title="Transparent Background">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <rect width="16" height="16" fill="url(#checkerboard)"/>
-                                    <defs>
-                                        <pattern id="checkerboard" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
-                                            <rect x="0" y="0" width="4" height="4" fill="#E5E5E5"/>
-                                            <rect x="4" y="4" width="4" height="4" fill="#E5E5E5"/>
-                                            <rect x="4" y="0" width="4" height="4" fill="#CCCCCC"/>
-                                            <rect x="0" y="4" width="4" height="4" fill="#CCCCCC"/>
-                                        </pattern>
-                                    </defs>
-                                </svg>
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
-
-            <!-- Bottom Icons Section -->
-            <section class="panel-section" data-section="bottom-icons">
-                <div class="section-header">
-                    <h3>Bottom Icons</h3>
-                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle bottom icons section">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <div class="layer-visibility-toggle">
-                        <label class="visibility-switch">
-                            <input type="checkbox" id="bottom-icons-visible" checked>
-                            <span class="visibility-slider"></span>
-                        </label>
-                        <span class="visibility-label">Visible</span>
-                    </div>
-                </div>
-                <div class="section-content">
-                    <div class="form-group">
-                        <label for="icon-count">Number of Icons (0-6)</label>
-                        <div class="slider-container">
-                            <input type="range" id="icon-count" min="0" max="6" value="4">
-                            <span class="slider-value">4</span>
-                        </div>
-                    </div>
-                    
-                    <div class="icons-configuration">
-                        <h4>Configure Icons</h4>
-                        <div class="icon-slots">
-                            <div class="icon-slot active" data-slot="0">
-                                <div class="slot-header">
-                                    <span class="slot-number">1</span>
-                                    <button class="remove-icon" aria-label="Remove icon">×</button>
-                                </div>
-                                <div class="icon-picker">
-                                    <div class="current-icon">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                            <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="currentColor"/>
-                                        </svg>
-                                    </div>
-                                    <div class="icon-options">
-                                        <button class="icon-option active" data-icon="star">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M8 1L10.06 5.51L15 6L11.5 9.5L12.12 14.5L8 12.51L3.88 14.5L4.5 9.5L1 6L5.94 5.51L8 1Z" fill="currentColor"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option" data-icon="circle">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option" data-icon="arrow">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option" data-icon="heart">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M13.89 3.07A3.67 3.67 0 0 0 11 1.35A3.67 3.67 0 0 0 8 3.97A3.67 3.67 0 0 0 5 1.35A3.67 3.67 0 0 0 2.11 3.07C1.39 5.23 3.19 8.65 8 12.79C12.81 8.65 14.61 5.23 13.89 3.07Z" fill="currentColor"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="icon-slot active" data-slot="1">
-                                <div class="slot-header">
-                                    <span class="slot-number">2</span>
-                                    <button class="remove-icon" aria-label="Remove icon">×</button>
-                                </div>
-                                <div class="icon-picker">
-                                    <div class="current-icon">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                        </svg>
-                                    </div>
-                                    <div class="icon-options">
-                                        <button class="icon-option" data-icon="star">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M8 1L10.06 5.51L15 6L11.5 9.5L12.12 14.5L8 12.51L3.88 14.5L4.5 9.5L1 6L5.94 5.51L8 1Z" fill="currentColor"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option active" data-icon="circle">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option" data-icon="arrow">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option" data-icon="heart">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M13.89 3.07A3.67 3.67 0 0 0 11 1.35A3.67 3.67 0 0 0 8 3.97A3.67 3.67 0 0 0 5 1.35A3.67 3.67 0 0 0 2.11 3.07C1.39 5.23 3.19 8.65 8 12.79C12.81 8.65 14.61 5.23 13.89 3.07Z" fill="currentColor"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="icon-slot active" data-slot="2">
-                                <div class="slot-header">
-                                    <span class="slot-number">3</span>
-                                    <button class="remove-icon" aria-label="Remove icon">×</button>
-                                </div>
-                                <div class="icon-picker">
-                                    <div class="current-icon">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </div>
-                                    <div class="icon-options">
-                                        <button class="icon-option" data-icon="star">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M8 1L10.06 5.51L15 6L11.5 9.5L12.12 14.5L8 12.51L3.88 14.5L4.5 9.5L1 6L5.94 5.51L8 1Z" fill="currentColor"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option" data-icon="circle">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option active" data-icon="arrow">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option" data-icon="heart">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M13.89 3.07A3.67 3.67 0 0 0 11 1.35A3.67 3.67 0 0 0 8 3.97A3.67 3.67 0 0 0 5 1.35A3.67 3.67 0 0 0 2.11 3.07C1.39 5.23 3.19 8.65 8 12.79C12.81 8.65 14.61 5.23 13.89 3.07Z" fill="currentColor"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="icon-slot active" data-slot="3">
-                                <div class="slot-header">
-                                    <span class="slot-number">4</span>
-                                    <button class="remove-icon" aria-label="Remove icon">×</button>
-                                </div>
-                                <div class="icon-picker">
-                                    <div class="current-icon">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </div>
-                                    <div class="icon-options">
-                                        <button class="icon-option" data-icon="star">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M8 1L10.06 5.51L15 6L11.5 9.5L12.12 14.5L8 12.51L3.88 14.5L4.5 9.5L1 6L5.94 5.51L8 1Z" fill="currentColor"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option" data-icon="circle">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option active" data-icon="arrow">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </button>
-                                        <button class="icon-option" data-icon="heart">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M13.89 3.07A3.67 3.67 0 0 0 11 1.35A3.67 3.67 0 0 0 8 3.97A3.67 3.67 0 0 0 5 1.35A3.67 3.67 0 0 0 2.11 3.07C1.39 5.23 3.19 8.65 8 12.79C12.81 8.65 14.61 5.23 13.89 3.07Z" fill="currentColor"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Animation Properties Section -->
-            <section class="panel-section" data-section="animation">
-                <div class="section-header">
-                    <h3>Animation</h3>
-                    <button class="section-toggle" aria-expanded="false" aria-label="Toggle animation section">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="section-content collapsed">
-                    <div class="animation-presets">
-                        <div class="preset-card active">
-                            <div class="preset-preview">
-                                <div class="motion-curve"></div>
-                            </div>
-                            <div class="preset-name">Slide In Left</div>
-                        </div>
-                        <div class="preset-card">
-                            <div class="preset-preview">
-                                <div class="motion-curve"></div>
-                            </div>
-                            <div class="preset-name">Fade In</div>
-                        </div>
-                        <div class="preset-card">
-                            <div class="preset-preview">
-                                <div class="motion-curve"></div>
-                            </div>
-                            <div class="preset-name">Scale Up</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </aside>
-
-        <!-- Center-Right Preview Area -->
-        <section class="preview-area">
-            <div class="preview-header">
-                <div class="preview-controls">
-                    <div class="zoom-controls">
-                        <button class="zoom-btn" id="zoom-out" aria-label="Zoom out">-</button>
-                        <select class="zoom-select" aria-label="Zoom level">
-                            <option value="10">10%</option>
-                            <option value="25">25%</option>
-                            <option value="50">50%</option>
-                            <option value="75">75%</option>
-                            <option value="100" selected>100%</option>
-                            <option value="125">125%</option>
-                            <option value="150">150%</option>
-                            <option value="200">200%</option>
-                            <option value="300">300%</option>
-                            <option value="400">400%</option>
-                        </select>
-                        <button class="zoom-btn" id="zoom-in" aria-label="Zoom in">+</button>
-                        <button class="fit-btn" id="fit-to-screen" aria-label="Fit to screen">Fit</button>
-                    </div>
-                    <div class="resolution-indicator">
-                        <span class="resolution-badge">1920 × 1080</span>
-                    </div>
-                </div>
-                <div class="playback-controls">
-                    <button class="play-btn" aria-label="Play/Pause (Space)">
-                        <svg class="play-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M3 2L13 8L3 14V2Z" fill="currentColor"/>
-                        </svg>
-                        <svg class="pause-icon hidden" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M5 2H7V14H5V2ZM9 2H11V14H9V2Z" fill="currentColor"/>
-                        </svg>
-                    </button>
-                    <div class="time-display">00:00:00:00</div>
-                </div>
-            </div>
-            
-            <div class="canvas-container" id="canvas-container">
-                <div class="canvas-wrapper" id="canvas-wrapper">
-                    <div class="transparency-checkerboard" id="transparency-checkerboard"></div>
-                    <div id="konva-container" aria-label="Template preview"></div>
-                    <div class="canvas-overlay">
-                        <!-- Overlay for selection handles, guides, etc. -->
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Bottom Timeline Panel (250px height) -->
-    <footer class="timeline-panel">
-        <div class="timeline-header">
-            <div class="timeline-controls">
-                <button class="timeline-btn" aria-label="Go to beginning">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M3 2V14M7 8L13 14V2L7 8Z" fill="currentColor"/>
-                    </svg>
-                </button>
-                <button class="timeline-btn" aria-label="Previous frame">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <button class="timeline-btn timeline-play" aria-label="Play/Pause">
-                    <svg class="play-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M3 2L13 8L3 14V2Z" fill="currentColor"/>
-                    </svg>
-                    <svg class="pause-icon hidden" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M5 2H7V14H5V2ZM9 2H11V14H9V2Z" fill="currentColor"/>
-                    </svg>
-                </button>
-                <button class="timeline-btn" aria-label="Next frame">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <button class="timeline-btn" aria-label="Go to end">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M13 2V14M9 8L3 2V14L9 8Z" fill="currentColor"/>
-                    </svg>
-                </button>
-            </div>
-            
-            <div class="timeline-info">
-                <span class="current-frame">Frame: 001</span>
-                <span class="total-duration">/ 300 (10.0s)</span>
-            </div>
-        </div>
-        
-        <div class="timeline-content">
-            <div class="layers-panel">
-                <div class="layer-item active" data-layer="top-icon">
-                    <button class="layer-visibility" aria-label="Toggle visibility">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
-                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <button class="layer-lock" aria-label="Toggle lock">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <span class="layer-name">Top Icon</span>
-                </div>
-                <div class="layer-item" data-layer="top-title">
-                    <button class="layer-visibility" aria-label="Toggle visibility">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
-                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <button class="layer-lock" aria-label="Toggle lock">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <span class="layer-name">Top Title</span>
-                </div>
-                <div class="layer-item" data-layer="main-title">
-                    <button class="layer-visibility" aria-label="Toggle visibility">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
-                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <button class="layer-lock" aria-label="Toggle lock">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <span class="layer-name">Main Title</span>
-                </div>
-                <div class="layer-item" data-layer="subtitle1">
-                    <button class="layer-visibility" aria-label="Toggle visibility">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
-                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <button class="layer-lock" aria-label="Toggle lock">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <span class="layer-name">Subtitle 1</span>
-                </div>
-                <div class="layer-item" data-layer="subtitle2">
-                    <button class="layer-visibility" aria-label="Toggle visibility">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
-                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <button class="layer-lock" aria-label="Toggle lock">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <span class="layer-name">Subtitle 2</span>
-                </div>
-                <div class="layer-item" data-layer="bottom-icons">
-                    <button class="layer-visibility" aria-label="Toggle visibility">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
-                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <button class="layer-lock" aria-label="Toggle lock">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
-                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
-                        </svg>
-                    </button>
-                    <span class="layer-name">Bottom Icons</span>
-                </div>
-            </div>
-            
-            <div class="timeline-track">
-                <div class="timecode-ruler">
-                    <div class="timecode-marker" style="left: 0%">0s</div>
-                    <div class="timecode-marker" style="left: 10%">1s</div>
-                    <div class="timecode-marker" style="left: 20%">2s</div>
-                    <div class="timecode-marker" style="left: 30%">3s</div>
-                    <div class="timecode-marker" style="left: 40%">4s</div>
-                    <div class="timecode-marker" style="left: 50%">5s</div>
-                    <div class="timecode-marker" style="left: 60%">6s</div>
-                    <div class="timecode-marker" style="left: 70%">7s</div>
-                    <div class="timecode-marker" style="left: 80%">8s</div>
-                    <div class="timecode-marker" style="left: 90%">9s</div>
-                    <div class="timecode-marker" style="left: 100%">10s</div>
-                </div>
-                
-                <div class="timeline-layers">
-                    <div class="timeline-layer" data-layer="top-icon">
-                        <div class="keyframe" style="left: 0%"></div>
-                        <div class="keyframe" style="left: 15%"></div>
-                        <div class="keyframe" style="left: 85%"></div>
-                        <div class="animation-block" style="left: 0%; width: 100%"></div>
-                    </div>
-                    <div class="timeline-layer" data-layer="top-title">
-                        <div class="keyframe" style="left: 5%"></div>
-                        <div class="keyframe" style="left: 20%"></div>
-                        <div class="keyframe" style="left: 80%"></div>
-                        <div class="animation-block" style="left: 5%; width: 90%"></div>
-                    </div>
-                    <div class="timeline-layer" data-layer="main-title">
-                        <div class="keyframe" style="left: 10%"></div>
-                        <div class="keyframe" style="left: 25%"></div>
-                        <div class="keyframe" style="left: 75%"></div>
-                        <div class="animation-block" style="left: 10%; width: 80%"></div>
-                    </div>
-                    <div class="timeline-layer" data-layer="subtitle1">
-                        <div class="keyframe" style="left: 15%"></div>
-                        <div class="keyframe" style="left: 30%"></div>
-                        <div class="keyframe" style="left: 70%"></div>
-                        <div class="animation-block" style="left: 15%; width: 70%"></div>
-                    </div>
-                    <div class="timeline-layer" data-layer="subtitle2">
-                        <div class="keyframe" style="left: 20%"></div>
-                        <div class="keyframe" style="left: 35%"></div>
-                        <div class="keyframe" style="left: 65%"></div>
-                        <div class="animation-block" style="left: 20%; width: 60%"></div>
-                    </div>
-                    <div class="timeline-layer" data-layer="bottom-icons">
-                        <div class="keyframe" style="left: 25%"></div>
-                        <div class="keyframe" style="left: 40%"></div>
-                        <div class="keyframe" style="left: 60%"></div>
-                        <div class="animation-block" style="left: 25%; width: 50%"></div>
-                    </div>
-                </div>
-                
-                <div class="playhead" style="left: 0%">
-                    <div class="playhead-handle"></div>
-                    <div class="playhead-line"></div>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Export Modal -->
-    <div class="export-modal" id="export-modal" role="dialog" aria-labelledby="export-modal-title" aria-hidden="true">
-        <div class="export-modal-content">
-            <div class="export-modal-header">
-                <h2 id="export-modal-title">Export Project</h2>
-                <button class="export-modal-close" aria-label="Close export modal">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            </div>
-            
-            <div class="export-modal-body">
-                <div class="export-format-info">
-                    <div class="export-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" id="export-format-icon">
-                            <!-- Will be updated based on selected format -->
-                        </svg>
-                    </div>
-                    <div class="export-details">
-                        <h3 id="export-format-title">Export Format</h3>
-                        <p id="export-format-description">Format description</p>
-                        <div class="export-specs">
-                            <span class="spec-item">Resolution: 1920×1080</span>
-                            <span class="spec-item">Duration: 10 seconds</span>
-                            <span class="spec-item" id="export-spec-format">30 FPS</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="export-progress" id="export-progress" style="display: none;">
-                    <div class="progress-header">
-                        <span class="progress-label">Processing...</span>
-                        <span class="progress-percentage">0%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 0%"></div>
-                    </div>
-                    <div class="progress-details">
-                        <span class="progress-frame">Frame 0 of 300</span>
-                        <span class="progress-eta">Estimated time remaining: --</span>
-                    </div>
-                </div>
-                
-                <div class="export-complete" id="export-complete" style="display: none;">
-                    <div class="complete-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="10" stroke="#22c55e" stroke-width="2" fill="none"/>
-                            <path d="M8 12l2 2 6-6" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                    <h3>Export Complete!</h3>
-                    <p id="export-complete-message">Your export has been completed successfully.</p>
-                    <button class="download-btn" id="download-btn">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M8 1v10M4 7l4 4 4-4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Download
-                    </button>
-                </div>
-            </div>
-            
-            <div class="export-modal-footer">
-                <button class="export-cancel-btn" id="export-cancel-btn">Cancel</button>
-                <button class="export-start-btn" id="export-start-btn">Start Export</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+    <script src="shared/js/gallery-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Template Gallery loaded');
+            // Future: Load templates from API
+            // const gallery = new GalleryManager();
+            // gallery.loadTemplates();
+        });
+    </script>
 </body>
 </html> 

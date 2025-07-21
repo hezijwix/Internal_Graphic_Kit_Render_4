@@ -1304,6 +1304,8 @@ class TemplateEditor {
         }
     }
     
+
+    
     updateFont(property, value) {
         if (property === 'family') {
             if (this.templateObjects.topTitle) this.templateObjects.topTitle.fontFamily(value);
@@ -3148,3 +3150,150 @@ document.addEventListener('DOMContentLoaded', async () => {
         editor.loadProject();
     }
 }); 
+
+// NOTE FOR CLAUDE: Save Preset functionality - connect this to backend when ready
+// This button should capture the current template state and save it as a preset
+// that can be loaded later. Include: text content, colors, icon uploads, visibility states
+
+// Save Preset Event Listener - Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    const savePresetBtn = document.getElementById('save-preset-btn');
+    if (savePresetBtn) {
+        savePresetBtn.addEventListener('click', handleSavePreset);
+    }
+});
+
+function handleSavePreset() {
+    // TODO: Connect to backend - this function should:
+    // 1. Collect current template state (text, colors, icons, settings)
+    // 2. Prompt user for preset name and description
+    // 3. Send to backend API to save preset
+    // 4. Show success/error feedback
+    
+    console.log('Save Preset clicked - functionality to be implemented');
+    
+    // Temporary: Collect current state for demo
+    const currentState = {
+        templateId: 'template_001',
+        name: 'Custom Preset ' + new Date().toLocaleString(),
+        settings: {
+            topTitle: document.getElementById('top-title')?.value || '',
+            mainTitle: document.getElementById('main-title')?.value || '',
+            subtitle1: document.getElementById('subtitle1')?.value || '',
+            subtitle2: document.getElementById('subtitle2')?.value || '',
+            fontFamily: document.getElementById('font-family')?.value || 'Wix Madefor Display',
+            topIconColor: document.getElementById('top-icon-color')?.value || '#FFFFFF',
+            // Add icon uploads, colors, visibility states etc.
+            layerVisibility: {
+                topIcon: document.getElementById('top-icon-visible')?.checked || true,
+                bottomIcons: document.getElementById('bottom-icons-visible')?.checked || true
+            }
+        },
+        timestamp: new Date().toISOString()
+    };
+    
+    // Temporary: Save to localStorage until backend is ready
+    const savedPresets = JSON.parse(localStorage.getItem('wix-video-presets') || '[]');
+    savedPresets.push(currentState);
+    localStorage.setItem('wix-video-presets', JSON.stringify(savedPresets));
+    
+    // Show user feedback
+    showPresetSavedNotification();
+    
+    // TODO: Replace with proper modal/toast notification
+    // TODO: Add preset management UI
+    // TODO: Connect to backend API endpoints
+}
+
+function showPresetSavedNotification() {
+    // Create temporary notification
+    const notification = document.createElement('div');
+    notification.className = 'preset-notification';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" stroke="#22c55e" stroke-width="2" fill="none"/>
+                <path d="M5 8l2 2 4-4" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Preset saved locally! (Backend integration pending)</span>
+        </div>
+    `;
+    
+    // Add notification styles
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bg-secondary);
+        border: 1px solid #22c55e;
+        border-radius: var(--border-radius);
+        padding: 12px 16px;
+        color: var(--text-primary);
+        z-index: 1000;
+        animation: slideInRight 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Helper function to get current template state
+function getCurrentTemplateState() {
+    // This should collect all current form values, canvas state, etc.
+    // and return a complete state object that can recreate the template
+    
+    // TODO: Implementation needed when connecting to backend
+    // Should include:
+    // - All text field values
+    // - Color selections
+    // - Icon uploads (base64 data)
+    // - Layer visibility states
+    // - Icon configurations
+    // - Animation settings
+    
+    return {
+        // Implementation needed when connecting to backend
+    };
+}
+
+// Helper function to load preset state
+function loadPresetState(presetData) {
+    // This should restore all form values, canvas state, etc.
+    // from a saved preset
+    
+    // TODO: Implementation needed when connecting to backend
+    // Should restore:
+    // - All text field values
+    // - Color selections
+    // - Icon uploads and display
+    // - Layer visibility states
+    // - Icon configurations
+    // - Trigger canvas redraw
+}
+
+// Add CSS animation styles for notification
+const notificationStyles = document.createElement('style');
+notificationStyles.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .preset-notification .notification-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+`;
+document.head.appendChild(notificationStyles);
