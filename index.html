@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wix Video Asset Creator - Template Editor</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Konva.js for advanced canvas rendering -->
+    <script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
+    
+    <!-- GSAP for professional animations and timeline -->
+    <script src="https://unpkg.com/gsap@3.12.2/dist/gsap.min.js"></script>
+</head>
+<body>
+    <!-- Header Bar (60px height) -->
+    <header class="header-bar">
+        <div class="header-left">
+            <div class="wix-logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M8 8h16v16H8z" fill="#0066FF"/>
+                    <path d="M12 12h8v8h-8z" fill="#fff"/>
+                </svg>
+            </div>
+            <div class="project-name" contenteditable="true" aria-label="Project name">Untitled Project</div>
+            <div class="auto-save-indicator">
+                <span class="save-status">Auto-saved</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="template-badge">Template: Animated Title Card</div>
+        </div>
+        <div class="header-right">
+            <button class="export-btn" aria-label="Export project">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 1v10M4 7l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Export
+            </button>
+            <div class="account-dropdown">
+                <button class="account-btn" aria-label="Account menu">
+                    <div class="avatar">H</div>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Left Tool Panel (300px width) -->
+        <aside class="tool-panel">
+            <div class="panel-header">
+                <h2>Properties</h2>
+            </div>
+            
+            <!-- Template Selector Section -->
+            <section class="panel-section" data-section="templates">
+                <div class="section-header">
+                    <h3>Template</h3>
+                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle template section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="section-content">
+                    <div class="template-grid">
+                        <div class="template-card active">
+                            <div class="template-thumbnail">
+                                <div class="placeholder-thumbnail">Animated Title</div>
+                            </div>
+                            <div class="template-name">Title Card</div>
+                        </div>
+                        <div class="template-card">
+                            <div class="template-thumbnail">
+                                <div class="placeholder-thumbnail">Logo Intro</div>
+                            </div>
+                            <div class="template-name">Logo Reveal</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Text Properties Section -->
+            <section class="panel-section" data-section="text">
+                <div class="section-header">
+                    <h3>Text Properties</h3>
+                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle text properties section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="main-text">Main Text</label>
+                        <textarea id="main-text" rows="2" placeholder="Enter your title text">Welcome to Wix</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="subtitle-text">Subtitle</label>
+                        <input type="text" id="subtitle-text" placeholder="Enter subtitle" value="Create Amazing Videos">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="font-family">Font Family</label>
+                            <select id="font-family">
+                                <option value="inter">Inter</option>
+                                <option value="roboto">Roboto</option>
+                                <option value="helvetica">Helvetica</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="font-weight">Weight</label>
+                            <select id="font-weight">
+                                <option value="300">Thin</option>
+                                <option value="400" selected>Regular</option>
+                                <option value="500">Medium</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="font-size">Font Size</label>
+                        <div class="slider-container">
+                            <input type="range" id="font-size" min="12" max="120" value="72">
+                            <span class="slider-value">72px</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Color Properties Section -->
+            <section class="panel-section" data-section="colors">
+                <div class="section-header">
+                    <h3>Colors</h3>
+                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle colors section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="section-content">
+                    <div class="color-group">
+                        <label>Text Color</label>
+                        <div class="color-swatches">
+                            <button class="color-swatch active" style="background-color: #FFFFFF" data-color="#FFFFFF" aria-label="White"></button>
+                            <button class="color-swatch" style="background-color: #0066FF" data-color="#0066FF" aria-label="Blue"></button>
+                            <button class="color-swatch" style="background-color: #FF6B6B" data-color="#FF6B6B" aria-label="Red"></button>
+                            <button class="color-swatch" style="background-color: #4ECDC4" data-color="#4ECDC4" aria-label="Teal"></button>
+                            <button class="color-swatch" style="background-color: #45B7D1" data-color="#45B7D1" aria-label="Light Blue"></button>
+                            <button class="color-swatch" style="background-color: #96CEB4" data-color="#96CEB4" aria-label="Green"></button>
+                        </div>
+                    </div>
+                    <div class="color-group">
+                        <label>Background Color</label>
+                        <div class="color-swatches">
+                            <button class="color-swatch active" style="background-color: #0D0D0D" data-color="#0D0D0D" aria-label="Black"></button>
+                            <button class="color-swatch" style="background-color: #1A1A1A" data-color="#1A1A1A" aria-label="Dark Gray"></button>
+                            <button class="color-swatch" style="background-color: #2C3E50" data-color="#2C3E50" aria-label="Dark Blue"></button>
+                            <button class="color-swatch" style="background-color: #34495E" data-color="#34495E" aria-label="Slate"></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Icon Properties Section -->
+            <section class="panel-section" data-section="icons">
+                <div class="section-header">
+                    <h3>Icons</h3>
+                    <button class="section-toggle" aria-expanded="false" aria-label="Toggle icons section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="section-content collapsed">
+                    <div class="upload-area">
+                        <button class="upload-btn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 1v12M4 9l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Upload Icon
+                        </button>
+                        <span class="upload-hint">PNG, SVG up to 2MB</span>
+                    </div>
+                    <div class="icon-presets">
+                        <h4>Preset Icons</h4>
+                        <div class="icon-grid">
+                            <button class="icon-preset">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button class="icon-preset">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </button>
+                            <button class="icon-preset">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button class="icon-preset">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M20.84 4.61A5.5 5.5 0 0 0 16.5 2.03A5.5 5.5 0 0 0 12 5.96A5.5 5.5 0 0 0 7.5 2.03A5.5 5.5 0 0 0 3.16 4.61C2.09 7.85 4.79 12.97 12 19.18C19.21 12.97 21.91 7.85 20.84 4.61Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Animation Properties Section -->
+            <section class="panel-section" data-section="animation">
+                <div class="section-header">
+                    <h3>Animation</h3>
+                    <button class="section-toggle" aria-expanded="false" aria-label="Toggle animation section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="section-content collapsed">
+                    <div class="animation-presets">
+                        <div class="preset-card active">
+                            <div class="preset-preview">
+                                <div class="motion-curve"></div>
+                            </div>
+                            <div class="preset-name">Slide In Left</div>
+                        </div>
+                        <div class="preset-card">
+                            <div class="preset-preview">
+                                <div class="motion-curve"></div>
+                            </div>
+                            <div class="preset-name">Fade In</div>
+                        </div>
+                        <div class="preset-card">
+                            <div class="preset-preview">
+                                <div class="motion-curve"></div>
+                            </div>
+                            <div class="preset-name">Scale Up</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+
+        <!-- Center-Right Preview Area -->
+        <section class="preview-area">
+            <div class="preview-header">
+                <div class="preview-controls">
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" id="zoom-out" aria-label="Zoom out">-</button>
+                        <select class="zoom-select" aria-label="Zoom level">
+                            <option value="10">10%</option>
+                            <option value="25">25%</option>
+                            <option value="50">50%</option>
+                            <option value="75">75%</option>
+                            <option value="100" selected>100%</option>
+                            <option value="125">125%</option>
+                            <option value="150">150%</option>
+                            <option value="200">200%</option>
+                            <option value="300">300%</option>
+                            <option value="400">400%</option>
+                        </select>
+                        <button class="zoom-btn" id="zoom-in" aria-label="Zoom in">+</button>
+                        <button class="fit-btn" id="fit-to-screen" aria-label="Fit to screen">Fit</button>
+                    </div>
+                    <div class="resolution-indicator">
+                        <span class="resolution-badge">1920 × 1080</span>
+                    </div>
+                </div>
+                <div class="playback-controls">
+                    <button class="play-btn" aria-label="Play/Pause (Space)">
+                        <svg class="play-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 2L13 8L3 14V2Z" fill="currentColor"/>
+                        </svg>
+                        <svg class="pause-icon hidden" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M5 2H7V14H5V2ZM9 2H11V14H9V2Z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                    <div class="time-display">00:00:00:00</div>
+                </div>
+            </div>
+            
+            <div class="canvas-container" id="canvas-container">
+                <div class="canvas-wrapper" id="canvas-wrapper">
+                    <div id="konva-container" aria-label="Template preview"></div>
+                    <div class="canvas-overlay">
+                        <!-- Overlay for selection handles, guides, etc. -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Timeline Panel (250px height) -->
+    <footer class="timeline-panel">
+        <div class="timeline-header">
+            <div class="timeline-controls">
+                <button class="timeline-btn" aria-label="Go to beginning">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 2V14M7 8L13 14V2L7 8Z" fill="currentColor"/>
+                    </svg>
+                </button>
+                <button class="timeline-btn" aria-label="Previous frame">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="timeline-btn timeline-play" aria-label="Play/Pause">
+                    <svg class="play-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 2L13 8L3 14V2Z" fill="currentColor"/>
+                    </svg>
+                    <svg class="pause-icon hidden" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M5 2H7V14H5V2ZM9 2H11V14H9V2Z" fill="currentColor"/>
+                    </svg>
+                </button>
+                <button class="timeline-btn" aria-label="Next frame">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="timeline-btn" aria-label="Go to end">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M13 2V14M9 8L3 2V14L9 8Z" fill="currentColor"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="timeline-info">
+                <span class="current-frame">Frame: 001</span>
+                <span class="total-duration">/ 300 (10.0s)</span>
+            </div>
+        </div>
+        
+        <div class="timeline-content">
+            <div class="layers-panel">
+                <div class="layer-item active" data-layer="main-title">
+                    <button class="layer-visibility" aria-label="Toggle visibility">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
+                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <button class="layer-lock" aria-label="Toggle lock">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <span class="layer-name">Main Title</span>
+                </div>
+                <div class="layer-item" data-layer="subtitle">
+                    <button class="layer-visibility" aria-label="Toggle visibility">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
+                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <button class="layer-lock" aria-label="Toggle lock">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <span class="layer-name">Subtitle</span>
+                </div>
+                <div class="layer-item" data-layer="icon">
+                    <button class="layer-visibility" aria-label="Toggle visibility">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
+                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <button class="layer-lock" aria-label="Toggle lock">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <span class="layer-name">Icon</span>
+                </div>
+            </div>
+            
+            <div class="timeline-track">
+                <div class="timecode-ruler">
+                    <div class="timecode-marker" style="left: 0%">0s</div>
+                    <div class="timecode-marker" style="left: 10%">1s</div>
+                    <div class="timecode-marker" style="left: 20%">2s</div>
+                    <div class="timecode-marker" style="left: 30%">3s</div>
+                    <div class="timecode-marker" style="left: 40%">4s</div>
+                    <div class="timecode-marker" style="left: 50%">5s</div>
+                    <div class="timecode-marker" style="left: 60%">6s</div>
+                    <div class="timecode-marker" style="left: 70%">7s</div>
+                    <div class="timecode-marker" style="left: 80%">8s</div>
+                    <div class="timecode-marker" style="left: 90%">9s</div>
+                    <div class="timecode-marker" style="left: 100%">10s</div>
+                </div>
+                
+                <div class="timeline-layers">
+                    <div class="timeline-layer">
+                        <div class="keyframe" style="left: 0%"></div>
+                        <div class="keyframe" style="left: 25%"></div>
+                        <div class="keyframe" style="left: 75%"></div>
+                        <div class="animation-block" style="left: 0%; width: 100%"></div>
+                    </div>
+                    <div class="timeline-layer">
+                        <div class="keyframe" style="left: 10%"></div>
+                        <div class="keyframe" style="left: 35%"></div>
+                        <div class="keyframe" style="left: 85%"></div>
+                        <div class="animation-block" style="left: 10%; width: 75%"></div>
+                    </div>
+                    <div class="timeline-layer">
+                        <div class="keyframe" style="left: 20%"></div>
+                        <div class="keyframe" style="left: 80%"></div>
+                        <div class="animation-block" style="left: 20%; width: 60%"></div>
+                    </div>
+                </div>
+                
+                <div class="playhead" style="left: 0%">
+                    <div class="playhead-handle"></div>
+                    <div class="playhead-line"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 

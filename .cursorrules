@@ -1,0 +1,465 @@
+# Wix Video Asset Creator - Cursor Rules
+
+## Project Overview
+This is a professional web-based motion graphics template editor for creating animated video assets. The application uses Konva.js for 2D canvas rendering and GSAP for timeline-based animations, following a three-panel layout design (tool panel, preview area, timeline).
+
+## Core Technologies & Architecture
+
+### Required Libraries
+- **Konva.js 9.2.0**: For 2D canvas rendering and object management
+- **GSAP 3.12.2**: For professional timeline animations and easing
+- **Vanilla JavaScript ES6+**: No frameworks, pure JavaScript with modern features
+- **CSS Custom Properties**: For consistent design tokens and theming
+
+### Architecture Patterns
+- **Object-Oriented Design**: Template objects as Konva instances
+- **Event-Driven Architecture**: Canvas interactions and timeline controls
+- **Layered Rendering**: Background, content, and UI layers in Konva
+- **State Management**: Class-based state with local storage persistence
+
+## File Structure Standards
+
+### Core Files
+- `index.html`: Main application structure with CDN imports
+- `styles.css`: Complete CSS with CSS custom properties
+- `script.js`: Single JavaScript file with TemplateEditor class
+- `README.md`: Comprehensive documentation
+- `.cursorrules`: This file
+
+### Development Guidelines
+- **Single HTML File**: No build process, direct browser execution
+- **Modular JavaScript**: All functionality in TemplateEditor class
+- **CSS Organization**: Logical grouping with consistent naming
+- **Documentation**: Inline comments for complex logic
+
+## Code Style & Conventions
+
+### JavaScript Standards
+```javascript
+// Class naming: PascalCase
+class TemplateEditor {
+    constructor() {
+        // Property naming: camelCase
+        this.zoomLevel = 100;
+        this.templateObjects = {};
+    }
+    
+    // Method naming: camelCase with descriptive verbs
+    createGSAPTimeline() {}
+    updateCanvasTransform() {}
+    setupEventListeners() {}
+}
+
+// Constants: UPPER_SNAKE_CASE
+const MAX_ZOOM = 400;
+const ANIMATION_DURATION = 10;
+
+// Event handling: Arrow functions preferred
+button.addEventListener('click', () => this.handleAction());
+```
+
+### CSS Standards
+```css
+/* Use CSS custom properties for all values */
+:root {
+    --bg-primary: #0D0D0D;
+    --text-primary: #FFFFFF;
+    --spacing-md: 12px;
+}
+
+/* BEM-like naming convention */
+.tool-panel {}
+.tool-panel__section {}
+.tool-panel__section--active {}
+
+/* Component-based organization */
+/* Header, Tool Panel, Preview Area, Timeline */
+```
+
+### HTML Standards
+```html
+<!-- Semantic HTML5 elements -->
+<main class="main-content">
+    <aside class="tool-panel">
+    <section class="preview-area">
+    <footer class="timeline-panel">
+
+<!-- Accessibility attributes required -->
+<button aria-label="Play/Pause" aria-pressed="false">
+<input aria-describedby="helper-text">
+
+<!-- Data attributes for JavaScript hooks -->
+<div class="layer-item" data-layer="main-title">
+```
+
+## Konva.js Implementation Guidelines
+
+### Stage and Layer Management
+```javascript
+// Always use layered architecture
+this.stage = new Konva.Stage({
+    container: 'konva-container',
+    width: 1920,
+    height: 1080
+});
+
+// Three-layer system for performance
+this.backgroundLayer = new Konva.Layer();  // Static background
+this.contentLayer = new Konva.Layer();     // Animated content
+this.uiLayer = new Konva.Layer();          // Selection indicators
+
+// Always use batchDraw() for performance
+this.stage.batchDraw();
+```
+
+### Object Creation Patterns
+```javascript
+// Template objects with proper configuration
+this.templateObjects.mainTitle = new Konva.Text({
+    x: 960,
+    y: 400,
+    text: 'Welcome to Wix',
+    fontSize: 72,
+    fontFamily: 'Inter',
+    fill: '#FFFFFF',
+    align: 'center',
+    offsetX: 0,  // Calculate for center alignment
+    offsetY: 36, // Half of fontSize
+    listening: true  // Enable interactions
+});
+
+// Always add to appropriate layer
+this.contentLayer.add(this.templateObjects.mainTitle);
+```
+
+### Coordinate System Rules
+- **Canvas Size**: Always 1920×1080 (never scale Konva stage)
+- **Zoom Implementation**: CSS transforms only, preserve Konva coordinates
+- **Center Point**: 960, 540 for canvas center
+- **Text Alignment**: Use offsetX/offsetY for precise centering
+- **Position Updates**: Direct property setting, not transforms
+
+## GSAP Animation Guidelines
+
+### Timeline Creation
+```javascript
+// Master timeline with professional settings
+this.timeline = gsap.timeline({ 
+    paused: true,
+    duration: this.animationDuration,
+    ease: "power2.inOut"
+});
+
+// Staggered animations with precise timing
+this.timeline.to(this.templateObjects.mainTitle, {
+    x: 960,
+    opacity: 1,
+    duration: 1.5,
+    ease: "power2.out"
+}, 0);  // Absolute positioning on timeline
+```
+
+### Animation Patterns
+```javascript
+// Intro animations (0-2s)
+// - Fade in: opacity 0 → 1
+// - Slide in: x position offset
+// - Rotation effects for icons
+
+// Hold section (2-8s)
+this.timeline.to({}, { duration: 6 }, 2);
+
+// Exit animations (8-10s)
+// - Fade out with stagger
+// - Slide out effects
+// - Combined transforms
+```
+
+### Timeline Control Integration
+```javascript
+// Frame-perfect seeking
+seekToFrame(frameNumber) {
+    const timelineTime = (frameNumber / this.totalFrames) * this.animationDuration;
+    this.timeline.seek(timelineTime);
+    this.stage.batchDraw();
+}
+
+// Playback state management
+startGSAPPlayback() {
+    if (this.timeline.progress() >= 1) {
+        this.timeline.restart();
+    } else {
+        this.timeline.play();
+    }
+}
+```
+
+## UI/UX Implementation Rules
+
+### Three-Panel Layout
+- **Tool Panel**: 300px fixed width, left side
+- **Preview Area**: Flexible width, center-right
+- **Timeline Panel**: 250px fixed height, bottom
+- **Header Bar**: 60px fixed height, top
+
+### Zoom and Pan System
+```javascript
+// CRITICAL: Never scale Konva stage, only CSS wrapper
+updateCanvasTransform() {
+    const scale = this.zoomLevel / 100;
+    // ONLY apply to wrapper, NOT stage
+    canvasWrapper.style.transform = `scale(${scale}) translate(${panX}px, ${panY}px)`;
+    
+    // NEVER do this:
+    // this.stage.scale({ x: scale, y: scale }); // ❌
+}
+```
+
+### Interaction Patterns
+```javascript
+// Object selection with visual feedback
+selectCanvasObject(object) {
+    this.clearSelection();
+    const selectionRect = new Konva.Rect({
+        stroke: '#0066FF',
+        strokeWidth: 2,
+        dash: [5, 5],
+        listening: false
+    });
+    this.uiLayer.add(selectionRect);
+}
+
+// Layer synchronization
+// Canvas selection → Timeline layer selection
+// Timeline layer selection → Canvas object focus
+```
+
+### Form Control Integration
+```javascript
+// Real-time property updates
+updateText(type, value) {
+    if (type === 'main' && this.templateObjects.mainTitle) {
+        this.templateObjects.mainTitle.text(value);
+        this.templateObjects.mainTitle.offsetX(this.templateObjects.mainTitle.width() / 2);
+    }
+    this.updateTemplateProperties();
+}
+```
+
+## Performance Optimization Rules
+
+### Rendering Efficiency
+- Use `stage.batchDraw()` instead of individual layer draws
+- Minimize `stage.draw()` calls during animations
+- Cache complex calculations
+- Use event delegation for multiple similar elements
+
+### Memory Management
+```javascript
+// Proper cleanup for dynamic objects
+clearSelection() {
+    this.uiLayer.find('.selection').forEach(node => node.destroy());
+    this.stage.batchDraw();
+}
+
+// Avoid memory leaks in intervals
+stopGSAPPlayback() {
+    if (this.playbackInterval) {
+        clearInterval(this.playbackInterval);
+        this.playbackInterval = null;
+    }
+}
+```
+
+### Event Handling
+```javascript
+// Use passive listeners where appropriate
+container.addEventListener('wheel', handler, { passive: false });
+
+// Debounce frequent updates
+const debouncedUpdate = debounce(() => this.updateTemplateProperties(), 100);
+```
+
+## Accessibility Requirements
+
+### Keyboard Navigation
+- **Space**: Play/pause toggle
+- **Arrow Keys**: Frame stepping
+- **Ctrl/Cmd + shortcuts**: Save, export, zoom
+- **Tab navigation**: Through all interactive elements
+
+### ARIA Implementation
+```html
+<!-- Required attributes -->
+<button aria-label="Play/Pause (Space)" aria-pressed="false">
+<div role="slider" aria-valuemin="10" aria-valuemax="400" aria-valuenow="100">
+<canvas aria-label="Template preview">
+
+<!-- Live regions for dynamic content -->
+<div aria-live="polite" class="sr-only">
+```
+
+### Focus Management
+```javascript
+// Visible focus indicators
+button:focus {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 2px;
+}
+
+// Focus trapping in modals
+// Logical tab order throughout interface
+```
+
+## Error Handling & Validation
+
+### Defensive Programming
+```javascript
+// Always check for object existence
+if (this.stage && this.timeline) {
+    this.timeline.seek(time);
+    this.stage.batchDraw();
+}
+
+// Validate user inputs
+const fontSize = Math.max(12, Math.min(120, parseInt(value)));
+
+// Graceful degradation
+try {
+    this.timeline.play();
+} catch (error) {
+    console.warn('Animation failed:', error);
+    this.fallbackToStaticView();
+}
+```
+
+### Browser Compatibility
+- Target Chrome 90+, Firefox 88+, Safari 14+
+- Feature detection for advanced capabilities
+- Graceful fallbacks for unsupported features
+
+## Data Management Patterns
+
+### Local Storage Schema
+```javascript
+const projectData = {
+    name: "Project Name",
+    template: "Template: Animated Title Card",
+    mainText: "Welcome to Wix",
+    subtitle: "Create Amazing Videos",
+    fontSize: "72",
+    fontFamily: "inter",
+    fontWeight: "400",
+    timestamp: new Date().toISOString()
+};
+```
+
+### State Synchronization
+- Form controls ↔ Konva objects ↔ GSAP timeline
+- Timeline position ↔ Frame display ↔ Animation state
+- Layer visibility ↔ Canvas objects ↔ Timeline layers
+
+## Testing Guidelines
+
+### Manual Testing Checklist
+- [ ] All keyboard shortcuts work correctly
+- [ ] Zoom/pan doesn't affect content coordinates
+- [ ] Timeline scrubbing updates canvas in real-time
+- [ ] Form changes immediately update canvas objects
+- [ ] Layer visibility toggles work properly
+- [ ] Animation playback is smooth at 30fps
+- [ ] Export functionality shows proper progress
+- [ ] Auto-save works every 30 seconds
+
+### Performance Targets
+- **Initial Load**: < 2 seconds
+- **Animation Playback**: Consistent 30fps
+- **Timeline Scrubbing**: < 16ms response time
+- **Form Updates**: Immediate visual feedback
+- **Memory Usage**: < 500MB after 10 minutes of use
+
+## Future Enhancement Guidelines
+
+### Extension Points
+- Template system: Add new Konva object types
+- Animation library: Extend GSAP timeline patterns
+- Export formats: Additional video/image formats
+- Asset management: Image/SVG loading system
+
+### Code Organization for Scale
+```javascript
+// Separate concerns for larger features
+class TemplateManager {
+    loadTemplate(id) {}
+    saveTemplate(data) {}
+}
+
+class AnimationController {
+    createTimeline(template) {}
+    updateTimeline(changes) {}
+}
+
+class ExportEngine {
+    exportMP4(timeline) {}
+    exportPNGSequence(timeline) {}
+}
+```
+
+## Common Pitfalls to Avoid
+
+### ❌ Anti-Patterns
+```javascript
+// Don't scale the Konva stage for zoom
+this.stage.scale({ x: zoom, y: zoom }); // ❌
+
+// Don't use setInterval without cleanup
+setInterval(() => {}, 100); // ❌
+
+// Don't manipulate DOM inside Konva events
+konvaObject.on('click', () => {
+    document.querySelector('.panel').style.display = 'block'; // ❌
+});
+
+// Don't bypass the GSAP timeline for animations
+this.object.x(newX); // ❌ Use GSAP instead
+```
+
+### ✅ Best Practices
+```javascript
+// Use CSS transforms for zoom
+wrapper.style.transform = `scale(${zoom})`; // ✅
+
+// Clean up intervals properly
+if (this.interval) clearInterval(this.interval); // ✅
+
+// Use proper event delegation
+this.updateUIState(selectedObject); // ✅
+
+// Let GSAP handle all animations
+gsap.to(this.object, { x: newX, duration: 0.5 }); // ✅
+```
+
+## Documentation Standards
+
+### Code Comments
+```javascript
+/**
+ * Creates the GSAP timeline with professional animation sequence
+ * Intro (0-2s): Fade in and slide effects
+ * Hold (2-8s): Static display period  
+ * Exit (8-10s): Fade out with stagger
+ */
+createGSAPTimeline() {
+    // Implementation with inline comments for complex logic
+}
+```
+
+### README Updates
+- Keep feature list current with implementation
+- Update keyboard shortcuts when adding new ones
+- Document any breaking changes or new dependencies
+- Include performance benchmarks for major changes
+
+---
+
+**Remember**: This is a professional template editor that must maintain frame-perfect timing, high-quality rendering, and intuitive user experience. Every change should consider the impact on performance, usability, and maintainability. 
