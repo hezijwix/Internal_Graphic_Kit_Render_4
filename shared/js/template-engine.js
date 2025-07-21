@@ -38,17 +38,22 @@ class TemplateEditor {
             bottomIcons: true
         };
         
-        // Bottom icons configuration
+        // Bottom icons configuration - unified circle icons
         this.bottomIconsConfig = {
             count: 4,
             spacing: 260,
-            icons: ['star', 'circle', 'arrow', 'arrow'] // Default icons
+            icons: ['circle', 'circle', 'circle', 'circle', 'circle', 'circle'] // Support up to 6 icons
+        };
+        
+        // Top icon configuration
+        this.topIconConfig = {
+            type: 'circle' // Default circle for top icon
         };
         
         // Icon storage and management
         this.uploadedIcons = {
             top: null,
-            bottom: [null, null, null, null] // Support up to 4 bottom icons
+            bottom: [null, null, null, null, null, null] // Support up to 6 bottom icons
         };
         
 
@@ -84,6 +89,9 @@ class TemplateEditor {
         this.setupTimelineInteraction();
         this.initializeZoom();
         this.renderDefaultTemplate();
+        
+        // Load project data if available
+        setTimeout(() => this.loadProjectData(), 100);
         
         console.log('Template Editor initialized successfully');
     }
@@ -414,7 +422,7 @@ class TemplateEditor {
                 const slotIndex = parseInt(slot.dataset.slot);
                 const iconType = button.dataset.icon;
                 
-                // Update icon type
+                // Update icon type in configuration
                 this.bottomIconsConfig.icons[slotIndex] = iconType;
                 
                 // Update UI
@@ -425,7 +433,7 @@ class TemplateEditor {
                 const currentIcon = slot.querySelector('.current-icon');
                 currentIcon.innerHTML = button.innerHTML;
                 
-                // Recreate bottom icons
+                // Recreate bottom icons with new configuration
                 this.createBottomIconsExact();
                 this.recalculateLayout();
                 this.stage.batchDraw();
@@ -442,8 +450,14 @@ class TemplateEditor {
                 document.querySelectorAll('.icon-preset').forEach(preset => preset.classList.remove('active'));
                 button.classList.add('active');
                 
-                // Update top icon
-                this.updateTopIcon(iconType);
+                // Update top icon configuration and recreate
+                this.topIconConfig.type = iconType;
+                if (this.templateObjects.topIcon) {
+                    this.templateObjects.topIcon.destroy();
+                    this.createTopIconFromConfig(this.templateObjects.topIcon.y());
+                    this.updateGSAPTimeline();
+                    this.stage.batchDraw();
+                }
             }
         });
     }
@@ -1292,6 +1306,92 @@ class TemplateEditor {
         return activeColorSwatch ? activeColorSwatch.dataset.color : '#FFFFFF';
     }
     
+    createTopIconFromConfig(y) {
+        const currentTextColor = this.getCurrentTextColor();
+        const iconType = this.topIconConfig.type;
+        
+        this.templateObjects.topIcon = this.createIconShape(iconType, 960, y, 28, currentTextColor);
+        this.contentLayer.add(this.templateObjects.topIcon);
+    }
+    
+    createBottomIcon(iconType, x, y, color) {
+        return this.createIconShape(iconType, x, y, 20, color);
+    }
+    
+    createIconShape(type, x, y, size, color) {
+        switch (type) {
+            case 'star':
+                return new Konva.Star({
+                    x: x,
+                    y: y,
+                    numPoints: 5,
+                    innerRadius: size * 0.6,
+                    outerRadius: size,
+                    fill: color,
+                    listening: true
+                });
+            case 'circle':
+                return new Konva.Circle({
+                    x: x,
+                    y: y,
+                    radius: size,
+                    stroke: color,
+                    strokeWidth: 2,
+                    listening: true
+                });
+            case 'arrow':
+                return new Konva.RegularPolygon({
+                    x: x,
+                    y: y,
+                    sides: 3,
+                    radius: size,
+                    fill: color,
+                    rotation: 90,
+                    listening: true
+                });
+            case 'heart':
+                return new Konva.Path({
+                    x: x,
+                    y: y,
+                    data: 'M12,21.35l-1.45-1.32C5.4,15.36,2,12.28,2,8.5 C2,5.42,4.42,3,7.5,3c1.74,0,3.41,0.81,4.5,2.09C13.09,3.81,14.76,3,16.5,3 C19.58,3,22,5.42,22,8.5c0,3.78-3.4,6.86-8.55,11.54L12,21.35z',
+                    fill: color,
+                    scaleX: size / 24,
+                    scaleY: size / 24,
+                    offsetX: 12,
+                    offsetY: 12,
+                    listening: true
+                });
+            case 'diamond':
+                return new Konva.RegularPolygon({
+                    x: x,
+                    y: y,
+                    sides: 4,
+                    radius: size,
+                    fill: color,
+                    rotation: 45,
+                    listening: true
+                });
+            case 'triangle':
+                return new Konva.RegularPolygon({
+                    x: x,
+                    y: y,
+                    sides: 3,
+                    radius: size,
+                    fill: color,
+                    listening: true
+                });
+            default:
+                return new Konva.Circle({
+                    x: x,
+                    y: y,
+                    radius: size,
+                    stroke: color,
+                    strokeWidth: 2,
+                    listening: true
+                });
+        }
+    }
+    
     applyColorToSVGIcon(iconKonvaObject, color) {
         // For SVG icons, we can apply color filters to simulate color changes
         // This is a simplified approach - in a more advanced implementation,
@@ -1335,8 +1435,6 @@ class TemplateEditor {
                 if (icon.fill) icon.fill(color);
                 if (icon.stroke) icon.stroke(color);
             });
-            // Recreate bottom icons to ensure they use the new color
-            this.createBottomIconsExact();
             // Ensure stage is redrawn with new colors
             this.stage.batchDraw();
         } else if (type === 'Background Color') {
@@ -1801,20 +1899,9 @@ class TemplateEditor {
         
         console.log(`Centering design: total height ${totalHeight}px, starting at Y=${currentY}`);
         
-        // Create top icon (oval shape matching Figma exactly)
+        // Create top icon using configurable system
         if (this.layerVisibility.topIcon) {
-            this.templateObjects.topIcon = new Konva.Ellipse({
-                x: 960, // Center X
-                y: currentY + (topIconHeight / 2),
-                radiusX: 62,
-                radiusY: 29,
-                stroke: '#FFFFFF',
-                strokeWidth: 2,
-                fill: 'transparent',
-                listening: true,
-                visible: true
-            });
-            this.contentLayer.add(this.templateObjects.topIcon);
+            this.createTopIconFromConfig(currentY + (topIconHeight / 2));
             console.log(`Top icon created at Y=${this.templateObjects.topIcon.y()}`);
             currentY += topIconHeight + elementGap;
         }
@@ -1953,66 +2040,20 @@ class TemplateEditor {
         // Calculate dynamic positions based on main title width
         const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
         
-        // Create icons based on Figma design
-        for (let i = 0; i < Math.min(this.bottomIconsConfig.count, 4); i++) {
-            let icon;
-            
-            switch (i) {
-                case 0: // First icon - star/asterisk
-                    icon = new Konva.Star({
-                        x: iconPositions[i],
-                        y: iconY,
-                        numPoints: 8,
-                        innerRadius: 20,
-                        outerRadius: 28,
-                        fill: currentTextColor,
-                        listening: true
-                    });
-                    break;
-                    
-                case 1: // Second icon - oval/circle  
-                    icon = new Konva.Ellipse({
-                        x: iconPositions[i],
-                        y: iconY,
-                        radiusX: 31.5,
-                        radiusY: 20,
-                        stroke: currentTextColor,
-                        strokeWidth: 2,
-                        listening: true
-                    });
-                    break;
-                    
-                case 2: // Third icon - oval/circle (same as second)
-                    icon = new Konva.Ellipse({
-                        x: iconPositions[i],
-                        y: iconY,
-                        radiusX: 31.5,
-                        radiusY: 20,
-                        stroke: currentTextColor,
-                        strokeWidth: 2,
-                        listening: true
-                    });
-                    break;
-                    
-                case 3: // Fourth icon - oval/circle (same as second)
-                    icon = new Konva.Ellipse({
-                        x: iconPositions[i],
-                        y: iconY,
-                        radiusX: 31.5,
-                        radiusY: 20,
-                        stroke: currentTextColor,
-                        strokeWidth: 2,
-                        listening: true
-                    });
-                    break;
-            }
+        // Create icons based on configuration array
+        for (let i = 0; i < this.bottomIconsConfig.count; i++) {
+            const iconType = this.bottomIconsConfig.icons[i] || 'circle'; // Default to circle
+            const icon = this.createBottomIcon(iconType, iconPositions[i], iconY, currentTextColor);
             
             if (icon) {
                 this.templateObjects.bottomIcons.push(icon);
                 this.contentLayer.add(icon);
-                console.log(`Bottom icon ${i + 1} created at x:${iconPositions[i]}, y:${iconY}`);
+                console.log(`Bottom icon ${i + 1} (${iconType}) created at x:${iconPositions[i]}, y:${iconY}`);
             }
         }
+        
+        // Update GSAP timeline to include new icons (this will handle initial positions)
+        this.updateGSAPTimeline();
     }
     
     calculateIconPositions(iconCount) {
@@ -2424,8 +2465,24 @@ class TemplateEditor {
     }
     
     updateGSAPTimeline() {
-        // Simply recreate the timeline when objects change
+        // Preserve current timeline state before recreation
+        const currentProgress = this.timeline ? this.timeline.progress() : 0;
+        const wasPlaying = this.isPlaying;
+        
+        // Recreate the timeline with new objects
         this.createGSAPTimeline();
+        
+        // Restore timeline position and state
+        if (this.timeline && currentProgress > 0) {
+            this.timeline.progress(currentProgress);
+            this.stage.batchDraw();
+            
+            // Resume playback if it was playing
+            if (wasPlaying) {
+                this.timeline.play();
+                this.updateTimelinePosition();
+            }
+        }
     }
     
     setupCanvasInteraction() {
@@ -3083,6 +3140,90 @@ class TemplateEditor {
         
         return fontSize;
     }
+
+    // Project integration method
+    loadProjectData() {
+        const projectIntegration = window.projectIntegration;
+        if (projectIntegration && projectIntegration.currentProject) {
+            const project = projectIntegration.currentProject;
+            console.log('Loading project data:', project.name);
+
+            try {
+                // Load project configuration
+                if (project.config) {
+                    // Load text values
+                    if (project.config.texts) {
+                        const topTitle = document.getElementById('top-title');
+                        const mainTitle = document.getElementById('main-title');
+                        const subtitle1 = document.getElementById('subtitle1');
+                        const subtitle2 = document.getElementById('subtitle2');
+
+                        if (topTitle) topTitle.value = project.config.texts.topTitle || '';
+                        if (mainTitle) mainTitle.value = project.config.texts.mainTitle || '';
+                        if (subtitle1) subtitle1.value = project.config.texts.subtitle1 || '';
+                        if (subtitle2) subtitle2.value = project.config.texts.subtitle2 || '';
+
+                        // Update the template objects with loaded text
+                        if (project.config.texts.topTitle) this.updateText('topTitle', project.config.texts.topTitle);
+                        if (project.config.texts.mainTitle) this.updateText('mainTitle', project.config.texts.mainTitle);
+                        if (project.config.texts.subtitle1) this.updateText('subtitle1', project.config.texts.subtitle1);
+                        if (project.config.texts.subtitle2) this.updateText('subtitle2', project.config.texts.subtitle2);
+                    }
+
+                    // Load colors
+                    if (project.config.colors) {
+                        if (project.config.colors.text) {
+                            this.updateColor('text', project.config.colors.text);
+                        }
+                        if (project.config.colors.background) {
+                            this.updateColor('background', project.config.colors.background);
+                        }
+                    }
+
+                    // Load visibility settings
+                    if (project.config.visibility) {
+                        Object.keys(project.config.visibility).forEach(layer => {
+                            this.layerVisibility[layer] = project.config.visibility[layer];
+                            this.updateLayerVisibility(layer);
+                        });
+                    }
+
+                    // Load bottom icons configuration
+                    if (project.config.bottomIconsConfig) {
+                        this.bottomIconsConfig = { ...this.bottomIconsConfig, ...project.config.bottomIconsConfig };
+                        const iconCountSlider = document.getElementById('icon-count');
+                        if (iconCountSlider && project.config.bottomIconsConfig.count) {
+                            iconCountSlider.value = project.config.bottomIconsConfig.count;
+                            const valueDisplay = iconCountSlider.nextElementSibling;
+                            if (valueDisplay) valueDisplay.textContent = project.config.bottomIconsConfig.count;
+                        }
+                    }
+
+                    // Load icon colors
+                    if (project.config.iconColors) {
+                        this.iconColors = { ...this.iconColors, ...project.config.iconColors };
+                    }
+
+                    // Refresh the template display
+                    this.recalculateLayout();
+                    this.stage.batchDraw();
+
+                    console.log('Project data loaded successfully');
+
+                    // Schedule auto-save for any future changes
+                    if (projectIntegration.scheduleAutoSave) {
+                        // Set up auto-save on form changes
+                        const formInputs = document.querySelectorAll('#top-title, #main-title, #subtitle1, #subtitle2');
+                        formInputs.forEach(input => {
+                            input.addEventListener('input', projectIntegration.scheduleAutoSave);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load project data:', error);
+            }
+        }
+    }
 }
 
 // Initialize the application when DOM is loaded with proper font loading
@@ -3136,18 +3277,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('Fonts with kerning loaded and pre-rendered successfully');
         
         const editor = new TemplateEditor();
-        editor.loadProject();
         
-        // Auto-save every 30 seconds
-        setInterval(() => {
-            editor.saveProject();
-        }, 30000);
+        // Expose globally for project integration
+        window.templateEditor = editor;
+        
+        // Remove old auto-save and project loading - handled by project integration now
+        console.log('Template Editor exposed globally');
         
     } catch (error) {
         console.error('Enhanced font loading failed:', error);
         // Continue anyway with fallback fonts
         const editor = new TemplateEditor();
-        editor.loadProject();
+        
+        // Expose globally for project integration
+        window.templateEditor = editor;
+        console.log('Template Editor exposed globally (fallback)');
     }
 }); 
 

@@ -785,6 +785,7 @@ TWO LINES</textarea>
         </div>
     </div>
 
+    <script src="shared/js/project-manager.js"></script>
     <script src="shared/js/template-engine.js"></script>
     <script>
         // Template configuration for template_001
@@ -793,6 +794,184 @@ TWO LINES</textarea>
             name: 'Animated Title Card',
             version: '1.0.0',
             type: 'title-card'
+        };
+
+        // Project management integration
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = urlParams.get('projectId');
+        const projectManager = new ProjectManager();
+        let currentProject = null;
+
+        // Initialize project management
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing project integration...');
+            
+            // Wait for TemplateEditor to be available
+            function initializeProjectIntegration() {
+                if (window.templateEditor) {
+                    console.log('TemplateEditor found, initializing project...');
+                    
+                    // Load project if projectId is provided
+                    if (projectId) {
+                        currentProject = projectManager.loadProject(projectId);
+                        if (currentProject) {
+                            // Update project name in header
+                            const projectNameElement = document.querySelector('.project-name');
+                            if (projectNameElement) {
+                                projectNameElement.textContent = currentProject.name;
+                            }
+                            console.log('Loaded project:', currentProject.name);
+                        }
+                    }
+
+                    // Connect save button to project manager
+                    const saveBtn = document.getElementById('save-preset-btn');
+                    if (saveBtn) {
+                        if (currentProject) {
+                            saveBtn.innerHTML = `
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M12.5 1h-9A1.5 1.5 0 0 0 2 2.5v11A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 12.5 1Z" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M8 7v6M5 10l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Save Project
+                            `;
+                        }
+                        saveBtn.addEventListener('click', saveCurrentProject);
+                        console.log('Save button connected');
+                    }
+                } else {
+                    // Retry after a short delay
+                    console.log('TemplateEditor not ready, retrying...');
+                    setTimeout(initializeProjectIntegration, 100);
+                }
+            }
+            
+            // Start initialization
+            initializeProjectIntegration();
+        });
+
+        function saveCurrentProject() {
+            console.log('Save button clicked');
+            
+            if (!currentProject) {
+                console.error('No current project to save');
+                alert('No project loaded. Please create a project from the gallery.');
+                return;
+            }
+
+            try {
+                console.log('Attempting to save project:', currentProject.name);
+                
+                // Get current template configuration from the editor
+                const editor = window.templateEditor;
+                if (!editor) {
+                    throw new Error('Template Editor not available');
+                }
+
+                console.log('Template Editor found, gathering form data...');
+
+                const config = {
+                    texts: {
+                        topTitle: document.getElementById('top-title')?.value || '',
+                        mainTitle: document.getElementById('main-title')?.value || '',
+                        subtitle1: document.getElementById('subtitle1')?.value || '',
+                        subtitle2: document.getElementById('subtitle2')?.value || ''
+                    },
+                    colors: {
+                        text: editor.currentTextColor || '#FFFFFF',
+                        background: editor.currentBackgroundColor || '#0D0D0D'
+                    },
+                    visibility: editor.layerVisibility || {},
+                    bottomIconsConfig: editor.bottomIconsConfig || {},
+                    iconColors: editor.iconColors || {}
+                };
+
+                console.log('Config gathered:', config);
+
+                // Generate thumbnail if possible
+                let thumbnail = null;
+                try {
+                    if (editor.stage) {
+                        thumbnail = projectManager.generateThumbnail(editor.stage.getCanvas());
+                        console.log('Thumbnail generated:', thumbnail ? 'Success' : 'Failed');
+                    }
+                } catch (thumbError) {
+                    console.warn('Thumbnail generation failed:', thumbError);
+                }
+
+                // Update project
+                console.log('Updating project configuration...');
+                const updatedProject = projectManager.updateProjectConfig(currentProject.id, config);
+                
+                if (!updatedProject) {
+                    throw new Error('Failed to update project configuration');
+                }
+
+                if (thumbnail) {
+                    projectManager.updateProjectThumbnail(currentProject.id, thumbnail);
+                }
+
+                // Update save status
+                const saveStatus = document.querySelector('.save-status');
+                if (saveStatus) {
+                    saveStatus.textContent = 'Saved';
+                    setTimeout(() => {
+                        saveStatus.textContent = 'Auto-saved';
+                    }, 2000);
+                }
+
+                console.log('✅ Project saved successfully:', currentProject.name);
+                
+                // Show success feedback
+                const saveBtn = document.getElementById('save-preset-btn');
+                if (saveBtn) {
+                    const originalText = saveBtn.innerHTML;
+                    saveBtn.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="currentColor"/>
+                        </svg>
+                        Saved!
+                    `;
+                    setTimeout(() => {
+                        saveBtn.innerHTML = originalText;
+                    }, 2000);
+                }
+
+            } catch (error) {
+                console.error('❌ Failed to save project:', error);
+                alert(`Failed to save project: ${error.message}\nCheck the console for details.`);
+            }
+        }
+
+        // Auto-save functionality
+        let autoSaveTimer;
+        function scheduleAutoSave() {
+            if (autoSaveTimer) clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                if (currentProject) {
+                    saveCurrentProject();
+                }
+            }, 30000); // Auto-save every 30 seconds
+        }
+
+        // Export functions for template engine to use
+        window.projectIntegration = {
+            currentProject,
+            saveCurrentProject,
+            scheduleAutoSave,
+            // Debugging helpers
+            debugInfo: () => {
+                console.log('=== PROJECT INTEGRATION DEBUG ===');
+                console.log('Current Project:', currentProject);
+                console.log('Project ID from URL:', projectId);
+                console.log('Template Editor:', window.templateEditor);
+                console.log('Project Manager:', projectManager);
+                console.log('Save Button:', document.getElementById('save-preset-btn'));
+                console.log('LocalStorage Projects:', localStorage.getItem('wix_user_projects'));
+                if (currentProject) {
+                    console.log('Current Project Data:', localStorage.getItem('wix_project_' + currentProject.id));
+                }
+            }
         };
     </script>
 </body>

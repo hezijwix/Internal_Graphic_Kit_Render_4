@@ -33,7 +33,9 @@
     <main class="gallery-main">
         <section class="template-categories">
             <div class="category-filters">
-                <button class="category-btn active" data-category="all">All Templates</button>
+                <button class="category-btn active" data-category="all">All</button>
+                <button class="category-btn" data-category="templates">Templates</button>
+                <button class="category-btn" data-category="projects">My Projects</button>
                 <button class="category-btn" data-category="titles">Title Cards</button>
                 <button class="category-btn" data-category="overlays">Overlays</button>
                 <button class="category-btn" data-category="intros">Intros</button>
@@ -98,13 +100,28 @@
         </section>
     </main>
 
+    <script src="shared/js/project-manager.js"></script>
     <script src="shared/js/gallery-manager.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Template Gallery loaded');
-            // Future: Load templates from API
-            // const gallery = new GalleryManager();
-            // gallery.loadTemplates();
+            const gallery = new GalleryManager();
+            gallery.loadTemplates();
+            
+            // Connect "New Project" button
+            const newProjectBtn = document.querySelector('.new-project-btn');
+            if (newProjectBtn) {
+                newProjectBtn.addEventListener('click', () => {
+                    // For now, create project from template_001 - can be expanded for template selection
+                    const projectName = prompt('Enter project name:', 'My Video Project');
+                    if (projectName && projectName.trim()) {
+                        const projectManager = new ProjectManager();
+                        const project = projectManager.createProject('template_001', projectName.trim());
+                        // Navigate to template editor with project ID
+                        window.location.href = `template_001.html?projectId=${project.id}`;
+                    }
+                });
+            }
         });
     </script>
 </body>
