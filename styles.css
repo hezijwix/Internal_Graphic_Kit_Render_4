@@ -498,6 +498,202 @@ button:focus {
     margin-top: var(--spacing-xs);
 }
 
+/* Layer Visibility Toggle */
+.layer-visibility-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.section-header .layer-visibility-toggle {
+    margin: 0;
+    margin-left: auto;
+}
+
+.visibility-switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 18px;
+}
+
+.visibility-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.visibility-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: 0.2s;
+    border-radius: 18px;
+}
+
+.visibility-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-secondary);
+    transition: 0.2s;
+    border-radius: 50%;
+}
+
+.visibility-switch input:checked + .visibility-slider {
+    background-color: var(--accent-blue);
+}
+
+.visibility-switch input:checked + .visibility-slider:before {
+    transform: translateX(16px);
+    background-color: var(--text-primary);
+}
+
+.visibility-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Form Hints */
+.form-hint {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: var(--spacing-xs);
+    display: block;
+}
+
+/* Icons Configuration */
+.icons-configuration {
+    margin-top: var(--spacing-lg);
+}
+
+.icons-configuration h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-secondary);
+}
+
+.icon-slots {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.icon-slot {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+    opacity: 0.5;
+    transition: all 0.2s ease;
+}
+
+.icon-slot.active {
+    opacity: 1;
+    border-color: var(--border-light);
+}
+
+.slot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+}
+
+.slot-number {
+    background-color: var(--accent-blue);
+    color: var(--text-primary);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+}
+
+.remove-icon {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.remove-icon:hover {
+    background-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+.icon-picker {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.current-icon {
+    width: 40px;
+    height: 40px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+}
+
+.icon-options {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.icon-option {
+    width: 28px;
+    height: 28px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.icon-option:hover {
+    border-color: var(--border-light);
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.icon-option.active {
+    border-color: var(--accent-blue);
+    background-color: var(--accent-blue);
+    color: var(--text-primary);
+}
+
 /* Icon Grid */
 .icon-presets h4 {
     margin-bottom: var(--spacing-sm);

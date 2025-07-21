@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Text:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     
     <!-- Konva.js for advanced canvas rendering -->
@@ -81,10 +81,60 @@
                 <h2>Properties</h2>
             </div>
             
+            <!-- Top Icon Section -->
+            <section class="panel-section" data-section="top-icon">
+                <div class="section-header">
+                    <h3>Top Icon</h3>
+                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle top icon section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div class="layer-visibility-toggle">
+                        <label class="visibility-switch">
+                            <input type="checkbox" id="top-icon-visible" checked>
+                            <span class="visibility-slider"></span>
+                        </label>
+                        <span class="visibility-label">Visible</span>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="upload-area">
+                        <button class="upload-btn" id="upload-top-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 1v12M4 9l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Upload Icon
+                        </button>
+                        <span class="upload-hint">PNG, SVG up to 2MB</span>
+                    </div>
+                    <div class="icon-presets">
+                        <h4>Preset Icons</h4>
+                        <div class="icon-grid">
+                            <button class="icon-preset active" data-icon="circle">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </button>
+                            <button class="icon-preset" data-icon="star">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button class="icon-preset" data-icon="heart">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M20.84 4.61A5.5 5.5 0 0 0 16.5 2.03A5.5 5.5 0 0 0 12 5.96A5.5 5.5 0 0 0 7.5 2.03A5.5 5.5 0 0 0 3.16 4.61C2.09 7.85 4.79 12.97 12 19.18C19.21 12.97 21.91 7.85 20.84 4.61Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Text Properties Section -->
             <section class="panel-section" data-section="text">
                 <div class="section-header">
-                    <h3>Text Properties</h3>
+                    <h3>Text Content</h3>
                     <button class="section-toggle" aria-expanded="true" aria-label="Toggle text properties section">
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                             <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -93,39 +143,32 @@
                 </div>
                 <div class="section-content">
                     <div class="form-group">
-                        <label for="main-text">Main Text</label>
-                        <textarea id="main-text" rows="2" placeholder="Enter your title text">Welcome to Wix</textarea>
+                        <label for="top-title">Top Title</label>
+                        <input type="text" id="top-title" placeholder="Enter top title" value="Top Title">
                     </div>
                     <div class="form-group">
-                        <label for="subtitle-text">Subtitle</label>
-                        <input type="text" id="subtitle-text" placeholder="Enter subtitle" value="Create Amazing Videos">
+                        <label for="main-title">Main Title (Auto Uppercase)</label>
+                        <textarea id="main-title" rows="2" placeholder="Enter main title (up to 2 lines)">MAIN TITLE
+TWO LINES</textarea>
+                        <span class="form-hint">Text will be automatically converted to uppercase and wrapped to 2 lines. Max width: 1490px (215px margins)</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="subtitle1">Subtitle 1</label>
+                        <input type="text" id="subtitle1" placeholder="Enter subtitle 1" value="Subtitle 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="subtitle2">Subtitle 2</label>
+                        <input type="text" id="subtitle2" placeholder="Enter subtitle 2" value="Subtitle 2">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="font-family">Font Family</label>
                             <select id="font-family">
-                                <option value="Wix Madefor Text" selected>Wix Madefor Text</option>
+                                <option value="Wix Madefor Display" selected>Wix Madefor Display</option>
                                 <option value="Inter">Inter</option>
                                 <option value="Roboto">Roboto</option>
                                 <option value="Helvetica">Helvetica</option>
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="font-weight">Weight</label>
-                            <select id="font-weight">
-                                <option value="400" selected>Regular</option>
-                                <option value="500">Medium</option>
-                                <option value="600">Semi Bold</option>
-                                <option value="700">Bold</option>
-                                <option value="800">Extra Bold</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="font-size">Font Size</label>
-                        <div class="slider-container">
-                            <input type="range" id="font-size" min="12" max="120" value="72">
-                            <span class="slider-value">72px</span>
                         </div>
                     </div>
                 </div>
@@ -179,49 +222,178 @@
                 </div>
             </section>
 
-            <!-- Icon Properties Section -->
-            <section class="panel-section" data-section="icons">
+            <!-- Bottom Icons Section -->
+            <section class="panel-section" data-section="bottom-icons">
                 <div class="section-header">
-                    <h3>Icons</h3>
-                    <button class="section-toggle" aria-expanded="false" aria-label="Toggle icons section">
+                    <h3>Bottom Icons</h3>
+                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle bottom icons section">
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
-                </div>
-                <div class="section-content collapsed">
-                    <div class="upload-area">
-                        <button class="upload-btn">
-                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <path d="M10 1v12M4 9l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            Upload Icon
-                        </button>
-                        <span class="upload-hint">PNG, SVG up to 2MB</span>
+                    <div class="layer-visibility-toggle">
+                        <label class="visibility-switch">
+                            <input type="checkbox" id="bottom-icons-visible" checked>
+                            <span class="visibility-slider"></span>
+                        </label>
+                        <span class="visibility-label">Visible</span>
                     </div>
-                    <div class="icon-presets">
-                        <h4>Preset Icons</h4>
-                        <div class="icon-grid">
-                            <button class="icon-preset">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="currentColor"/>
-                                </svg>
-                            </button>
-                            <button class="icon-preset">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2"/>
-                                </svg>
-                            </button>
-                            <button class="icon-preset">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="currentColor"/>
-                                </svg>
-                            </button>
-                            <button class="icon-preset">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path d="M20.84 4.61A5.5 5.5 0 0 0 16.5 2.03A5.5 5.5 0 0 0 12 5.96A5.5 5.5 0 0 0 7.5 2.03A5.5 5.5 0 0 0 3.16 4.61C2.09 7.85 4.79 12.97 12 19.18C19.21 12.97 21.91 7.85 20.84 4.61Z" fill="currentColor"/>
-                                </svg>
-                            </button>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="icon-count">Number of Icons (0-6)</label>
+                        <div class="slider-container">
+                            <input type="range" id="icon-count" min="0" max="6" value="4">
+                            <span class="slider-value">4</span>
+                        </div>
+                    </div>
+                    
+                    <div class="icons-configuration">
+                        <h4>Configure Icons</h4>
+                        <div class="icon-slots">
+                            <div class="icon-slot active" data-slot="0">
+                                <div class="slot-header">
+                                    <span class="slot-number">1</span>
+                                    <button class="remove-icon" aria-label="Remove icon">×</button>
+                                </div>
+                                <div class="icon-picker">
+                                    <div class="current-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                            <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="currentColor"/>
+                                        </svg>
+                                    </div>
+                                    <div class="icon-options">
+                                        <button class="icon-option active" data-icon="star">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 1L10.06 5.51L15 6L11.5 9.5L12.12 14.5L8 12.51L3.88 14.5L4.5 9.5L1 6L5.94 5.51L8 1Z" fill="currentColor"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option" data-icon="circle">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option" data-icon="arrow">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option" data-icon="heart">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M13.89 3.07A3.67 3.67 0 0 0 11 1.35A3.67 3.67 0 0 0 8 3.97A3.67 3.67 0 0 0 5 1.35A3.67 3.67 0 0 0 2.11 3.07C1.39 5.23 3.19 8.65 8 12.79C12.81 8.65 14.61 5.23 13.89 3.07Z" fill="currentColor"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="icon-slot active" data-slot="1">
+                                <div class="slot-header">
+                                    <span class="slot-number">2</span>
+                                    <button class="remove-icon" aria-label="Remove icon">×</button>
+                                </div>
+                                <div class="icon-picker">
+                                    <div class="current-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                        </svg>
+                                    </div>
+                                    <div class="icon-options">
+                                        <button class="icon-option" data-icon="star">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 1L10.06 5.51L15 6L11.5 9.5L12.12 14.5L8 12.51L3.88 14.5L4.5 9.5L1 6L5.94 5.51L8 1Z" fill="currentColor"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option active" data-icon="circle">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option" data-icon="arrow">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option" data-icon="heart">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M13.89 3.07A3.67 3.67 0 0 0 11 1.35A3.67 3.67 0 0 0 8 3.97A3.67 3.67 0 0 0 5 1.35A3.67 3.67 0 0 0 2.11 3.07C1.39 5.23 3.19 8.65 8 12.79C12.81 8.65 14.61 5.23 13.89 3.07Z" fill="currentColor"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="icon-slot active" data-slot="2">
+                                <div class="slot-header">
+                                    <span class="slot-number">3</span>
+                                    <button class="remove-icon" aria-label="Remove icon">×</button>
+                                </div>
+                                <div class="icon-picker">
+                                    <div class="current-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </div>
+                                    <div class="icon-options">
+                                        <button class="icon-option" data-icon="star">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 1L10.06 5.51L15 6L11.5 9.5L12.12 14.5L8 12.51L3.88 14.5L4.5 9.5L1 6L5.94 5.51L8 1Z" fill="currentColor"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option" data-icon="circle">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option active" data-icon="arrow">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option" data-icon="heart">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M13.89 3.07A3.67 3.67 0 0 0 11 1.35A3.67 3.67 0 0 0 8 3.97A3.67 3.67 0 0 0 5 1.35A3.67 3.67 0 0 0 2.11 3.07C1.39 5.23 3.19 8.65 8 12.79C12.81 8.65 14.61 5.23 13.89 3.07Z" fill="currentColor"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="icon-slot active" data-slot="3">
+                                <div class="slot-header">
+                                    <span class="slot-number">4</span>
+                                    <button class="remove-icon" aria-label="Remove icon">×</button>
+                                </div>
+                                <div class="icon-picker">
+                                    <div class="current-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </div>
+                                    <div class="icon-options">
+                                        <button class="icon-option" data-icon="star">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M8 1L10.06 5.51L15 6L11.5 9.5L12.12 14.5L8 12.51L3.88 14.5L4.5 9.5L1 6L5.94 5.51L8 1Z" fill="currentColor"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option" data-icon="circle">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option active" data-icon="arrow">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="icon-option" data-icon="heart">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M13.89 3.07A3.67 3.67 0 0 0 11 1.35A3.67 3.67 0 0 0 8 3.97A3.67 3.67 0 0 0 5 1.35A3.67 3.67 0 0 0 2.11 3.07C1.39 5.23 3.19 8.65 8 12.79C12.81 8.65 14.61 5.23 13.89 3.07Z" fill="currentColor"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -354,7 +526,37 @@
         
         <div class="timeline-content">
             <div class="layers-panel">
-                <div class="layer-item active" data-layer="main-title">
+                <div class="layer-item active" data-layer="top-icon">
+                    <button class="layer-visibility" aria-label="Toggle visibility">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
+                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <button class="layer-lock" aria-label="Toggle lock">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <span class="layer-name">Top Icon</span>
+                </div>
+                <div class="layer-item" data-layer="top-title">
+                    <button class="layer-visibility" aria-label="Toggle visibility">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
+                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <button class="layer-lock" aria-label="Toggle lock">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <span class="layer-name">Top Title</span>
+                </div>
+                <div class="layer-item" data-layer="main-title">
                     <button class="layer-visibility" aria-label="Toggle visibility">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                             <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
@@ -369,7 +571,7 @@
                     </button>
                     <span class="layer-name">Main Title</span>
                 </div>
-                <div class="layer-item" data-layer="subtitle">
+                <div class="layer-item" data-layer="subtitle1">
                     <button class="layer-visibility" aria-label="Toggle visibility">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                             <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
@@ -382,9 +584,9 @@
                             <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
                         </svg>
                     </button>
-                    <span class="layer-name">Subtitle</span>
+                    <span class="layer-name">Subtitle 1</span>
                 </div>
-                <div class="layer-item" data-layer="icon">
+                <div class="layer-item" data-layer="subtitle2">
                     <button class="layer-visibility" aria-label="Toggle visibility">
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                             <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
@@ -397,7 +599,22 @@
                             <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
                         </svg>
                     </button>
-                    <span class="layer-name">Icon</span>
+                    <span class="layer-name">Subtitle 2</span>
+                </div>
+                <div class="layer-item" data-layer="bottom-icons">
+                    <button class="layer-visibility" aria-label="Toggle visibility">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M1 7S3 3 7 3S13 7 13 7S11 11 7 11S1 7 1 7Z" stroke="currentColor" stroke-width="1.5"/>
+                            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <button class="layer-lock" aria-label="Toggle lock">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <rect x="3" y="6" width="8" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M5 6V4C5 2.89543 5.89543 2 7 2C8.10457 2 9 2.89543 9 4V6" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <span class="layer-name">Bottom Icons</span>
                 </div>
             </div>
             
@@ -417,22 +634,41 @@
                 </div>
                 
                 <div class="timeline-layers">
-                    <div class="timeline-layer">
+                    <div class="timeline-layer" data-layer="top-icon">
                         <div class="keyframe" style="left: 0%"></div>
-                        <div class="keyframe" style="left: 25%"></div>
-                        <div class="keyframe" style="left: 75%"></div>
+                        <div class="keyframe" style="left: 15%"></div>
+                        <div class="keyframe" style="left: 85%"></div>
                         <div class="animation-block" style="left: 0%; width: 100%"></div>
                     </div>
-                    <div class="timeline-layer">
-                        <div class="keyframe" style="left: 10%"></div>
-                        <div class="keyframe" style="left: 35%"></div>
-                        <div class="keyframe" style="left: 85%"></div>
-                        <div class="animation-block" style="left: 10%; width: 75%"></div>
-                    </div>
-                    <div class="timeline-layer">
+                    <div class="timeline-layer" data-layer="top-title">
+                        <div class="keyframe" style="left: 5%"></div>
                         <div class="keyframe" style="left: 20%"></div>
                         <div class="keyframe" style="left: 80%"></div>
+                        <div class="animation-block" style="left: 5%; width: 90%"></div>
+                    </div>
+                    <div class="timeline-layer" data-layer="main-title">
+                        <div class="keyframe" style="left: 10%"></div>
+                        <div class="keyframe" style="left: 25%"></div>
+                        <div class="keyframe" style="left: 75%"></div>
+                        <div class="animation-block" style="left: 10%; width: 80%"></div>
+                    </div>
+                    <div class="timeline-layer" data-layer="subtitle1">
+                        <div class="keyframe" style="left: 15%"></div>
+                        <div class="keyframe" style="left: 30%"></div>
+                        <div class="keyframe" style="left: 70%"></div>
+                        <div class="animation-block" style="left: 15%; width: 70%"></div>
+                    </div>
+                    <div class="timeline-layer" data-layer="subtitle2">
+                        <div class="keyframe" style="left: 20%"></div>
+                        <div class="keyframe" style="left: 35%"></div>
+                        <div class="keyframe" style="left: 65%"></div>
                         <div class="animation-block" style="left: 20%; width: 60%"></div>
+                    </div>
+                    <div class="timeline-layer" data-layer="bottom-icons">
+                        <div class="keyframe" style="left: 25%"></div>
+                        <div class="keyframe" style="left: 40%"></div>
+                        <div class="keyframe" style="left: 60%"></div>
+                        <div class="animation-block" style="left: 25%; width: 50%"></div>
                     </div>
                 </div>
                 

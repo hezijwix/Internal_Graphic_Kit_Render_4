@@ -14,12 +14,32 @@ class TemplateEditor {
         this.contentLayer = null;
         this.uiLayer = null;
         
-        // Template objects
+        // Template objects - New structure matching Figma design
         this.templateObjects = {
             background: null,
+            topIcon: null,
+            topTitle: null,
             mainTitle: null,
-            subtitle: null,
-            icon: null
+            subtitle1: null,
+            subtitle2: null,
+            bottomIcons: []
+        };
+        
+        // Layer visibility state
+        this.layerVisibility = {
+            topIcon: true,
+            topTitle: true,
+            mainTitle: true,
+            subtitle1: true,
+            subtitle2: true,
+            bottomIcons: true
+        };
+        
+        // Bottom icons configuration
+        this.bottomIconsConfig = {
+            count: 4,
+            spacing: 260,
+            icons: ['star', 'circle', 'arrow', 'arrow'] // Default icons
         };
         
         // GSAP Timeline
@@ -243,32 +263,167 @@ class TemplateEditor {
     }
     
     setupFormControls() {
-        // Text inputs
-        const mainTextInput = document.getElementById('main-text');
-        const subtitleInput = document.getElementById('subtitle-text');
+        // Text inputs for all layers
+        const topTitleInput = document.getElementById('top-title');
+        const mainTitleInput = document.getElementById('main-title');
+        const subtitle1Input = document.getElementById('subtitle1');
+        const subtitle2Input = document.getElementById('subtitle2');
         
-        mainTextInput.addEventListener('input', () => this.updateText('main', mainTextInput.value));
-        subtitleInput.addEventListener('input', () => this.updateText('subtitle', subtitleInput.value));
+        // Text input event listeners with width-based limiting
+        if (topTitleInput) {
+            topTitleInput.addEventListener('input', (e) => {
+                const limitedValue = this.limitTextInputByWidth(e.target.value, 'topTitle');
+                if (limitedValue !== e.target.value) {
+                    e.target.value = limitedValue;
+                }
+                this.updateText('topTitle', limitedValue);
+            });
+        }
+        if (mainTitleInput) {
+            // Prevent manual line breaks
+            mainTitleInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent manual line breaks
+                }
+            });
+            
+            // Handle input with cleaning and limiting
+            mainTitleInput.addEventListener('input', (e) => {
+                // Clean the input first
+                const cleanedValue = e.target.value.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
+                
+                // Then limit by 2-line wrapping
+                const limitedValue = this.limitMainTitleInput(cleanedValue);
+                if (limitedValue !== e.target.value) {
+                    e.target.value = limitedValue;
+                }
+                this.updateText('mainTitle', limitedValue);
+            });
+            
+            // Handle paste events to clean up pasted content
+            mainTitleInput.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                const cleanedText = pastedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+                mainTitleInput.value = cleanedText;
+                this.updateText('mainTitle', cleanedText);
+            });
+        }
+        if (subtitle1Input) {
+            subtitle1Input.addEventListener('input', (e) => {
+                const limitedValue = this.limitTextInputByWidth(e.target.value, 'subtitle1');
+                if (limitedValue !== e.target.value) {
+                    e.target.value = limitedValue;
+                }
+                this.updateText('subtitle1', limitedValue);
+            });
+        }
+        if (subtitle2Input) {
+            subtitle2Input.addEventListener('input', (e) => {
+                const limitedValue = this.limitTextInputByWidth(e.target.value, 'subtitle2');
+                if (limitedValue !== e.target.value) {
+                    e.target.value = limitedValue;
+                }
+                this.updateText('subtitle2', limitedValue);
+            });
+        }
+        
+        // Layer visibility toggles
+        this.setupVisibilityToggles();
         
         // Font controls
         const fontFamilySelect = document.getElementById('font-family');
-        const fontWeightSelect = document.getElementById('font-weight');
-        const fontSizeSlider = document.getElementById('font-size');
-        const fontSizeValue = document.querySelector('.slider-value');
+        if (fontFamilySelect) {
+            fontFamilySelect.addEventListener('change', () => this.updateFont('family', fontFamilySelect.value));
+        }
         
-        fontFamilySelect.addEventListener('change', () => this.updateFont('family', fontFamilySelect.value));
-        fontWeightSelect.addEventListener('change', () => this.updateFont('weight', fontWeightSelect.value));
-        
-        fontSizeSlider.addEventListener('input', () => {
-            fontSizeValue.textContent = fontSizeSlider.value + 'px';
-            this.updateFont('size', fontSizeSlider.value);
-        });
+        // Icon controls
+        this.setupIconControls();
         
         // Zoom controls
         const zoomSelect = document.querySelector('.zoom-select');
-        zoomSelect.addEventListener('change', () => this.setZoom(parseInt(zoomSelect.value)));
+        if (zoomSelect) {
+            zoomSelect.addEventListener('change', () => this.setZoom(parseInt(zoomSelect.value)));
+        }
+    }
+    
+    setupVisibilityToggles() {
+        const toggles = {
+            'top-icon-visible': 'topIcon',
+            'bottom-icons-visible': 'bottomIcons'
+        };
         
-
+        Object.entries(toggles).forEach(([id, layer]) => {
+            const toggle = document.getElementById(id);
+            if (toggle) {
+                toggle.addEventListener('change', () => {
+                    this.layerVisibility[layer] = toggle.checked;
+                    this.updateLayerVisibility(layer);
+                    this.repositionLayers();
+                });
+            }
+        });
+    }
+    
+    setupIconControls() {
+        // Icon count slider
+        const iconCountSlider = document.getElementById('icon-count');
+        const iconCountValue = iconCountSlider?.nextElementSibling;
+        
+        if (iconCountSlider) {
+            iconCountSlider.addEventListener('input', () => {
+                this.bottomIconsConfig.count = parseInt(iconCountSlider.value);
+                if (iconCountValue) {
+                    iconCountValue.textContent = iconCountSlider.value;
+                }
+                this.updateIconSlots();
+                // Recreate bottom icons with new count
+                this.createBottomIconsExact();
+                this.recalculateLayout();
+                this.stage.batchDraw();
+            });
+        }
+        
+        // Icon selection buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.icon-option')) {
+                const button = e.target.closest('.icon-option');
+                const slot = button.closest('.icon-slot');
+                const slotIndex = parseInt(slot.dataset.slot);
+                const iconType = button.dataset.icon;
+                
+                // Update icon type
+                this.bottomIconsConfig.icons[slotIndex] = iconType;
+                
+                // Update UI
+                slot.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update current icon display
+                const currentIcon = slot.querySelector('.current-icon');
+                currentIcon.innerHTML = button.innerHTML;
+                
+                // Recreate bottom icons
+                this.createBottomIconsExact();
+                this.recalculateLayout();
+                this.stage.batchDraw();
+            }
+        });
+        
+        // Top icon presets
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.icon-preset')) {
+                const button = e.target.closest('.icon-preset');
+                const iconType = button.dataset.icon;
+                
+                // Update active state
+                document.querySelectorAll('.icon-preset').forEach(preset => preset.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update top icon
+                this.updateTopIcon(iconType);
+            }
+        });
     }
     
     setupPlaybackControls() {
@@ -377,12 +532,23 @@ class TemplateEditor {
         visibilityBtn.style.opacity = isVisible ? '0.5' : '1';
         
         // Toggle Konva object visibility
-        if (layerType === 'main-title' && this.templateObjects.mainTitle) {
-            this.templateObjects.mainTitle.visible(!isVisible);
-        } else if (layerType === 'subtitle' && this.templateObjects.subtitle) {
-            this.templateObjects.subtitle.visible(!isVisible);
-        } else if (layerType === 'icon' && this.templateObjects.icon) {
-            this.templateObjects.icon.visible(!isVisible);
+        const layerMap = {
+            'top-icon': this.templateObjects.topIcon,
+            'top-title': this.templateObjects.topTitle,
+            'main-title': this.templateObjects.mainTitle,
+            'subtitle1': this.templateObjects.subtitle1,
+            'subtitle2': this.templateObjects.subtitle2,
+            'bottom-icons': this.templateObjects.bottomIcons
+        };
+        
+        const object = layerMap[layerType];
+        if (object) {
+            if (Array.isArray(object)) {
+                // Handle bottom icons array
+                object.forEach(icon => icon.visible(!isVisible));
+            } else {
+                object.visible(!isVisible);
+            }
         }
         
         if (this.stage) {
@@ -404,12 +570,27 @@ class TemplateEditor {
     
     // Content Updates
     updateText(type, value) {
-        if (type === 'main' && this.templateObjects.mainTitle) {
-            this.templateObjects.mainTitle.text(value);
-            this.templateObjects.mainTitle.offsetX(this.templateObjects.mainTitle.width() / 2);
-        } else if (type === 'subtitle' && this.templateObjects.subtitle) {
-            this.templateObjects.subtitle.text(value);
-            this.templateObjects.subtitle.offsetX(this.templateObjects.subtitle.width() / 2);
+        const textObject = this.templateObjects[type];
+        if (textObject) {
+            // Process text based on type (handle width constraints and line breaking)
+            const processedText = this.processTextForWidth(type, value);
+            
+            textObject.text(processedText);
+            // Center text both horizontally and vertically
+            // For fixed-width text, offsetX should be half of the fixed width (1490/2 = 745)
+            textObject.offsetX(745); // Center within the 1490px width
+            textObject.offsetY(textObject.height() / 2);
+            
+            // Auto-manage visibility based on text content
+            const hasContent = processedText && processedText.trim().length > 0;
+            this.layerVisibility[type] = hasContent;
+            textObject.visible(hasContent);
+            
+            console.log(`${type} visibility auto-set to: ${hasContent} (content: "${processedText.trim()}")`);
+            
+            // Recalculate layout when text content changes (affects height and visibility)
+            this.recalculateLayout();
+            this.stage.batchDraw();
         }
         
         this.updateTemplateProperties();
@@ -417,27 +598,348 @@ class TemplateEditor {
         console.log(`Updated ${type} text: ${value}`);
     }
     
-    updateFont(property, value) {
-        if (property === 'family') {
-            if (this.templateObjects.mainTitle) this.templateObjects.mainTitle.fontFamily(value);
-            if (this.templateObjects.subtitle) this.templateObjects.subtitle.fontFamily(value);
-        } else if (property === 'weight') {
-            if (this.templateObjects.mainTitle) this.templateObjects.mainTitle.fontStyle(value);
-            if (this.templateObjects.subtitle) this.templateObjects.subtitle.fontStyle(value);
-        } else if (property === 'size') {
-            const fontSize = parseInt(value);
-            if (this.templateObjects.mainTitle) {
-                this.templateObjects.mainTitle.fontSize(fontSize);
-                this.templateObjects.mainTitle.offsetY(fontSize / 2);
-                this.templateObjects.mainTitle.offsetX(this.templateObjects.mainTitle.width() / 2);
-            }
-            if (this.templateObjects.subtitle) {
-                const subtitleSize = fontSize * 0.4;
-                this.templateObjects.subtitle.fontSize(subtitleSize);
-                this.templateObjects.subtitle.offsetY(subtitleSize / 2);
-                this.templateObjects.subtitle.offsetX(this.templateObjects.subtitle.width() / 2);
+    processTextForWidth(type, text) {
+        const maxWidth = 1490; // 1920 - (215px * 2)
+        
+        // For main title, enable automatic word wrapping and convert to uppercase
+        if (type === 'mainTitle') {
+            // Remove all manual line breaks and extra spaces first
+            const cleanedText = text.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+            const uppercaseText = cleanedText.toUpperCase();
+            
+            // Manual word wrapping with strict 2-line limit
+            return this.wrapTextToTwoLines(uppercaseText, maxWidth);
+        }
+        
+        // For other text types, just return the text as-is
+        // Width limiting is handled by input field restrictions
+        return text;
+    }
+    
+    getFontSizeForType(type) {
+        switch (type) {
+            case 'topTitle': return 64;
+            case 'mainTitle': return 180;
+            case 'subtitle1': return 75;
+            case 'subtitle2': return 40;
+            default: return 40;
+        }
+    }
+    
+    getFontStyleForType(type) {
+        switch (type) {
+            case 'topTitle': return 'bold';
+            case 'mainTitle': return '800';
+            case 'subtitle1': return 'bold';
+            case 'subtitle2': return 'normal';
+            default: return 'normal';
+        }
+    }
+    
+    wrapTextToTwoLines(text, maxWidth) {
+        // Create a temporary text object for measurement
+        const tempText = new Konva.Text({
+            fontSize: 180,
+            fontFamily: '"Wix Madefor Display"',
+            fontStyle: '800',
+            letterSpacing: -6
+        });
+        
+        const words = text.split(' ');
+        let line1 = '';
+        let line2 = '';
+        let currentLine = 1;
+        
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine === 1 ? 
+                (line1 + (line1 ? ' ' : '') + word) : 
+                (line2 + (line2 ? ' ' : '') + word);
+            
+            // Test the width of this line
+            tempText.text(testLine);
+            const lineWidth = tempText.width();
+            
+            if (lineWidth <= maxWidth) {
+                // Word fits on current line
+                if (currentLine === 1) {
+                    line1 = testLine;
+                } else {
+                    line2 = testLine;
+                }
+            } else {
+                // Word doesn't fit
+                if (currentLine === 1) {
+                    // Move to line 2
+                    currentLine = 2;
+                    line2 = word;
+                } else {
+                    // Already on line 2 and word doesn't fit - stop here
+                    break;
+                }
             }
         }
+        
+        tempText.destroy();
+        
+        // Return the result with at most 2 lines
+        if (line2) {
+            return line1 + '\n' + line2;
+        } else {
+            return line1;
+        }
+    }
+    
+    limitTextInputByWidth(text, type) {
+        const maxWidth = 1490; // 1920 - (215px * 2)
+        const fontSize = this.getFontSizeForType(type);
+        const fontStyle = this.getFontStyleForType(type);
+        
+        // Create a temporary text object for measurement
+        const tempText = new Konva.Text({
+            text: text,
+            fontSize: fontSize,
+            fontFamily: '"Wix Madefor Display"',
+            fontStyle: fontStyle
+        });
+        
+        // If text fits, return as-is
+        if (tempText.width() <= maxWidth) {
+            tempText.destroy();
+            return text;
+        }
+        
+        // If text is too wide, find the maximum characters that fit
+        let limitedText = text;
+        while (tempText.width() > maxWidth && limitedText.length > 0) {
+            limitedText = limitedText.slice(0, -1);
+            tempText.text(limitedText);
+        }
+        
+        tempText.destroy();
+        return limitedText;
+    }
+    
+    limitMainTitleInput(text) {
+        const maxWidth = 1490; // 1920 - (215px * 2)
+        
+        // Create a temporary text object for measurement
+        const tempText = new Konva.Text({
+            fontSize: 180,
+            fontFamily: '"Wix Madefor Display"',
+            fontStyle: '800',
+            letterSpacing: -6
+        });
+        
+        const words = text.split(' ');
+        let allowedWords = [];
+        let line1 = '';
+        let line2 = '';
+        let currentLine = 1;
+        
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine === 1 ? 
+                (line1 + (line1 ? ' ' : '') + word) : 
+                (line2 + (line2 ? ' ' : '') + word);
+            
+            // Test the width of this line
+            tempText.text(testLine);
+            const lineWidth = tempText.width();
+            
+            if (lineWidth <= maxWidth) {
+                // Word fits on current line
+                allowedWords.push(word);
+                if (currentLine === 1) {
+                    line1 = testLine;
+                } else {
+                    line2 = testLine;
+                }
+            } else {
+                // Word doesn't fit
+                if (currentLine === 1) {
+                    // Move to line 2
+                    currentLine = 2;
+                    line2 = word;
+                    allowedWords.push(word);
+                } else {
+                    // Already on line 2 and word doesn't fit - stop here
+                    break;
+                }
+            }
+        }
+        
+        tempText.destroy();
+        return allowedWords.join(' ');
+    }
+    
+    updateLayerVisibility(layer) {
+        const object = this.templateObjects[layer];
+        if (object) {
+            if (Array.isArray(object)) {
+                // Handle bottom icons array
+                object.forEach(icon => icon.visible(this.layerVisibility[layer]));
+            } else {
+                object.visible(this.layerVisibility[layer]);
+            }
+            
+            // Recalculate layout to maintain proper spacing
+            this.recalculateLayout();
+            this.stage.batchDraw();
+        }
+    }
+    
+    repositionLayers() {
+        // Simply recalculate the layout with current visibility settings
+        this.recalculateLayout();
+        this.stage.batchDraw();
+    }
+    
+    createTemplateObjectsFromForm() {
+        // Get current form values
+        const topTitleText = document.getElementById('top-title')?.value || 'Top Title';
+        const mainTitleText = document.getElementById('main-title')?.value.toUpperCase() || 'MAIN TITLE\nTWO LINES';
+        const subtitle1Text = document.getElementById('subtitle1')?.value || 'Subtitle 1';
+        const subtitle2Text = document.getElementById('subtitle2')?.value || 'Subtitle 2';
+        
+        // Base Y position and spacing for vertical arrangement
+        const baseY = 140;
+        let currentY = baseY;
+        
+        // Create top icon
+        if (this.layerVisibility.topIcon) {
+            this.templateObjects.topIcon = new Konva.Ellipse({
+                x: 960,
+                y: 100,
+                radiusX: 62,
+                radiusY: 29,
+                stroke: '#FFFFFF',
+                strokeWidth: 2,
+                fill: 'transparent',
+                listening: true,
+                visible: true
+            });
+            this.contentLayer.add(this.templateObjects.topIcon);
+            currentY += 90;
+        }
+        
+        // Create top title
+        if (this.layerVisibility.topTitle) {
+            this.templateObjects.topTitle = new Konva.Text({
+                x: 960,
+                y: currentY,
+                text: topTitleText,
+                fontSize: 64,
+                fontFamily: 'Wix Madefor Display',
+                fontStyle: 'bold',
+                fill: '#FFFFFF',
+                align: 'center',
+                offsetX: 0,
+                offsetY: 32,
+                listening: true,
+                visible: true
+            });
+            this.contentLayer.add(this.templateObjects.topTitle);
+            currentY += 90;
+        }
+        
+        // Create main title
+        if (this.layerVisibility.mainTitle) {
+            this.templateObjects.mainTitle = new Konva.Text({
+                x: 960,
+                y: currentY,
+                text: mainTitleText,
+                fontSize: 180,
+                fontFamily: 'Wix Madefor Display',
+                fontStyle: 'bold',
+                fill: '#FFFFFF',
+                align: 'center',
+                offsetX: 0,
+                offsetY: 90,
+                letterSpacing: -6,
+                lineHeight: 0.88,
+                listening: true,
+                visible: true
+            });
+            this.contentLayer.add(this.templateObjects.mainTitle);
+            currentY += 240;
+        }
+        
+        // Create subtitle 1
+        if (this.layerVisibility.subtitle1) {
+            this.templateObjects.subtitle1 = new Konva.Text({
+                x: 960,
+                y: currentY,
+                text: subtitle1Text,
+                fontSize: 75,
+                fontFamily: 'Wix Madefor Display',
+                fontStyle: 'bold',
+                fill: '#FFFFFF',
+                align: 'center',
+                offsetX: 0,
+                offsetY: 37.5,
+                listening: true,
+                visible: true
+            });
+            this.contentLayer.add(this.templateObjects.subtitle1);
+            currentY += 108;
+        }
+        
+        // Create subtitle 2
+        if (this.layerVisibility.subtitle2) {
+            this.templateObjects.subtitle2 = new Konva.Text({
+                x: 960,
+                y: currentY,
+                text: subtitle2Text,
+                fontSize: 40,
+                fontFamily: 'Wix Madefor Display',
+                fontStyle: 'normal',
+                fill: '#FFFFFF',
+                align: 'center',
+                offsetX: 0,
+                offsetY: 20,
+                listening: true,
+                visible: true
+            });
+            this.contentLayer.add(this.templateObjects.subtitle2);
+            currentY += 108;
+        }
+        
+        // Create bottom icons
+        this.createBottomIcons(currentY);
+        
+        // Update text centering
+        this.updateTextCentering();
+    }
+    
+    updateIconSlots() {
+        const iconSlots = document.querySelectorAll('.icon-slot');
+        iconSlots.forEach((slot, index) => {
+            if (index < this.bottomIconsConfig.count) {
+                slot.classList.add('active');
+                slot.style.display = 'block';
+            } else {
+                slot.classList.remove('active');
+                slot.style.display = 'none';
+            }
+        });
+    }
+    
+    updateTopIcon(iconType) {
+        if (!this.templateObjects.topIcon) return;
+        
+        // For now, keep it as an ellipse - could be enhanced to support different shapes
+        console.log(`Top icon updated to: ${iconType}`);
+    }
+    
+    updateFont(property, value) {
+        if (property === 'family') {
+            if (this.templateObjects.topTitle) this.templateObjects.topTitle.fontFamily(value);
+            if (this.templateObjects.mainTitle) this.templateObjects.mainTitle.fontFamily(value);
+            if (this.templateObjects.subtitle1) this.templateObjects.subtitle1.fontFamily(value);
+            if (this.templateObjects.subtitle2) this.templateObjects.subtitle2.fontFamily(value);
+        }
+        // Note: Weight and size are now handled individually per text element through the form controls
         
         this.updateTemplateProperties();
         
@@ -446,8 +948,15 @@ class TemplateEditor {
     
     updateColor(type, color) {
         if (type === 'Text Color') {
+            if (this.templateObjects.topTitle) this.templateObjects.topTitle.fill(color);
             if (this.templateObjects.mainTitle) this.templateObjects.mainTitle.fill(color);
-            if (this.templateObjects.subtitle) this.templateObjects.subtitle.fill(color);
+            if (this.templateObjects.subtitle1) this.templateObjects.subtitle1.fill(color);
+            if (this.templateObjects.subtitle2) this.templateObjects.subtitle2.fill(color);
+            // Update bottom icons color
+            this.templateObjects.bottomIcons.forEach(icon => {
+                if (icon.fill) icon.fill(color);
+                if (icon.stroke) icon.stroke(color);
+            });
         } else if (type === 'Background Color') {
             if (color === 'transparent') {
                 // Set transparency mode
@@ -850,79 +1359,479 @@ class TemplateEditor {
     }
     
     createTemplateObjects() {
-        // Create background
+        console.log('Creating template objects to match Figma design...');
+        
+        // Create background (black)
         this.templateObjects.background = new Konva.Rect({
             x: 0,
             y: 0,
             width: 1920,
             height: 1080,
-            fill: this.currentBackgroundColor
+            fill: '#000000'
         });
         this.backgroundLayer.add(this.templateObjects.background);
+        console.log('Background created');
         
-        // Create main title text
+        // Calculate total height and center the design vertically
+        const canvasHeight = 1080;
+        const elementGap = 26;
+        
+        // Calculate heights of all elements (will be recalculated dynamically later)
+        const topIconHeight = 58; // (radiusY * 2)
+        const topTitleHeight = 64; // Approximate, will be updated after text creation
+        const mainTitleHeight = 180; // Single line initially, will be updated after text creation
+        const subtitle1Height = 75; // Approximate, will be updated after text creation
+        const subtitle2Height = 40; // Approximate, will be updated after text creation
+        const bottomIconHeight = 57;
+        
+        // Calculate initial design height (will be recalculated after objects are created)
+        const totalHeight = topIconHeight + topTitleHeight + mainTitleHeight + subtitle1Height + subtitle2Height + bottomIconHeight + (elementGap * 5);
+        
+        // Start Y position to center the entire design
+        let currentY = (canvasHeight - totalHeight) / 2;
+        
+        console.log(`Centering design: total height ${totalHeight}px, starting at Y=${currentY}`);
+        
+        // Create top icon (oval shape matching Figma exactly)
+        if (this.layerVisibility.topIcon) {
+            this.templateObjects.topIcon = new Konva.Ellipse({
+                x: 960, // Center X
+                y: currentY + (topIconHeight / 2),
+                radiusX: 62,
+                radiusY: 29,
+                stroke: '#FFFFFF',
+                strokeWidth: 2,
+                fill: 'transparent',
+                listening: true
+            });
+            this.contentLayer.add(this.templateObjects.topIcon);
+            console.log(`Top icon created at Y=${this.templateObjects.topIcon.y()}`);
+            currentY += topIconHeight + elementGap;
+        }
+        
+        // Create top title (64px, bold, "Top Title")
+        this.templateObjects.topTitle = new Konva.Text({
+            x: 960,
+            y: currentY + (topTitleHeight / 2),
+            text: 'Top Title',
+            fontSize: 64,
+            fontFamily: '"Wix Madefor Display"',
+            fontStyle: 'bold',
+            fill: '#FFFFFF',
+            align: 'center',
+            width: 1490, // 1920 - (215px * 2) = content width
+            listening: true
+        });
+        // Center the text horizontally and vertically (using fixed width centering)
+        this.templateObjects.topTitle.offsetX(745); // Center within 1490px width
+        this.templateObjects.topTitle.offsetY(this.templateObjects.topTitle.height() / 2);
+        this.contentLayer.add(this.templateObjects.topTitle);
+        console.log(`Top title created at Y=${this.templateObjects.topTitle.y()}`);
+        currentY += topTitleHeight + elementGap;
+        
+        // Create main title (180px, extra bold, uppercase, 2 lines with shadow)
         this.templateObjects.mainTitle = new Konva.Text({
             x: 960,
-            y: 400,
-            text: 'Welcome to Wix',
-            fontSize: 72,
-            fontFamily: 'Wix Madefor Text',
-            fontStyle: '600', // Semi Bold for impact
+            y: currentY + (mainTitleHeight / 2),
+            text: 'MAIN TITLE\nTWO LINES',
+            fontSize: 180,
+            fontFamily: '"Wix Madefor Display"',
+            fontStyle: '800', // Extra Bold
             fill: '#FFFFFF',
             align: 'center',
-            verticalAlign: 'middle',
-            offsetX: 0,
-            offsetY: 36, // Half of fontSize for center alignment
+            width: 1490, // 1920 - (215px * 2) = content width
+            wrap: 'word', // Enable word wrapping
+            letterSpacing: -6,
+            lineHeight: 0.88,
+            shadowColor: 'rgba(0,0,0,0.25)',
+            shadowBlur: 4,
+            shadowOffset: { x: 0, y: 4 },
             listening: true
         });
+        // Center the text horizontally and vertically (using fixed width centering)
+        this.templateObjects.mainTitle.offsetX(745); // Center within 1490px width
+        this.templateObjects.mainTitle.offsetY(this.templateObjects.mainTitle.height() / 2);
         this.contentLayer.add(this.templateObjects.mainTitle);
+        console.log(`Main title created at Y=${this.templateObjects.mainTitle.y()}`);
+        currentY += mainTitleHeight + elementGap;
         
-        // Create subtitle text
-        this.templateObjects.subtitle = new Konva.Text({
+        // Create subtitle 1 (75px, bold)
+        this.templateObjects.subtitle1 = new Konva.Text({
             x: 960,
-            y: 500,
-            text: 'Create Amazing Videos',
-            fontSize: 29,
-            fontFamily: 'Wix Madefor Text',
-            fontStyle: '400', // Regular for subtitle
+            y: currentY + (subtitle1Height / 2),
+            text: 'Subtitle 1',
+            fontSize: 75,
+            fontFamily: '"Wix Madefor Display"',
+            fontStyle: 'bold',
             fill: '#FFFFFF',
             align: 'center',
-            verticalAlign: 'middle',
-            offsetX: 0,
-            offsetY: 14.5,
+            width: 1490, // 1920 - (215px * 2) = content width
             listening: true
         });
-        this.contentLayer.add(this.templateObjects.subtitle);
+        // Center the text horizontally and vertically (using fixed width centering)
+        this.templateObjects.subtitle1.offsetX(745); // Center within 1490px width
+        this.templateObjects.subtitle1.offsetY(this.templateObjects.subtitle1.height() / 2);
+        this.contentLayer.add(this.templateObjects.subtitle1);
+        console.log(`Subtitle 1 created at Y=${this.templateObjects.subtitle1.y()}`);
+        currentY += subtitle1Height + elementGap;
         
-        // Create icon placeholder
-        this.templateObjects.icon = new Konva.Rect({
-            x: 910,
-            y: 600,
-            width: 100,
-            height: 100,
-            fill: '#0066FF',
-            cornerRadius: 4,
+        // Create subtitle 2 (40px, regular)
+        this.templateObjects.subtitle2 = new Konva.Text({
+            x: 960,
+            y: currentY + (subtitle2Height / 2),
+            text: 'Subtitle 2',
+            fontSize: 40,
+            fontFamily: '"Wix Madefor Display"',
+            fontStyle: 'normal',
+            fill: '#FFFFFF',
+            align: 'center',
+            width: 1490, // 1920 - (215px * 2) = content width
             listening: true
         });
-        this.contentLayer.add(this.templateObjects.icon);
+        // Center the text horizontally and vertically (using fixed width centering)
+        this.templateObjects.subtitle2.offsetX(745); // Center within 1490px width
+        this.templateObjects.subtitle2.offsetY(this.templateObjects.subtitle2.height() / 2);
+        this.contentLayer.add(this.templateObjects.subtitle2);
+        console.log(`Subtitle 2 created at Y=${this.templateObjects.subtitle2.y()}`);
+        currentY += subtitle2Height + elementGap;
         
-        // Set initial positions for animation
+        // Store the bottom icons Y position for the createBottomIconsExact method
+        this.bottomIconsY = currentY + (bottomIconHeight / 2);
+        
+        // Create bottom icons (4 icons spaced 260px apart)
+        this.createBottomIconsExact();
+        
+        // Set initial animation positions (everything starts hidden)
         this.setInitialPositions();
+        
+        // Initialize text-based visibility
+        this.initializeTextVisibility();
+        
+        // Recalculate layout with actual text heights
+        this.recalculateLayout();
         
         // Initial render
         this.stage.batchDraw();
+        console.log('Template objects creation complete - matches Figma design');
+    }
+    
+    createBottomIconsExact() {
+        // Clear existing bottom icons
+        this.templateObjects.bottomIcons.forEach(icon => icon.destroy());
+        this.templateObjects.bottomIcons = [];
+        
+        if (!this.layerVisibility.bottomIcons || this.bottomIconsConfig.count === 0) {
+            return;
+        }
+        
+        console.log('Creating bottom icons with proper spacing...');
+        
+        // Use the calculated Y position from the layout
+        const iconY = this.bottomIconsY || 820; // Fallback to 820 if not calculated
+        const iconPositions = [
+            960 - 390, // Far left: 570px
+            960 - 130, // Left: 830px  
+            960 + 130, // Right: 1090px
+            960 + 390  // Far right: 1350px
+        ];
+        
+        // Create icons based on Figma design
+        for (let i = 0; i < Math.min(this.bottomIconsConfig.count, 4); i++) {
+            let icon;
+            
+            switch (i) {
+                case 0: // First icon - star/asterisk
+                    icon = new Konva.Star({
+                        x: iconPositions[i],
+                        y: iconY,
+                        numPoints: 8,
+                        innerRadius: 20,
+                        outerRadius: 28,
+                        fill: '#FFFFFF',
+                        listening: true
+                    });
+                    break;
+                    
+                case 1: // Second icon - oval/circle  
+                    icon = new Konva.Ellipse({
+                        x: iconPositions[i],
+                        y: iconY,
+                        radiusX: 31.5,
+                        radiusY: 20,
+                        stroke: '#FFFFFF',
+                        strokeWidth: 2,
+                        listening: true
+                    });
+                    break;
+                    
+                case 2: // Third icon - oval/circle (same as second)
+                    icon = new Konva.Ellipse({
+                        x: iconPositions[i],
+                        y: iconY,
+                        radiusX: 31.5,
+                        radiusY: 20,
+                        stroke: '#FFFFFF',
+                        strokeWidth: 2,
+                        listening: true
+                    });
+                    break;
+                    
+                case 3: // Fourth icon - oval/circle (same as second)
+                    icon = new Konva.Ellipse({
+                        x: iconPositions[i],
+                        y: iconY,
+                        radiusX: 31.5,
+                        radiusY: 20,
+                        stroke: '#FFFFFF',
+                        strokeWidth: 2,
+                        listening: true
+                    });
+                    break;
+            }
+            
+            if (icon) {
+                this.templateObjects.bottomIcons.push(icon);
+                this.contentLayer.add(icon);
+                console.log(`Bottom icon ${i + 1} created at x:${iconPositions[i]}, y:${iconY}`);
+            }
+        }
+    }
+    
+    createIconShape(type, x, y, size) {
+        switch (type) {
+            case 'star':
+                return new Konva.Star({
+                    x: x,
+                    y: y,
+                    numPoints: 5,
+                    innerRadius: size * 0.4,
+                    outerRadius: size * 0.7,
+                    fill: '#FFFFFF'
+                });
+            case 'circle':
+                return new Konva.Circle({
+                    x: x,
+                    y: y,
+                    radius: size * 0.6,
+                    stroke: '#FFFFFF',
+                    strokeWidth: 2
+                });
+            case 'arrow':
+                return new Konva.RegularPolygon({
+                    x: x,
+                    y: y,
+                    sides: 3,
+                    radius: size * 0.6,
+                    fill: '#FFFFFF',
+                    rotation: 90
+                });
+            case 'heart':
+                // Create a heart shape using path
+                return new Konva.Path({
+                    x: x,
+                    y: y,
+                    data: 'M12,21.35l-1.45-1.32C5.4,15.36,2,12.28,2,8.5 C2,5.42,4.42,3,7.5,3c1.74,0,3.41,0.81,4.5,2.09C13.09,3.81,14.76,3,16.5,3 C19.58,3,22,5.42,22,8.5c0,3.78-3.4,6.86-8.55,11.54L12,21.35z',
+                    fill: '#FFFFFF',
+                    scaleX: size / 50,
+                    scaleY: size / 50,
+                    offsetX: 12,
+                    offsetY: 12
+                });
+            default:
+                return new Konva.Circle({
+                    x: x,
+                    y: y,
+                    radius: size * 0.6,
+                    fill: '#FFFFFF'
+                });
+        }
     }
     
     setInitialPositions() {
-        // Set starting positions for animations
-        this.templateObjects.mainTitle.x(760);      // Start 200px left of center
-        this.templateObjects.subtitle.x(785);       // Start 175px left of center  
-        this.templateObjects.icon.x(860);           // Start 100px left of center
+        // Set starting positions for animations - all objects start invisible for fade in
+        if (this.templateObjects.topIcon) {
+            this.templateObjects.topIcon.opacity(0);
+        }
         
-        // Set opacity for fade-in effect
-        this.templateObjects.mainTitle.opacity(0);
-        this.templateObjects.subtitle.opacity(0);
-        this.templateObjects.icon.opacity(0);
+        if (this.templateObjects.topTitle) {
+            this.templateObjects.topTitle.opacity(0);
+        }
+        
+        if (this.templateObjects.mainTitle) {
+            this.templateObjects.mainTitle.opacity(0);
+        }
+        
+        if (this.templateObjects.subtitle1) {
+            this.templateObjects.subtitle1.opacity(0);
+        }
+        
+        if (this.templateObjects.subtitle2) {
+            this.templateObjects.subtitle2.opacity(0);
+        }
+        
+        // Bottom icons start invisible
+        this.templateObjects.bottomIcons.forEach((icon) => {
+            icon.opacity(0);
+        });
+        
+        console.log('Initial positions set for animations');
+    }
+    
+    initializeTextVisibility() {
+        // Set initial visibility based on text content
+        const topTitleInput = document.getElementById('top-title');
+        const mainTitleInput = document.getElementById('main-title');
+        const subtitle1Input = document.getElementById('subtitle1');
+        const subtitle2Input = document.getElementById('subtitle2');
+        
+        if (topTitleInput && this.templateObjects.topTitle) {
+            const hasContent = topTitleInput.value && topTitleInput.value.trim().length > 0;
+            this.layerVisibility.topTitle = hasContent;
+            this.templateObjects.topTitle.visible(hasContent);
+            console.log(`Top title initial visibility: ${hasContent}`);
+        }
+        
+        if (mainTitleInput && this.templateObjects.mainTitle) {
+            const hasContent = mainTitleInput.value && mainTitleInput.value.trim().length > 0;
+            this.layerVisibility.mainTitle = hasContent;
+            this.templateObjects.mainTitle.visible(hasContent);
+            console.log(`Main title initial visibility: ${hasContent}`);
+        }
+        
+        if (subtitle1Input && this.templateObjects.subtitle1) {
+            const hasContent = subtitle1Input.value && subtitle1Input.value.trim().length > 0;
+            this.layerVisibility.subtitle1 = hasContent;
+            this.templateObjects.subtitle1.visible(hasContent);
+            console.log(`Subtitle 1 initial visibility: ${hasContent}`);
+        }
+        
+        if (subtitle2Input && this.templateObjects.subtitle2) {
+            const hasContent = subtitle2Input.value && subtitle2Input.value.trim().length > 0;
+            this.layerVisibility.subtitle2 = hasContent;
+            this.templateObjects.subtitle2.visible(hasContent);
+            console.log(`Subtitle 2 initial visibility: ${hasContent}`);
+        }
+    }
+    
+    updateTextCentering() {
+        // Update text centering based on fixed width (215px margins = 1490px content width)
+        const centerX = 745; // Half of 1490px content width
+        
+        if (this.templateObjects.topTitle) {
+            this.templateObjects.topTitle.offsetX(centerX);
+            this.templateObjects.topTitle.offsetY(this.templateObjects.topTitle.height() / 2);
+        }
+        
+        if (this.templateObjects.mainTitle) {
+            this.templateObjects.mainTitle.offsetX(centerX);
+            this.templateObjects.mainTitle.offsetY(this.templateObjects.mainTitle.height() / 2);
+        }
+        
+        if (this.templateObjects.subtitle1) {
+            this.templateObjects.subtitle1.offsetX(centerX);
+            this.templateObjects.subtitle1.offsetY(this.templateObjects.subtitle1.height() / 2);
+        }
+        
+        if (this.templateObjects.subtitle2) {
+            this.templateObjects.subtitle2.offsetX(centerX);
+            this.templateObjects.subtitle2.offsetY(this.templateObjects.subtitle2.height() / 2);
+        }
+    }
+    
+    recalculateLayout() {
+        console.log('Recalculating layout with current visibility settings...');
+        
+        const canvasHeight = 1080;
+        const elementGap = 26;
+        
+        // Define element heights (dynamically calculated for text elements)
+        const elementHeights = {
+            topIcon: 58,
+            topTitle: this.templateObjects.topTitle ? this.templateObjects.topTitle.height() : 64,
+            mainTitle: this.templateObjects.mainTitle ? this.templateObjects.mainTitle.height() : 180,
+            subtitle1: this.templateObjects.subtitle1 ? this.templateObjects.subtitle1.height() : 75,
+            subtitle2: this.templateObjects.subtitle2 ? this.templateObjects.subtitle2.height() : 40,
+            bottomIcons: 57
+        };
+        
+        console.log('Dynamic heights:', {
+            topTitle: elementHeights.topTitle,
+            mainTitle: elementHeights.mainTitle,
+            subtitle1: elementHeights.subtitle1,
+            subtitle2: elementHeights.subtitle2
+        });
+        
+        // Get list of visible elements and their heights
+        const visibleElements = [];
+        let totalHeight = 0;
+        
+        if (this.layerVisibility.topIcon && this.templateObjects.topIcon) {
+            visibleElements.push({ name: 'topIcon', height: elementHeights.topIcon, object: this.templateObjects.topIcon });
+            totalHeight += elementHeights.topIcon;
+        }
+        
+        if (this.layerVisibility.topTitle && this.templateObjects.topTitle) {
+            visibleElements.push({ name: 'topTitle', height: elementHeights.topTitle, object: this.templateObjects.topTitle });
+            totalHeight += elementHeights.topTitle;
+        }
+        
+        if (this.layerVisibility.mainTitle && this.templateObjects.mainTitle) {
+            visibleElements.push({ name: 'mainTitle', height: elementHeights.mainTitle, object: this.templateObjects.mainTitle });
+            totalHeight += elementHeights.mainTitle;
+        }
+        
+        if (this.layerVisibility.subtitle1 && this.templateObjects.subtitle1) {
+            visibleElements.push({ name: 'subtitle1', height: elementHeights.subtitle1, object: this.templateObjects.subtitle1 });
+            totalHeight += elementHeights.subtitle1;
+        }
+        
+        if (this.layerVisibility.subtitle2 && this.templateObjects.subtitle2) {
+            visibleElements.push({ name: 'subtitle2', height: elementHeights.subtitle2, object: this.templateObjects.subtitle2 });
+            totalHeight += elementHeights.subtitle2;
+        }
+        
+        if (this.layerVisibility.bottomIcons && this.templateObjects.bottomIcons.length > 0) {
+            visibleElements.push({ name: 'bottomIcons', height: elementHeights.bottomIcons, objects: this.templateObjects.bottomIcons });
+            totalHeight += elementHeights.bottomIcons;
+        }
+        
+        // Add gaps between visible elements
+        const gapsNeeded = Math.max(0, visibleElements.length - 1);
+        totalHeight += gapsNeeded * elementGap;
+        
+        // Calculate starting Y position to center the design
+        let currentY = (canvasHeight - totalHeight) / 2;
+        
+        console.log(`Visible elements: ${visibleElements.length}, Total height: ${totalHeight}px, Starting Y: ${currentY}`);
+        
+        // Position each visible element
+        visibleElements.forEach((element, index) => {
+            const yPosition = currentY + (element.height / 2);
+            
+            if (element.name === 'bottomIcons') {
+                // Update bottom icons Y position
+                this.bottomIconsY = yPosition;
+                element.objects.forEach(icon => {
+                    icon.y(yPosition);
+                });
+                console.log(`${element.name} repositioned to Y=${yPosition}`);
+            } else {
+                // Update single object Y position
+                element.object.y(yPosition);
+                
+                // For text objects, ensure proper vertical centering
+                if (element.object.getClassName() === 'Text') {
+                    element.object.offsetY(element.object.height() / 2);
+                }
+                
+                console.log(`${element.name} repositioned to Y=${yPosition}`);
+            }
+            
+            // Move to next position
+            currentY += element.height + (index < visibleElements.length - 1 ? elementGap : 0);
+        });
+        
+        console.log('Layout recalculation complete');
     }
     
     createGSAPTimeline() {
@@ -933,57 +1842,111 @@ class TemplateEditor {
             ease: "power2.inOut"
         });
         
-        // Main title animation - fade in and slide right
-        this.timeline.to(this.templateObjects.mainTitle, {
-            x: 960,           // End at center
-            opacity: 1,       // Fade in
-            duration: 1.5,
-            ease: "power2.out"
-        }, 0);  // Start immediately
+        // Collect all visible objects for animation
+        const visibleObjects = [];
+        if (this.templateObjects.topIcon && this.layerVisibility.topIcon) {
+            visibleObjects.push(this.templateObjects.topIcon);
+        }
+        if (this.templateObjects.topTitle && this.layerVisibility.topTitle) {
+            visibleObjects.push(this.templateObjects.topTitle);
+        }
+        if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
+            visibleObjects.push(this.templateObjects.mainTitle);
+        }
+        if (this.templateObjects.subtitle1 && this.layerVisibility.subtitle1) {
+            visibleObjects.push(this.templateObjects.subtitle1);
+        }
+        if (this.templateObjects.subtitle2 && this.layerVisibility.subtitle2) {
+            visibleObjects.push(this.templateObjects.subtitle2);
+        }
+        if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
+            visibleObjects.push(...this.templateObjects.bottomIcons);
+        }
         
-        // Subtitle animation - delayed start
-        this.timeline.to(this.templateObjects.subtitle, {
-            x: 960,           // End at center  
-            opacity: 1,       // Fade in
-            duration: 1.2,
-            ease: "power2.out"
-        }, 0.3);  // Start 0.3 seconds after main title
+        // Intro animations (0-2s) - cascade from top to bottom
+        let delay = 0;
+        const animationStep = 0.15; // 150ms between each element
         
-        // Icon animation - last to appear
-        this.timeline.to(this.templateObjects.icon, {
-            x: 910,           // End at final position
-            opacity: 1,       // Fade in
-            rotation: 360,    // Full rotation
-            duration: 1,
-            ease: "back.out(1.7)"
-        }, 0.6);  // Start 0.6 seconds in
+        if (this.templateObjects.topIcon && this.layerVisibility.topIcon) {
+            this.timeline.to(this.templateObjects.topIcon, {
+                opacity: 1,
+                duration: 1.0,
+                ease: "power2.out"
+            }, delay);
+            delay += animationStep;
+        }
         
-        // Hold middle section (from 2s to 8s)
+        if (this.templateObjects.topTitle && this.layerVisibility.topTitle) {
+            this.timeline.to(this.templateObjects.topTitle, {
+                opacity: 1,
+                duration: 1.2,
+                ease: "power2.out"
+            }, delay);
+            delay += animationStep;
+        }
+        
+        if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
+            this.timeline.to(this.templateObjects.mainTitle, {
+                opacity: 1,
+                duration: 1.5,
+                ease: "power2.out"
+            }, delay);
+            delay += animationStep;
+        }
+        
+        if (this.templateObjects.subtitle1 && this.layerVisibility.subtitle1) {
+            this.timeline.to(this.templateObjects.subtitle1, {
+                opacity: 1,
+                duration: 1.0,
+                ease: "power2.out"
+            }, delay);
+            delay += animationStep;
+        }
+        
+        if (this.templateObjects.subtitle2 && this.layerVisibility.subtitle2) {
+            this.timeline.to(this.templateObjects.subtitle2, {
+                opacity: 1,
+                duration: 1.0,
+                ease: "power2.out"
+            }, delay);
+            delay += animationStep;
+        }
+        
+        // Bottom icons with stagger effect
+        if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
+            this.templateObjects.bottomIcons.forEach((icon, index) => {
+                this.timeline.to(icon, {
+                    opacity: 1,
+                    duration: 0.8,
+                    ease: "back.out(1.7)"
+                }, delay + (index * 0.1));
+            });
+        }
+        
+        // Hold middle section (2s to 8s)
         this.timeline.to({}, { duration: 6 }, 2);
         
-        // Exit animations - fade out and slide right
-        this.timeline.to([
-            this.templateObjects.mainTitle,
-            this.templateObjects.subtitle,
-            this.templateObjects.icon
-        ], {
-            x: "+=200",       // Move 200px right
-            opacity: 0,       // Fade out
+        // Exit animations - simple fade out (8s to 10s)
+        this.timeline.to(visibleObjects, {
+            opacity: 0,
             duration: 1.5,
             ease: "power2.in",
-            stagger: 0.1      // Stagger the exit timing
-        }, 8);  // Start exit at 8 seconds
+            stagger: 0.08
+        }, 8);
         
-        console.log('GSAP Timeline created with duration:', this.animationDuration, 'seconds');
+        console.log('GSAP Timeline created with', visibleObjects.length, 'visible objects, duration:', this.animationDuration, 'seconds');
     }
     
     setupCanvasInteraction() {
         // Make objects selectable
         const selectableObjects = [
+            this.templateObjects.topIcon,
+            this.templateObjects.topTitle,
             this.templateObjects.mainTitle,
-            this.templateObjects.subtitle,
-            this.templateObjects.icon
-        ];
+            this.templateObjects.subtitle1,
+            this.templateObjects.subtitle2,
+            ...this.templateObjects.bottomIcons
+        ].filter(obj => obj); // Filter out null objects
         
         selectableObjects.forEach(obj => {
             obj.on('click', () => {
@@ -1021,12 +1984,18 @@ class TemplateEditor {
         this.stage.batchDraw();
         
         // Update layer selection in timeline
-        if (object === this.templateObjects.mainTitle) {
-            this.selectLayer(document.querySelector('.layer-item[data-layer="main-title"]') || document.querySelector('.layer-item'));
-        } else if (object === this.templateObjects.subtitle) {
-            this.selectLayer(document.querySelector('.layer-item[data-layer="subtitle"]') || document.querySelectorAll('.layer-item')[1]);
-        } else if (object === this.templateObjects.icon) {
-            this.selectLayer(document.querySelector('.layer-item[data-layer="icon"]') || document.querySelectorAll('.layer-item')[2]);
+        if (object === this.templateObjects.topIcon) {
+            this.selectLayer(document.querySelector('.layer-item[data-layer="top-icon"]'));
+        } else if (object === this.templateObjects.topTitle) {
+            this.selectLayer(document.querySelector('.layer-item[data-layer="top-title"]'));
+        } else if (object === this.templateObjects.mainTitle) {
+            this.selectLayer(document.querySelector('.layer-item[data-layer="main-title"]'));
+        } else if (object === this.templateObjects.subtitle1) {
+            this.selectLayer(document.querySelector('.layer-item[data-layer="subtitle1"]'));
+        } else if (object === this.templateObjects.subtitle2) {
+            this.selectLayer(document.querySelector('.layer-item[data-layer="subtitle2"]'));
+        } else if (this.templateObjects.bottomIcons.includes(object)) {
+            this.selectLayer(document.querySelector('.layer-item[data-layer="bottom-icons"]'));
         }
         
         console.log('Canvas object selected:', object.getClassName());
@@ -1049,29 +2018,25 @@ class TemplateEditor {
     updateTemplateProperties() {
         if (!this.stage) return;
         
-        // Get current values from form
-        const mainText = document.getElementById('main-text').value;
-        const subtitleText = document.getElementById('subtitle-text').value;
-        const fontSize = parseInt(document.getElementById('font-size').value);
-        const fontFamily = document.getElementById('font-family').value;
-        const fontWeight = document.getElementById('font-weight').value;
+        // Update font family for all text objects
+        const fontFamily = document.getElementById('font-family')?.value || 'Wix Madefor Display';
         
-        // Update text content
-        this.templateObjects.mainTitle.text(mainText);
-        this.templateObjects.subtitle.text(subtitleText);
-        
-        // Update font properties
-        this.templateObjects.mainTitle.fontSize(fontSize);
-        this.templateObjects.mainTitle.fontFamily(fontFamily);
-        this.templateObjects.mainTitle.fontStyle(fontWeight);
-        
-        this.templateObjects.subtitle.fontSize(fontSize * 0.4);
-        this.templateObjects.subtitle.fontFamily(fontFamily);
-        this.templateObjects.subtitle.fontStyle(fontWeight);
+        // Update font family for all text objects
+        if (this.templateObjects.topTitle) {
+            this.templateObjects.topTitle.fontFamily(fontFamily);
+        }
+        if (this.templateObjects.mainTitle) {
+            this.templateObjects.mainTitle.fontFamily(fontFamily);
+        }
+        if (this.templateObjects.subtitle1) {
+            this.templateObjects.subtitle1.fontFamily(fontFamily);
+        }
+        if (this.templateObjects.subtitle2) {
+            this.templateObjects.subtitle2.fontFamily(fontFamily);
+        }
         
         // Update offset for center alignment
-        this.templateObjects.mainTitle.offsetX(this.templateObjects.mainTitle.width() / 2);
-        this.templateObjects.subtitle.offsetX(this.templateObjects.subtitle.width() / 2);
+        this.updateTextCentering();
         
         // Redraw stage
         this.stage.batchDraw();
@@ -1472,13 +2437,45 @@ class TemplateEditor {
     }
 }
 
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    const editor = new TemplateEditor();
-    editor.loadProject();
+// Initialize the application when DOM is loaded with proper font loading
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM loaded, initializing fonts...');
     
-    // Auto-save every 30 seconds
-    setInterval(() => {
-        editor.saveProject();
-    }, 30000);
+    // Load fonts first
+    try {
+        await document.fonts.load('normal 64px "Wix Madefor Display"');
+        await document.fonts.load('normal 180px "Wix Madefor Display"');
+        await document.fonts.load('normal 75px "Wix Madefor Display"');
+        await document.fonts.load('normal 40px "Wix Madefor Display"');
+        await document.fonts.ready;
+        
+        // Verify fonts are loaded
+        const fontLoaded = document.fonts.check('64px "Wix Madefor Display"');
+        console.log('Wix Madefor Display font loaded:', fontLoaded);
+        
+        // Pre-render in canvas to ensure Konva recognizes the font
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.font = '64px "Wix Madefor Display"';
+        tempCtx.fillText('test', 0, 0);
+        
+        // Small delay for safety
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        console.log('Fonts loaded successfully, creating editor...');
+        
+        const editor = new TemplateEditor();
+        editor.loadProject();
+        
+        // Auto-save every 30 seconds
+        setInterval(() => {
+            editor.saveProject();
+        }, 30000);
+        
+    } catch (error) {
+        console.error('Font loading failed:', error);
+        // Continue anyway with fallback fonts
+        const editor = new TemplateEditor();
+        editor.loadProject();
+    }
 }); 
