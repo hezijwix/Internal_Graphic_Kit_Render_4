@@ -2284,42 +2284,33 @@ class TemplateEditor {
     }
     
     setInitialPositions() {
-        // Reset all objects to their final positions and visible state
-        // The GSAP timeline will set initial animation states when it's created
+        // Set starting positions for animations - all objects start invisible for fade in
         if (this.templateObjects.topIcon) {
-            this.templateObjects.topIcon.opacity(1);
-            this.templateObjects.topIcon.scaleX(1);
-            this.templateObjects.topIcon.scaleY(1);
-            this.templateObjects.topIcon.rotation(0);
+            this.templateObjects.topIcon.opacity(0);
         }
         
         if (this.templateObjects.topTitle) {
-            this.templateObjects.topTitle.opacity(1);
+            this.templateObjects.topTitle.opacity(0);
         }
         
         if (this.templateObjects.mainTitle) {
-            this.templateObjects.mainTitle.opacity(1);
-            this.templateObjects.mainTitle.scaleX(1);
-            this.templateObjects.mainTitle.scaleY(1);
+            this.templateObjects.mainTitle.opacity(0);
         }
         
         if (this.templateObjects.subtitle1) {
-            this.templateObjects.subtitle1.opacity(1);
+            this.templateObjects.subtitle1.opacity(0);
         }
         
         if (this.templateObjects.subtitle2) {
-            this.templateObjects.subtitle2.opacity(1);
+            this.templateObjects.subtitle2.opacity(0);
         }
         
-        // Bottom icons start at final state
+        // Bottom icons start invisible
         this.templateObjects.bottomIcons.forEach((icon) => {
-            icon.opacity(1);
-            icon.scaleX(1);
-            icon.scaleY(1);
-            icon.rotation(0);
+            icon.opacity(0);
         });
         
-        console.log('Objects reset to final positions - GSAP timeline will handle initial animation states');
+        console.log('Initial positions set for animations');
     }
     
     initializeTextVisibility() {
@@ -2508,231 +2499,78 @@ class TemplateEditor {
             visibleObjects.push(...this.templateObjects.bottomIcons);
         }
         
-        // ENHANCED INTRO ANIMATIONS (0-2.5s) - More dynamic and noticeable
-        let delay = 0.1; // Start with slight delay for impact
+        // Intro animations (0-2s) - cascade from top to bottom
+        let delay = 0;
+        const animationStep = 0.15; // 150ms between each element
         
-        // Top icon - elegant scale and fade with subtle rotation
         if (this.templateObjects.topIcon && this.layerVisibility.topIcon) {
-            // Store final positions for reset
-            const finalY = this.templateObjects.topIcon.y();
-            const finalScale = { x: 1, y: 1 };
-            
-            // Set initial state - smaller scale, slightly above, invisible
-            this.templateObjects.topIcon.scaleX(0.3);
-            this.templateObjects.topIcon.scaleY(0.3);
-            this.templateObjects.topIcon.y(finalY - 30);
-            this.templateObjects.topIcon.opacity(0);
-            this.templateObjects.topIcon.rotation(-5);
-            
             this.timeline.to(this.templateObjects.topIcon, {
                 opacity: 1,
-                scaleX: finalScale.x,
-                scaleY: finalScale.y,
-                y: finalY,
-                rotation: 0,
-                duration: 1.2,
-                ease: "elastic.out(1, 0.8)"
-            }, delay);
-            delay += 0.25;
-        }
-        
-        // Top title - slide from left with fade
-        if (this.templateObjects.topTitle && this.layerVisibility.topTitle) {
-            const finalX = this.templateObjects.topTitle.x();
-            
-            // Set initial state - from the left, invisible
-            this.templateObjects.topTitle.x(finalX - 100);
-            this.templateObjects.topTitle.opacity(0);
-            
-            this.timeline.to(this.templateObjects.topTitle, {
-                opacity: 1,
-                x: finalX,
                 duration: 1.0,
-                ease: "power3.out"
-            }, delay);
-            delay += 0.3;
-        }
-        
-        // Main title - dramatic entrance with scale and slide from right
-        if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
-            const finalX = this.templateObjects.mainTitle.x();
-            const finalScale = { x: 1, y: 1 };
-            
-            // Set initial state - from the right, larger scale, invisible
-            this.templateObjects.mainTitle.x(finalX + 150);
-            this.templateObjects.mainTitle.scaleX(1.3);
-            this.templateObjects.mainTitle.scaleY(1.3);
-            this.templateObjects.mainTitle.opacity(0);
-            
-            this.timeline.to(this.templateObjects.mainTitle, {
-                opacity: 1,
-                x: finalX,
-                scaleX: finalScale.x,
-                scaleY: finalScale.y,
-                duration: 1.4,
-                ease: "power4.out"
-            }, delay);
-            delay += 0.25;
-        }
-        
-        // Subtitle 1 - slide from bottom with bounce
-        if (this.templateObjects.subtitle1 && this.layerVisibility.subtitle1) {
-            const finalY = this.templateObjects.subtitle1.y();
-            
-            // Set initial state - from below, invisible
-            this.templateObjects.subtitle1.y(finalY + 60);
-            this.templateObjects.subtitle1.opacity(0);
-            
-            this.timeline.to(this.templateObjects.subtitle1, {
-                opacity: 1,
-                y: finalY,
-                duration: 1.1,
-                ease: "back.out(1.4)"
-            }, delay);
-            delay += 0.2;
-        }
-        
-        // Subtitle 2 - gentle fade and slight movement from below
-        if (this.templateObjects.subtitle2 && this.layerVisibility.subtitle2) {
-            const finalY = this.templateObjects.subtitle2.y();
-            
-            // Set initial state - slightly below, invisible
-            this.templateObjects.subtitle2.y(finalY + 30);
-            this.templateObjects.subtitle2.opacity(0);
-            
-            this.timeline.to(this.templateObjects.subtitle2, {
-                opacity: 1,
-                y: finalY,
-                duration: 0.9,
                 ease: "power2.out"
             }, delay);
-            delay += 0.15;
+            delay += animationStep;
         }
         
-        // Bottom icons - dynamic staggered entrance with rotation and scale
-        if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
-            this.templateObjects.bottomIcons.forEach((icon, index) => {
-                const finalY = icon.y();
-                const finalScale = { x: 1, y: 1 };
-                
-                // Set initial state - from below, small scale, rotated, invisible
-                icon.y(finalY + 80);
-                icon.scaleX(0.2);
-                icon.scaleY(0.2);
-                icon.opacity(0);
-                icon.rotation(180);
-                
-                this.timeline.to(icon, {
-                    opacity: 1,
-                    y: finalY,
-                    scaleX: finalScale.x,
-                    scaleY: finalScale.y,
-                    rotation: 0,
-                    duration: 1.0,
-                    ease: "back.out(2.0)"
-                }, delay + (index * 0.12)); // Stagger each icon by 120ms
-            });
-        }
-        
-        // SUBTLE MID-ANIMATION EFFECTS (2.5s to 7.5s) - gentle breathing/pulse
-        // Add very subtle scale animation to main title for life
-        if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
-            this.timeline.to(this.templateObjects.mainTitle, {
-                scaleX: 1.02,
-                scaleY: 1.02,
-                duration: 1.5,
-                ease: "sine.inOut",
-                yoyo: true,
-                repeat: 2 // Subtle breathing effect
-            }, 3.5);
-        }
-        
-        // Gentle icon rotation during hold
-        if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
-            this.templateObjects.bottomIcons.forEach((icon, index) => {
-                this.timeline.to(icon, {
-                    rotation: 15,
-                    duration: 2.0,
-                    ease: "sine.inOut",
-                    yoyo: true,
-                    repeat: 1
-                }, 4 + (index * 0.2));
-            });
-        }
-        
-        // ENHANCED EXIT ANIMATIONS (7.5s to 10s) - Dramatic departure
-        const exitDelay = 7.5;
-        
-        // Bottom icons - spiral out with stagger
-        if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
-            this.templateObjects.bottomIcons.forEach((icon, index) => {
-                this.timeline.to(icon, {
-                    opacity: 0,
-                    scaleX: 0.1,
-                    scaleY: 0.1,
-                    rotation: 360,
-                    y: icon.y() + 100,
-                    duration: 1.2,
-                    ease: "power3.in"
-                }, exitDelay + (index * 0.08));
-            });
-        }
-        
-        // Subtitle 2 - fade and slide down
-        if (this.templateObjects.subtitle2 && this.layerVisibility.subtitle2) {
-            this.timeline.to(this.templateObjects.subtitle2, {
-                opacity: 0,
-                y: this.templateObjects.subtitle2.y() + 40,
-                duration: 0.8,
-                ease: "power2.in"
-            }, exitDelay + 0.3);
-        }
-        
-        // Subtitle 1 - fade and slide down
-        if (this.templateObjects.subtitle1 && this.layerVisibility.subtitle1) {
-            this.timeline.to(this.templateObjects.subtitle1, {
-                opacity: 0,
-                y: this.templateObjects.subtitle1.y() + 50,
-                duration: 0.9,
-                ease: "power2.in"
-            }, exitDelay + 0.5);
-        }
-        
-        // Main title - dramatic scale up and fade
-        if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
-            this.timeline.to(this.templateObjects.mainTitle, {
-                opacity: 0,
-                scaleX: 1.4,
-                scaleY: 1.4,
-                duration: 1.1,
-                ease: "power3.in"
-            }, exitDelay + 0.7);
-        }
-        
-        // Top title - slide left and fade
         if (this.templateObjects.topTitle && this.layerVisibility.topTitle) {
             this.timeline.to(this.templateObjects.topTitle, {
-                opacity: 0,
-                x: this.templateObjects.topTitle.x() - 120,
-                duration: 0.9,
-                ease: "power2.in"
-            }, exitDelay + 0.9);
+                opacity: 1,
+                duration: 1.2,
+                ease: "power2.out"
+            }, delay);
+            delay += animationStep;
         }
         
-        // Top icon - scale down with rotation and upward movement
-        if (this.templateObjects.topIcon && this.layerVisibility.topIcon) {
-            this.timeline.to(this.templateObjects.topIcon, {
-                opacity: 0,
-                scaleX: 0.2,
-                scaleY: 0.2,
-                rotation: 45,
-                y: this.templateObjects.topIcon.y() - 60,
+        if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
+            this.timeline.to(this.templateObjects.mainTitle, {
+                opacity: 1,
+                duration: 1.5,
+                ease: "power2.out"
+            }, delay);
+            delay += animationStep;
+        }
+        
+        if (this.templateObjects.subtitle1 && this.layerVisibility.subtitle1) {
+            this.timeline.to(this.templateObjects.subtitle1, {
+                opacity: 1,
                 duration: 1.0,
-                ease: "power3.in"
-            }, exitDelay + 1.1);
+                ease: "power2.out"
+            }, delay);
+            delay += animationStep;
         }
         
-        console.log('Enhanced GSAP Timeline created with', visibleObjects.length, 'visible objects, duration:', this.animationDuration, 'seconds');
+        if (this.templateObjects.subtitle2 && this.layerVisibility.subtitle2) {
+            this.timeline.to(this.templateObjects.subtitle2, {
+                opacity: 1,
+                duration: 1.0,
+                ease: "power2.out"
+            }, delay);
+            delay += animationStep;
+        }
+        
+        // Bottom icons with stagger effect
+        if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
+            this.templateObjects.bottomIcons.forEach((icon, index) => {
+                this.timeline.to(icon, {
+                    opacity: 1,
+                    duration: 0.8,
+                    ease: "back.out(1.7)"
+                }, delay + (index * 0.1));
+            });
+        }
+        
+        // Hold middle section (2s to 8s)
+        this.timeline.to({}, { duration: 6 }, 2);
+        
+        // Exit animations - simple fade out (8s to 10s)
+        this.timeline.to(visibleObjects, {
+            opacity: 0,
+            duration: 1.5,
+            ease: "power2.in",
+            stagger: 0.08
+        }, 8);
+        
+        console.log('GSAP Timeline created with', visibleObjects.length, 'visible objects, duration:', this.animationDuration, 'seconds');
     }
     
     updateGSAPTimeline() {
