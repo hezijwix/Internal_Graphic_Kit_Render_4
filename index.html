@@ -21,7 +21,7 @@
             <h1>Video Template Gallery</h1>
         </div>
         <div class="header-right">
-            <button class="new-project-btn">
+            <button class="new-project-btn" id="new-project-btn">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
@@ -34,7 +34,6 @@
         <section class="template-categories">
             <div class="category-filters">
                 <button class="category-btn active" data-category="all">All</button>
-                <button class="category-btn" data-category="templates">Templates</button>
                 <button class="category-btn" data-category="projects">My Projects</button>
                 <button class="category-btn" data-category="titles">Title Cards</button>
                 <button class="category-btn" data-category="overlays">Overlays</button>
@@ -45,60 +44,43 @@
 
         <section class="templates-section">
             <div class="template-grid" id="template-grid">
-                <!-- Templates will be loaded here -->
-                <div class="template-card" data-template="template_001">
-                    <div class="template-thumbnail">
-                        <div class="template-preview">
-                            <div class="preview-content">
-                                <div class="preview-icon">●</div>
-                                <div class="preview-title">ANIMATED</div>
-                                <div class="preview-title">TITLE CARD</div>
-                                <div class="preview-subtitle">Subtitle Text</div>
-                                <div class="preview-icons">● ○ ▶ ♥</div>
-                            </div>
-                        </div>
-                        <div class="template-overlay">
-                            <button class="use-template-btn" onclick="window.location.href='template_001.html'">
-                                Use Template
-                            </button>
-                            <button class="preview-btn" onclick="window.location.href='template_001.html?mode=preview'">
-                                Preview
-                            </button>
-                        </div>
-                    </div>
-                    <div class="template-info">
-                        <h3>Animated Title Card</h3>
-                        <p>Professional animated title card with icons and multiple text elements</p>
-                        <div class="template-features">
-                            <span class="feature-tag">Icon Upload</span>
-                            <span class="feature-tag">Color Control</span>
-                            <span class="feature-tag">Multi-Text</span>
-                            <span class="feature-tag">GSAP Animation</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Placeholder for future templates -->
-                <div class="template-card placeholder">
-                    <div class="template-thumbnail">
-                        <div class="placeholder-content">
+                <!-- Create Project Card - Always shown first -->
+                <div class="create-project-card" id="create-project-card">
+                    <div class="create-project-content">
+                        <div class="create-icon">
                             <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                                <path d="M24 12v24M12 24h24" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M24 12v24M12 24h24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
                             </svg>
-                            <p>More templates<br>coming soon</p>
                         </div>
-                    </div>
-                    <div class="template-info">
-                        <h3>Lower Third Template</h3>
-                        <p>Professional lower third overlay for speaker introductions</p>
-                        <div class="template-features">
-                            <span class="feature-tag">Coming Soon</span>
-                        </div>
+                        <h3>Create New Project</h3>
+                        <p>Choose a template to get started</p>
                     </div>
                 </div>
+                
+                <!-- Projects will be dynamically loaded here -->
             </div>
         </section>
     </main>
+
+    <!-- Template Selection Modal -->
+    <div class="template-selection-modal" id="template-selection-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Choose a Template</h2>
+                <button class="modal-close" id="modal-close">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="template-options" id="template-options">
+                    <!-- Template options will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="shared/js/project-manager.js"></script>
     <script src="shared/js/gallery-manager.js"></script>
@@ -108,18 +90,19 @@
             const gallery = new GalleryManager();
             gallery.loadTemplates();
             
-            // Connect "New Project" button
+            // Connect "New Project" button (keep existing functionality)
             const newProjectBtn = document.querySelector('.new-project-btn');
             if (newProjectBtn) {
                 newProjectBtn.addEventListener('click', () => {
-                    // For now, create project from template_001 - can be expanded for template selection
-                    const projectName = prompt('Enter project name:', 'My Video Project');
-                    if (projectName && projectName.trim()) {
-                        const projectManager = new ProjectManager();
-                        const project = projectManager.createProject('template_001', projectName.trim());
-                        // Navigate to template editor with project ID
-                        window.location.href = `template_001.html?projectId=${project.id}`;
-                    }
+                    gallery.showTemplateSelectionModal();
+                });
+            }
+
+            // Connect create project card
+            const createProjectCard = document.getElementById('create-project-card');
+            if (createProjectCard) {
+                createProjectCard.addEventListener('click', () => {
+                    gallery.showTemplateSelectionModal();
                 });
             }
         });

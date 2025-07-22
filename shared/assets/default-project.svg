@@ -1,0 +1,17 @@
+<svg width="320" height="180" viewBox="0 0 320 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="320" height="180" fill="#1A1A1A"/>
+  
+  <!-- Main project icon -->
+  <circle cx="160" cy="90" r="24" fill="#0066FF" opacity="0.8"/>
+  
+  <!-- Project text -->
+  <text x="160" y="130" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="14" font-weight="500">Project Preview</text>
+  <text x="160" y="150" text-anchor="middle" fill="#B3B3B3" font-family="Arial, sans-serif" font-size="12">Not Available</text>
+  
+  <!-- Corner indicators -->
+  <rect x="8" y="8" width="4" height="4" fill="#22c55e" opacity="0.6"/>
+  <rect x="308" y="8" width="4" height="4" fill="#22c55e" opacity="0.6"/>
+  <rect x="8" y="168" width="4" height="4" fill="#22c55e" opacity="0.6"/>
+  <rect x="308" y="168" width="4" height="4" fill="#22c55e" opacity="0.6"/>
+</svg>

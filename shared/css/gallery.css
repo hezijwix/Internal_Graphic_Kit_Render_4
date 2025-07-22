@@ -115,7 +115,52 @@ body {
     gap: var(--spacing-lg);
 }
 
-/* Template Cards */
+/* Create Project Card */
+.create-project-card {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border-light);
+    border-radius: var(--border-radius);
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.create-project-card:hover {
+    border-color: var(--primary-color);
+    background: rgba(0, 102, 255, 0.05);
+}
+
+.create-project-content {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.create-icon {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+    transition: transform 0.2s ease;
+}
+
+.create-project-card:hover .create-icon {
+    transform: scale(1.1);
+}
+
+.create-project-content h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.create-project-content p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* Template Cards (Legacy - for reference) */
 .template-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-light);
@@ -135,6 +180,10 @@ body {
     height: 200px;
     overflow: hidden;
     background: var(--bg-primary);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .template-preview {
@@ -177,55 +226,6 @@ body {
     color: var(--text-secondary);
 }
 
-.template-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-md);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.template-card:hover .template-overlay {
-    opacity: 1;
-}
-
-.use-template-btn, .preview-btn {
-    padding: 10px 16px;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.use-template-btn {
-    background: var(--primary-color);
-    color: white;
-}
-
-.use-template-btn:hover {
-    background: #0052CC;
-}
-
-.preview-btn {
-    background: transparent;
-    color: white;
-    border: 1px solid white;
-}
-
-.preview-btn:hover {
-    background: white;
-    color: var(--bg-primary);
-}
-
 .template-info {
     padding: var(--spacing-md);
 }
@@ -257,7 +257,7 @@ body {
     font-size: 12px;
 }
 
-/* Project Cards */
+/* Project Cards - Simplified (no overlay buttons) */
 .template-card.project-card {
     border-left: 3px solid #22c55e;
 }
@@ -266,7 +266,24 @@ body {
     border-left-color: #16a34a;
 }
 
-.template-badge, .project-badge {
+.template-card.project-card .template-thumbnail {
+    cursor: pointer;
+}
+
+.template-card.project-card .template-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.3s ease;
+    background: var(--bg-primary);
+}
+
+.template-card.project-card .template-thumbnail img:hover {
+    transform: scale(1.02);
+}
+
+.project-badge {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -274,17 +291,9 @@ body {
     border-radius: 12px;
     font-size: 11px;
     font-weight: 500;
-    z-index: 2;
-}
-
-.template-badge {
-    background: var(--primary-color);
-    color: white;
-}
-
-.project-badge {
     background: #22c55e;
     color: white;
+    z-index: 2;
 }
 
 .project-actions {
@@ -355,35 +364,135 @@ body {
     background: rgba(239, 68, 68, 0.1);
 }
 
-.edit-project-btn {
-    background: #22c55e;
-    color: white;
+/* Template Selection Modal */
+.template-selection-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: none;
 }
 
-.edit-project-btn:hover {
-    background: #16a34a;
-}
-
-/* Placeholder Card */
-.template-card.placeholder {
-    border-style: dashed;
-}
-
-.placeholder-content {
+.template-selection-modal.active {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100%;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow: hidden;
+    position: relative;
+    z-index: 1001;
+}
+
+.modal-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.modal-close {
+    background: none;
+    border: none;
     color: var(--text-secondary);
-    text-align: center;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--border-radius);
+    transition: all 0.2s ease;
 }
 
-.placeholder-content svg {
-    margin-bottom: var(--spacing-md);
+.modal-close:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
 }
 
-.placeholder-content p {
+.modal-body {
+    padding: var(--spacing-lg);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.template-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.template-option {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.template-option:hover {
+    border-color: var(--primary-color);
+    background: rgba(0, 102, 255, 0.05);
+}
+
+.template-option h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.template-option p {
     font-size: 14px;
+    color: var(--text-secondary);
     line-height: 1.4;
+    margin-bottom: var(--spacing-sm);
+}
+
+.template-option .template-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.template-option .feature-tag {
+    font-size: 11px;
+    padding: 2px 6px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .template-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: var(--spacing-md);
+    }
+    
+    .template-options {
+        grid-template-columns: 1fr;
+    }
 } 

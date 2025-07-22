@@ -3,27 +3,49 @@
     {
       "id": "template_001",
       "name": "Animated Title Card",
-      "description": "Professional animated title card with icons and multiple text elements",
-      "category": "titles",
-      "thumbnail": "shared/assets/thumbnails/template_001.jpg",
-      "file": "template_001.html",
-      "version": "1.0.0",
-      "created": "2024-01-15",
+      "description": "Professional animated title card with icons and multiple text elements. Perfect for video introductions and branding.",
       "features": [
         "Icon Upload Support",
         "Color Customization", 
         "Multiple Text Layers",
-        "GSAP Animations"
+        "GSAP Animations",
+        "Export Options"
       ],
-      "elements": {
-        "topIcon": true,
-        "topTitle": true,
-        "mainTitle": true,
-        "subtitle1": true,
-        "subtitle2": true,
-        "bottomIcons": true
-      }
+      "category": "titles",
+      "file": "template_001.html",
+      "thumbnail": "shared/assets/template-001-thumb.jpg",
+      "preview": "shared/assets/template-001-preview.mp4",
+      "duration": 10,
+      "resolution": "1920x1080",
+      "fps": 30,
+      "tags": ["title", "intro", "corporate", "professional"],
+      "version": "1.0.0",
+      "created": "2024-01-01T00:00:00.000Z",
+      "modified": "2024-01-01T00:00:00.000Z"
     }
   ],
-  "presets": []
+  "categories": [
+    {
+      "id": "titles",
+      "name": "Title Cards",
+      "description": "Animated title cards and text overlays"
+    },
+    {
+      "id": "overlays", 
+      "name": "Overlays",
+      "description": "Lower thirds and overlay graphics"
+    },
+    {
+      "id": "intros",
+      "name": "Intros", 
+      "description": "Video introduction sequences"
+    },
+    {
+      "id": "outros",
+      "name": "Outros",
+      "description": "Video ending and credits sequences"
+    }
+  ],
+  "version": "1.0.0",
+  "updated": "2024-01-01T00:00:00.000Z"
 } 

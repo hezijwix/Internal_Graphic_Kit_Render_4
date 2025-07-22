@@ -90,6 +90,9 @@ class TemplateEditor {
         this.initializeZoom();
         this.renderDefaultTemplate();
         
+        // Remove shadow from main title if it exists
+        setTimeout(() => this.removeMainTitleShadow(), 200);
+        
         console.log('Template Editor initialized successfully');
     }
     
@@ -612,6 +615,8 @@ class TemplateEditor {
             if (type === 'mainTitle') {
                 const dynamicFontSize = this.calculateDynamicMainTitleFontSize(processedText);
                 textObject.fontSize(dynamicFontSize);
+                // Remove shadow from main title
+                this.removeMainTitleShadow();
                 console.log(`Main title font size updated to: ${dynamicFontSize}px for "${processedText.replace(/\n/g, ' ')}" (${processedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim().length} chars)`);
             }
             
@@ -914,9 +919,6 @@ class TemplateEditor {
             wrap: 'word', // Enable word wrapping
             letterSpacing: 0, // Let the font's natural kerning work
             lineHeight: 0.9,
-            shadowColor: 'rgba(0,0,0,0.25)',
-            shadowBlur: 4,
-            shadowOffset: { x: 0, y: 4 },
             listening: true
         });
         
@@ -1414,11 +1416,25 @@ class TemplateEditor {
         
         console.log(`Updated font ${property}: ${value}`);
     }
+
+    removeMainTitleShadow() {
+        if (this.templateObjects.mainTitle) {
+            // Remove all shadow properties from the main title
+            this.templateObjects.mainTitle.shadowColor(null);
+            this.templateObjects.mainTitle.shadowBlur(0);
+            this.templateObjects.mainTitle.shadowOffset({ x: 0, y: 0 });
+            console.log('Main title shadow removed');
+        }
+    }
     
     updateColor(type, color) {
         if (type === 'Text Color') {
             if (this.templateObjects.topTitle) this.templateObjects.topTitle.fill(color);
-            if (this.templateObjects.mainTitle) this.templateObjects.mainTitle.fill(color);
+            if (this.templateObjects.mainTitle) {
+                this.templateObjects.mainTitle.fill(color);
+                // Remove shadow if it exists
+                this.removeMainTitleShadow();
+            }
             if (this.templateObjects.subtitle1) this.templateObjects.subtitle1.fill(color);
             if (this.templateObjects.subtitle2) this.templateObjects.subtitle2.fill(color);
             // Update top icon color to inherit text color
@@ -1939,9 +1955,6 @@ class TemplateEditor {
             wrap: 'word', // Enable word wrapping
             letterSpacing: 0, // Let the font's natural kerning work
             lineHeight: 0.9,
-            shadowColor: 'rgba(0,0,0,0.25)',
-            shadowBlur: 4,
-            shadowOffset: { x: 0, y: 4 },
             listening: true
         });
         

@@ -1,0 +1,397 @@
+{
+  "totalIcons": 64,
+  "categories": [
+    "arrow",
+    "celebration",
+    "stars",
+    "technology",
+    "misc"
+  ],
+  "icons": {
+    "1": {
+      "originalName": "Arrow 01.svg",
+      "newName": "icon-001-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-001-arrow.svg"
+    },
+    "2": {
+      "originalName": "Arrow 02.svg",
+      "newName": "icon-002-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-002-arrow.svg"
+    },
+    "3": {
+      "originalName": "Arrow 03.svg",
+      "newName": "icon-003-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-003-arrow.svg"
+    },
+    "4": {
+      "originalName": "Arrow 04.svg",
+      "newName": "icon-004-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-004-arrow.svg"
+    },
+    "5": {
+      "originalName": "Arrow 05.svg",
+      "newName": "icon-005-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-005-arrow.svg"
+    },
+    "6": {
+      "originalName": "Arrow 06.svg",
+      "newName": "icon-006-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-006-arrow.svg"
+    },
+    "7": {
+      "originalName": "Arrow 07.svg",
+      "newName": "icon-007-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-007-arrow.svg"
+    },
+    "8": {
+      "originalName": "Arrow 08.svg",
+      "newName": "icon-008-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-008-arrow.svg"
+    },
+    "9": {
+      "originalName": "Arrow 09.svg",
+      "newName": "icon-009-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-009-arrow.svg"
+    },
+    "10": {
+      "originalName": "Arrow 10.svg",
+      "newName": "icon-010-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-010-arrow.svg"
+    },
+    "11": {
+      "originalName": "Arrow 11.svg",
+      "newName": "icon-011-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-011-arrow.svg"
+    },
+    "12": {
+      "originalName": "Arrow 12.svg",
+      "newName": "icon-012-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-012-arrow.svg"
+    },
+    "13": {
+      "originalName": "Arrow 13.svg",
+      "newName": "icon-013-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-013-arrow.svg"
+    },
+    "14": {
+      "originalName": "Arrow 14.svg",
+      "newName": "icon-014-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-014-arrow.svg"
+    },
+    "15": {
+      "originalName": "Arrow 15.svg",
+      "newName": "icon-015-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-015-arrow.svg"
+    },
+    "16": {
+      "originalName": "Arrow 16.svg",
+      "newName": "icon-016-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-016-arrow.svg"
+    },
+    "17": {
+      "originalName": "Arrow 17.svg",
+      "newName": "icon-017-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-017-arrow.svg"
+    },
+    "18": {
+      "originalName": "Arrow 18.svg",
+      "newName": "icon-018-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-018-arrow.svg"
+    },
+    "19": {
+      "originalName": "Arrow 19.svg",
+      "newName": "icon-019-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-019-arrow.svg"
+    },
+    "20": {
+      "originalName": "Arrow 20.svg",
+      "newName": "icon-020-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-020-arrow.svg"
+    },
+    "21": {
+      "originalName": "Arrow 21.svg",
+      "newName": "icon-021-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-021-arrow.svg"
+    },
+    "22": {
+      "originalName": "Arrow 22.svg",
+      "newName": "icon-022-arrow.svg",
+      "category": "arrow",
+      "path": "templates/template_001/assets/icons/icon-022-arrow.svg"
+    },
+    "23": {
+      "originalName": "Celebration 01.svg",
+      "newName": "icon-023-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-023-celebration.svg"
+    },
+    "24": {
+      "originalName": "Celebration 02.svg",
+      "newName": "icon-024-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-024-celebration.svg"
+    },
+    "25": {
+      "originalName": "Celebration 03.svg",
+      "newName": "icon-025-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-025-celebration.svg"
+    },
+    "26": {
+      "originalName": "Celebration 04.svg",
+      "newName": "icon-026-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-026-celebration.svg"
+    },
+    "27": {
+      "originalName": "Celebration 05.svg",
+      "newName": "icon-027-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-027-celebration.svg"
+    },
+    "28": {
+      "originalName": "Celebration 06.svg",
+      "newName": "icon-028-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-028-celebration.svg"
+    },
+    "29": {
+      "originalName": "Celebration 07.svg",
+      "newName": "icon-029-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-029-celebration.svg"
+    },
+    "30": {
+      "originalName": "Celebration 08.svg",
+      "newName": "icon-030-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-030-celebration.svg"
+    },
+    "31": {
+      "originalName": "Celebration 09.svg",
+      "newName": "icon-031-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-031-celebration.svg"
+    },
+    "32": {
+      "originalName": "Celebration 10.svg",
+      "newName": "icon-032-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-032-celebration.svg"
+    },
+    "33": {
+      "originalName": "Celebration 11.svg",
+      "newName": "icon-033-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-033-celebration.svg"
+    },
+    "34": {
+      "originalName": "Celebration 12.svg",
+      "newName": "icon-034-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-034-celebration.svg"
+    },
+    "35": {
+      "originalName": "Celebration 13.svg",
+      "newName": "icon-035-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-035-celebration.svg"
+    },
+    "36": {
+      "originalName": "Celebration 15.svg",
+      "newName": "icon-036-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-036-celebration.svg"
+    },
+    "37": {
+      "originalName": "Celebration 16.svg",
+      "newName": "icon-037-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-037-celebration.svg"
+    },
+    "38": {
+      "originalName": "Celebration 17.svg",
+      "newName": "icon-038-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-038-celebration.svg"
+    },
+    "39": {
+      "originalName": "Celebration 18.svg",
+      "newName": "icon-039-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-039-celebration.svg"
+    },
+    "40": {
+      "originalName": "Celebration 19.svg",
+      "newName": "icon-040-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-040-celebration.svg"
+    },
+    "41": {
+      "originalName": "Celebration 20.svg",
+      "newName": "icon-041-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-041-celebration.svg"
+    },
+    "42": {
+      "originalName": "Celebration 21.svg",
+      "newName": "icon-042-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-042-celebration.svg"
+    },
+    "43": {
+      "originalName": "Celebration 22.svg",
+      "newName": "icon-043-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-043-celebration.svg"
+    },
+    "44": {
+      "originalName": "Celebration 23.svg",
+      "newName": "icon-044-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-044-celebration.svg"
+    },
+    "45": {
+      "originalName": "Celebration 24.svg",
+      "newName": "icon-045-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-045-celebration.svg"
+    },
+    "46": {
+      "originalName": "Celebration 25.svg",
+      "newName": "icon-046-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-046-celebration.svg"
+    },
+    "47": {
+      "originalName": "Celebration 26.svg",
+      "newName": "icon-047-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-047-celebration.svg"
+    },
+    "48": {
+      "originalName": "Celebration 27.svg",
+      "newName": "icon-048-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-048-celebration.svg"
+    },
+    "49": {
+      "originalName": "Celebration 28.svg",
+      "newName": "icon-049-celebration.svg",
+      "category": "celebration",
+      "path": "templates/template_001/assets/icons/icon-049-celebration.svg"
+    },
+    "50": {
+      "originalName": "Stars 01.svg",
+      "newName": "icon-050-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-050-stars.svg"
+    },
+    "51": {
+      "originalName": "Stars 02.svg",
+      "newName": "icon-051-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-051-stars.svg"
+    },
+    "52": {
+      "originalName": "Stars 03.svg",
+      "newName": "icon-052-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-052-stars.svg"
+    },
+    "53": {
+      "originalName": "Stars 04.svg",
+      "newName": "icon-053-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-053-stars.svg"
+    },
+    "54": {
+      "originalName": "Stars 05.svg",
+      "newName": "icon-054-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-054-stars.svg"
+    },
+    "55": {
+      "originalName": "Stars 06.svg",
+      "newName": "icon-055-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-055-stars.svg"
+    },
+    "56": {
+      "originalName": "Stars 07.svg",
+      "newName": "icon-056-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-056-stars.svg"
+    },
+    "57": {
+      "originalName": "Stars 08.svg",
+      "newName": "icon-057-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-057-stars.svg"
+    },
+    "58": {
+      "originalName": "Stars 09.svg",
+      "newName": "icon-058-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-058-stars.svg"
+    },
+    "59": {
+      "originalName": "Stars 10.svg",
+      "newName": "icon-059-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-059-stars.svg"
+    },
+    "60": {
+      "originalName": "Stars 11.svg",
+      "newName": "icon-060-stars.svg",
+      "category": "stars",
+      "path": "templates/template_001/assets/icons/icon-060-stars.svg"
+    },
+    "61": {
+      "originalName": "Technology.svg",
+      "newName": "icon-061-technology.svg",
+      "category": "technology",
+      "path": "templates/template_001/assets/icons/icon-061-technology.svg"
+    },
+    "62": {
+      "originalName": "Union.svg",
+      "newName": "icon-062-misc.svg",
+      "category": "misc",
+      "path": "templates/template_001/assets/icons/icon-062-misc.svg"
+    },
+    "63": {
+      "originalName": "Vector.svg",
+      "newName": "icon-063-misc.svg",
+      "category": "misc",
+      "path": "templates/template_001/assets/icons/icon-063-misc.svg"
+    },
+    "64": {
+      "originalName": "Vector-1.svg",
+      "newName": "icon-064-misc.svg",
+      "category": "misc",
+      "path": "templates/template_001/assets/icons/icon-064-misc.svg"
+    }
+  },
+  "generatedAt": "2025-07-22T13:20:47.900Z"
+}

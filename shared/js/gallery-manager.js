@@ -9,6 +9,7 @@ class GalleryManager {
         this.projectManager = new ProjectManager();
         this.currentFilter = 'all';
         this.setupFilters();
+        this.setupModal();
     }
 
     async loadTemplates() {
@@ -24,12 +25,36 @@ class GalleryManager {
             this.renderGallery();
         } catch (error) {
             console.error('Failed to load templates:', error);
-            this.renderError();
+            // Use hardcoded template for now
+            this.templates = [{
+                id: 'template_001',
+                name: 'Animated Title Card',
+                description: 'Professional animated title card with icons and multiple text elements',
+                features: ['Icon Upload', 'Color Control', 'Multi-Text', 'GSAP Animation'],
+                category: 'titles',
+                file: 'template_001.html',
+                thumbnail: 'shared/assets/template-001-thumb.svg'
+            }];
+            this.projects = this.projectManager.getAllProjects();
+            this.renderGallery();
         }
     }
 
     async loadProjects() {
+        console.log('Loading projects...');
         this.projects = this.projectManager.getAllProjects();
+        console.log(`Loaded ${this.projects.length} projects:`, this.projects);
+        
+        // Debug thumbnail data
+        this.projects.forEach(project => {
+            console.log(`Project "${project.name}":`, {
+                id: project.id,
+                hasThumbnail: !!project.thumbnail,
+                thumbnailSize: project.thumbnail ? project.thumbnail.length : 0,
+                modified: project.modified
+            });
+        });
+        
         this.renderGallery();
     }
 
@@ -48,86 +73,132 @@ class GalleryManager {
         });
     }
 
+    setupModal() {
+        const modal = document.getElementById('template-selection-modal');
+        const closeBtn = document.getElementById('modal-close');
+        const overlay = modal?.querySelector('.modal-overlay');
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.hideTemplateSelectionModal());
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', () => this.hideTemplateSelectionModal());
+        }
+
+        // ESC key to close modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal?.classList.contains('active')) {
+                this.hideTemplateSelectionModal();
+            }
+        });
+
+        // Refresh projects when page becomes visible (user returns from editor)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                console.log('Page became visible, refreshing projects...');
+                this.loadProjects();
+            }
+        });
+    }
+
+    showTemplateSelectionModal() {
+        const modal = document.getElementById('template-selection-modal');
+        const templateOptions = document.getElementById('template-options');
+        
+        if (!modal || !templateOptions) return;
+
+        // Clear existing options
+        templateOptions.innerHTML = '';
+
+        // Populate with available templates
+        this.templates.forEach(template => {
+            const option = document.createElement('div');
+            option.className = 'template-option';
+            option.innerHTML = `
+                <h4>${template.name}</h4>
+                <p>${template.description}</p>
+                <div class="template-features">
+                    ${template.features.map(feature => `<span class="feature-tag">${feature}</span>`).join('')}
+                </div>
+            `;
+            
+            option.addEventListener('click', () => {
+                this.hideTemplateSelectionModal();
+                this.createProjectFromTemplate(template);
+            });
+            
+            templateOptions.appendChild(option);
+        });
+
+        // Show modal
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    hideTemplateSelectionModal() {
+        const modal = document.getElementById('template-selection-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
     renderGallery() {
         if (!this.gridContainer) return;
         
+        // Keep the create project card
+        const createCard = document.getElementById('create-project-card');
         this.gridContainer.innerHTML = '';
+        
+        // Re-add create project card if it exists
+        if (createCard) {
+            this.gridContainer.appendChild(createCard);
+        }
         
         // Filter and render based on current filter
         let itemsToShow = [];
         
         switch (this.currentFilter) {
-            case 'templates':
-                itemsToShow = this.templates.map(t => ({ type: 'template', data: t }));
-                break;
             case 'projects':
                 itemsToShow = this.projects.map(p => ({ type: 'project', data: p }));
                 break;
             case 'titles':
-                itemsToShow = this.templates.filter(t => t.category === 'titles').map(t => ({ type: 'template', data: t }));
+                // Don't show templates directly anymore, just projects from that category
+                itemsToShow = this.projects.filter(p => {
+                    const template = this.templates.find(t => t.id === p.templateId);
+                    return template && template.category === 'titles';
+                }).map(p => ({ type: 'project', data: p }));
                 break;
             case 'overlays':
-                itemsToShow = this.templates.filter(t => t.category === 'overlays').map(t => ({ type: 'template', data: t }));
+                itemsToShow = this.projects.filter(p => {
+                    const template = this.templates.find(t => t.id === p.templateId);
+                    return template && template.category === 'overlays';
+                }).map(p => ({ type: 'project', data: p }));
                 break;
             case 'intros':
-                itemsToShow = this.templates.filter(t => t.category === 'intros').map(t => ({ type: 'template', data: t }));
+                itemsToShow = this.projects.filter(p => {
+                    const template = this.templates.find(t => t.id === p.templateId);
+                    return template && template.category === 'intros';
+                }).map(p => ({ type: 'project', data: p }));
                 break;
             case 'outros':
-                itemsToShow = this.templates.filter(t => t.category === 'outros').map(t => ({ type: 'template', data: t }));
+                itemsToShow = this.projects.filter(p => {
+                    const template = this.templates.find(t => t.id === p.templateId);
+                    return template && template.category === 'outros';
+                }).map(p => ({ type: 'project', data: p }));
                 break;
             default: // 'all'
-                itemsToShow = [
-                    ...this.templates.map(t => ({ type: 'template', data: t })),
-                    ...this.projects.map(p => ({ type: 'project', data: p }))
-                ];
+                itemsToShow = this.projects.map(p => ({ type: 'project', data: p }));
         }
 
-        // Render filtered items
+        // Render filtered items (only projects now)
         itemsToShow.forEach(item => {
-            if (item.type === 'template') {
-                const templateCard = this.createTemplateCard(item.data);
-                this.gridContainer.appendChild(templateCard);
-            } else {
+            if (item.type === 'project') {
                 const projectCard = this.createProjectCard(item.data);
                 this.gridContainer.appendChild(projectCard);
             }
         });
-    }
-
-    createTemplateCard(template) {
-        const card = document.createElement('div');
-        card.className = 'template-card';
-        card.innerHTML = `
-            <div class="template-thumbnail">
-                <img src="${template.thumbnail}" alt="${template.name}" 
-                     onerror="this.src='shared/assets/default-template.svg'">
-                <div class="template-overlay">
-                    <button class="use-template-btn" data-template="${template.id}">
-                        Create Project
-                    </button>
-                    <button class="preview-btn" data-template="${template.id}">
-                        Preview
-                    </button>
-                </div>
-                <div class="template-badge">Template</div>
-            </div>
-            <div class="template-info">
-                <h3>${template.name}</h3>
-                <p>${template.description}</p>
-                <div class="template-features">
-                    ${template.features.map(feature => `<span class="feature-tag">${feature}</span>`).join('')}
-                </div>
-            </div>
-        `;
-
-        // Add event listeners
-        const useBtn = card.querySelector('.use-template-btn');
-        const previewBtn = card.querySelector('.preview-btn');
-        
-        useBtn.addEventListener('click', () => this.createProjectFromTemplate(template));
-        previewBtn.addEventListener('click', () => this.previewTemplate(template));
-
-        return card;
     }
 
     createProjectCard(project) {
@@ -137,18 +208,17 @@ class GalleryManager {
         const thumbnailSrc = project.thumbnail || 'shared/assets/default-project.svg';
         const lastModified = new Date(project.modified).toLocaleDateString();
         
+        console.log(`Creating project card for "${project.name}":`, {
+            hasThumbnail: !!project.thumbnail,
+            thumbnailSrc: project.thumbnail ? 'data:image/jpeg;base64...' : thumbnailSrc,
+            thumbnailLength: project.thumbnail ? project.thumbnail.length : 0
+        });
+        
         card.innerHTML = `
             <div class="template-thumbnail">
                 <img src="${thumbnailSrc}" alt="${project.name}" 
-                     onerror="this.src='shared/assets/default-project.svg'">
-                <div class="template-overlay">
-                    <button class="edit-project-btn" data-project="${project.id}">
-                        Edit Project
-                    </button>
-                    <button class="preview-btn" data-project="${project.id}">
-                        Preview
-                    </button>
-                </div>
+                     onerror="console.error('Failed to load thumbnail for ${project.name}'); this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzUwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDM1MCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzNTAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMUExQTFBIi8+CjxjaXJjbGUgY3g9IjE3NSIgY3k9IjEwMCIgcj0iMjAiIGZpbGw9IiMwMDY2RkYiLz4KPHN2Zz4K'"
+                     onload="console.log('Thumbnail loaded successfully for ${project.name}')">
                 <div class="project-badge">Project</div>
                 <div class="project-actions">
                     <button class="project-menu-btn" data-project="${project.id}" aria-label="Project actions">
@@ -169,14 +239,22 @@ class GalleryManager {
             </div>
         `;
 
-        // Add event listeners
-        const editBtn = card.querySelector('.edit-project-btn');
-        const previewBtn = card.querySelector('.preview-btn');
+        // Add click event to entire card for direct editing
+        card.addEventListener('click', (e) => {
+            // Don't trigger if clicking on menu button
+            if (!e.target.closest('.project-menu-btn')) {
+                this.editProject(project);
+            }
+        });
+
+        // Add menu button event
         const menuBtn = card.querySelector('.project-menu-btn');
-        
-        editBtn.addEventListener('click', () => this.editProject(project));
-        previewBtn.addEventListener('click', () => this.previewProject(project));
-        menuBtn.addEventListener('click', (e) => this.showProjectMenu(e, project));
+        if (menuBtn) {
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card click
+                this.showProjectMenu(e, project);
+            });
+        }
 
         return card;
     }
@@ -191,21 +269,10 @@ class GalleryManager {
         }
     }
 
-    previewTemplate(template) {
-        // Navigate to template in preview mode
-        window.location.href = `${template.file}?mode=preview`;
-    }
-
     editProject(project) {
         // Navigate to template editor with project ID
         const templateFile = this.templates.find(t => t.id === project.templateId)?.file || 'template_001.html';
         window.location.href = `${templateFile}?projectId=${project.id}`;
-    }
-
-    previewProject(project) {
-        // Navigate to template editor in preview mode with project data
-        const templateFile = this.templates.find(t => t.id === project.templateId)?.file || 'template_001.html';
-        window.location.href = `${templateFile}?projectId=${project.id}&mode=preview`;
     }
 
     showProjectMenu(event, project) {

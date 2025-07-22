@@ -93,6 +93,9 @@ class TemplateEditor {
         // Load project data if available
         setTimeout(() => this.loadProjectData(), 100);
         
+        // Remove shadow from main title if it exists
+        setTimeout(() => this.removeMainTitleShadow(), 200);
+        
         console.log('Template Editor initialized successfully');
     }
     
@@ -615,6 +618,8 @@ class TemplateEditor {
             if (type === 'mainTitle') {
                 const dynamicFontSize = this.calculateDynamicMainTitleFontSize(processedText);
                 textObject.fontSize(dynamicFontSize);
+                // Remove shadow from main title
+                this.removeMainTitleShadow();
                 console.log(`Main title font size updated to: ${dynamicFontSize}px for "${processedText.replace(/\n/g, ' ')}" (${processedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim().length} chars)`);
             }
             
@@ -917,9 +922,6 @@ class TemplateEditor {
             wrap: 'word', // Enable word wrapping
             letterSpacing: 0, // Let the font's natural kerning work
             lineHeight: 0.9,
-            shadowColor: 'rgba(0,0,0,0.25)',
-            shadowBlur: 4,
-            shadowOffset: { x: 0, y: 4 },
             listening: true
         });
         
@@ -1419,11 +1421,25 @@ class TemplateEditor {
         
         console.log(`Updated font ${property}: ${value}`);
     }
+
+    removeMainTitleShadow() {
+        if (this.templateObjects.mainTitle) {
+            // Remove all shadow properties from the main title
+            this.templateObjects.mainTitle.shadowColor(null);
+            this.templateObjects.mainTitle.shadowBlur(0);
+            this.templateObjects.mainTitle.shadowOffset({ x: 0, y: 0 });
+            console.log('Main title shadow removed');
+        }
+    }
     
     updateColor(type, color) {
         if (type === 'Text Color') {
             if (this.templateObjects.topTitle) this.templateObjects.topTitle.fill(color);
-            if (this.templateObjects.mainTitle) this.templateObjects.mainTitle.fill(color);
+            if (this.templateObjects.mainTitle) {
+                this.templateObjects.mainTitle.fill(color);
+                // Remove shadow if it exists
+                this.removeMainTitleShadow();
+            }
             if (this.templateObjects.subtitle1) this.templateObjects.subtitle1.fill(color);
             if (this.templateObjects.subtitle2) this.templateObjects.subtitle2.fill(color);
             // Update top icon color to inherit text color
@@ -1944,9 +1960,6 @@ class TemplateEditor {
             wrap: 'word', // Enable word wrapping
             letterSpacing: 0, // Let the font's natural kerning work
             lineHeight: 0.9,
-            shadowColor: 'rgba(0,0,0,0.25)',
-            shadowBlur: 4,
-            shadowOffset: { x: 0, y: 4 },
             listening: true
         });
         
@@ -2734,6 +2747,154 @@ class TemplateEditor {
         // Add to preset grid
         presetGrid.appendChild(uploadedPreset);
     }
+
+    // Icon Gallery Integration Methods
+    updateTopIconFromGallery(iconData) {
+        console.log('🎨 Updating top icon from gallery:', iconData);
+        
+        if (!iconData || !this.templateObjects.topIcon) {
+            console.warn('❌ Cannot update top icon - missing data or icon object');
+            return;
+        }
+        
+        // Remove existing top icon
+        this.templateObjects.topIcon.destroy();
+        
+        // Create new icon from SVG file
+        this.createSVGTopIconFromGallery(iconData);
+    }
+    
+    updateBottomIconFromGallery(iconData, slotIndex) {
+        console.log(`🎨 Updating bottom icon ${slotIndex + 1} from gallery:`, iconData);
+        
+        if (!iconData || slotIndex >= this.templateObjects.bottomIcons.length) {
+            console.warn('❌ Cannot update bottom icon - missing data or invalid slot');
+            return;
+        }
+        
+        // Remove existing icon at this slot
+        if (this.templateObjects.bottomIcons[slotIndex]) {
+            this.templateObjects.bottomIcons[slotIndex].destroy();
+        }
+        
+        // Create new icon from SVG file
+        this.createSVGBottomIconFromGallery(iconData, slotIndex);
+    }
+    
+    async createSVGTopIconFromGallery(iconData) {
+        try {
+            // Load SVG content
+            const response = await fetch(iconData.fullPath);
+            if (!response.ok) {
+                throw new Error(`Failed to load icon: ${response.status}`);
+            }
+            
+            const svgContent = await response.text();
+            
+            // Create blob URL for the SVG
+            const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            // Create image element and load
+            const img = new Image();
+            img.onload = () => {
+                // Get current position (if icon exists) or default position
+                const iconY = this.templateObjects.topIcon ? this.templateObjects.topIcon.y() : 200;
+                
+                this.templateObjects.topIcon = new Konva.Image({
+                    x: 960,
+                    y: iconY,
+                    image: img,
+                    width: 56,
+                    height: 56,
+                    offsetX: 28,
+                    offsetY: 28,
+                    listening: true
+                });
+                
+                // Apply current text color to icon
+                const currentTextColor = this.getCurrentTextColor();
+                this.applyColorToSVGIcon(this.templateObjects.topIcon, currentTextColor);
+                
+                this.contentLayer.add(this.templateObjects.topIcon);
+                this.stage.batchDraw();
+                this.updateGSAPTimeline();
+                
+                // Clean up blob URL
+                URL.revokeObjectURL(url);
+                
+                console.log(`✅ Top icon updated with ${iconData.originalName}`);
+            };
+            
+            img.onerror = () => {
+                console.error(`❌ Failed to load top icon image: ${iconData.originalName}`);
+                URL.revokeObjectURL(url);
+            };
+            
+            img.src = url;
+            
+        } catch (error) {
+            console.error('❌ Failed to create top icon from gallery:', error);
+        }
+    }
+    
+    async createSVGBottomIconFromGallery(iconData, slotIndex) {
+        try {
+            // Load SVG content
+            const response = await fetch(iconData.fullPath);
+            if (!response.ok) {
+                throw new Error(`Failed to load icon: ${response.status}`);
+            }
+            
+            const svgContent = await response.text();
+            
+            // Create blob URL for the SVG
+            const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            // Create image element and load
+            const img = new Image();
+            img.onload = () => {
+                const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
+                const iconY = this.bottomIconsY || 820;
+                
+                const icon = new Konva.Image({
+                    x: iconPositions[slotIndex],
+                    y: iconY,
+                    image: img,
+                    width: 40,
+                    height: 40,
+                    offsetX: 20,
+                    offsetY: 20,
+                    listening: true
+                });
+                
+                // Apply current text color to icon
+                const currentTextColor = this.getCurrentTextColor();
+                this.applyColorToSVGIcon(icon, currentTextColor);
+                
+                this.templateObjects.bottomIcons[slotIndex] = icon;
+                this.contentLayer.add(icon);
+                this.stage.batchDraw();
+                this.updateGSAPTimeline();
+                
+                // Clean up blob URL
+                URL.revokeObjectURL(url);
+                
+                console.log(`✅ Bottom icon ${slotIndex + 1} updated with ${iconData.originalName}`);
+            };
+            
+            img.onerror = () => {
+                console.error(`❌ Failed to load bottom icon image: ${iconData.originalName}`);
+                URL.revokeObjectURL(url);
+            };
+            
+            img.src = url;
+            
+        } catch (error) {
+            console.error(`❌ Failed to create bottom icon ${slotIndex + 1} from gallery:`, error);
+        }
+    }
     
     saveProject() {
         const projectData = {
@@ -3144,86 +3305,162 @@ class TemplateEditor {
     // Project integration method
     loadProjectData() {
         const projectIntegration = window.projectIntegration;
-        if (projectIntegration && projectIntegration.currentProject) {
-            const project = projectIntegration.currentProject;
-            console.log('Loading project data:', project.name);
+        if (!projectIntegration || !projectIntegration.currentProject) {
+            console.log('No project integration or project available');
+            return;
+        }
 
-            try {
-                // Load project configuration
-                if (project.config) {
-                    // Load text values
-                    if (project.config.texts) {
-                        const topTitle = document.getElementById('top-title');
-                        const mainTitle = document.getElementById('main-title');
-                        const subtitle1 = document.getElementById('subtitle1');
-                        const subtitle2 = document.getElementById('subtitle2');
+        const project = projectIntegration.currentProject;
+        console.log('Loading project data:', project.name, 'Version:', project.config?.version || 'unknown');
 
-                        if (topTitle) topTitle.value = project.config.texts.topTitle || '';
-                        if (mainTitle) mainTitle.value = project.config.texts.mainTitle || '';
-                        if (subtitle1) subtitle1.value = project.config.texts.subtitle1 || '';
-                        if (subtitle2) subtitle2.value = project.config.texts.subtitle2 || '';
+        // Wait for template objects to be ready
+        if (!this.templateObjects || !this.templateObjects.mainTitle) {
+            console.log('Template objects not ready, retrying in 200ms...');
+            setTimeout(() => this.loadProjectData(), 200);
+            return;
+        }
 
-                        // Update the template objects with loaded text
-                        if (project.config.texts.topTitle) this.updateText('topTitle', project.config.texts.topTitle);
-                        if (project.config.texts.mainTitle) this.updateText('mainTitle', project.config.texts.mainTitle);
-                        if (project.config.texts.subtitle1) this.updateText('subtitle1', project.config.texts.subtitle1);
-                        if (project.config.texts.subtitle2) this.updateText('subtitle2', project.config.texts.subtitle2);
+        try {
+            if (!project.config) {
+                console.warn('Project has no config data');
+                return;
+            }
+
+            console.log('Loading project config:', project.config);
+
+            // Load text values first (form inputs)
+            if (project.config.texts) {
+                const inputs = {
+                    topTitle: document.getElementById('top-title'),
+                    mainTitle: document.getElementById('main-title'),
+                    subtitle1: document.getElementById('subtitle1'),
+                    subtitle2: document.getElementById('subtitle2')
+                };
+
+                // Update form inputs
+                Object.keys(inputs).forEach(key => {
+                    if (inputs[key] && project.config.texts[key]) {
+                        inputs[key].value = project.config.texts[key];
+                        console.log(`Loaded ${key}:`, project.config.texts[key]);
                     }
+                });
 
-                    // Load colors
-                    if (project.config.colors) {
-                        if (project.config.colors.text) {
-                            this.updateColor('text', project.config.colors.text);
+                // Update template objects with proper delay to ensure rendering
+                setTimeout(() => {
+                    Object.keys(project.config.texts).forEach(key => {
+                        if (project.config.texts[key]) {
+                            this.updateText(key, project.config.texts[key]);
                         }
-                        if (project.config.colors.background) {
-                            this.updateColor('background', project.config.colors.background);
-                        }
-                    }
-
-                    // Load visibility settings
-                    if (project.config.visibility) {
-                        Object.keys(project.config.visibility).forEach(layer => {
-                            this.layerVisibility[layer] = project.config.visibility[layer];
-                            this.updateLayerVisibility(layer);
-                        });
-                    }
-
-                    // Load bottom icons configuration
-                    if (project.config.bottomIconsConfig) {
-                        this.bottomIconsConfig = { ...this.bottomIconsConfig, ...project.config.bottomIconsConfig };
-                        const iconCountSlider = document.getElementById('icon-count');
-                        if (iconCountSlider && project.config.bottomIconsConfig.count) {
-                            iconCountSlider.value = project.config.bottomIconsConfig.count;
-                            const valueDisplay = iconCountSlider.nextElementSibling;
-                            if (valueDisplay) valueDisplay.textContent = project.config.bottomIconsConfig.count;
-                        }
-                    }
-
-                    // Load icon colors
-                    if (project.config.iconColors) {
-                        this.iconColors = { ...this.iconColors, ...project.config.iconColors };
-                    }
-
-                    // Refresh the template display
-                    this.recalculateLayout();
+                    });
+                    
+                    // Force redraw after text updates
                     this.stage.batchDraw();
+                }, 100);
+            }
 
-                    console.log('Project data loaded successfully');
-
-                    // Schedule auto-save for any future changes
-                    if (projectIntegration.scheduleAutoSave) {
-                        // Set up auto-save on form changes
-                        const formInputs = document.querySelectorAll('#top-title, #main-title, #subtitle1, #subtitle2');
-                        formInputs.forEach(input => {
-                            input.addEventListener('input', projectIntegration.scheduleAutoSave);
-                        });
+            // Load colors with correct method names
+            if (project.config.colors) {
+                if (project.config.colors.text) {
+                    console.log('Loading text color:', project.config.colors.text);
+                    this.updateColor('Text Color', project.config.colors.text);
+                    
+                    // Also update the UI color swatch
+                    const textColorSwatch = document.querySelector(`[data-color="${project.config.colors.text}"]`);
+                    if (textColorSwatch) {
+                        // Remove active from all text color swatches
+                        document.querySelectorAll('.color-group:first-child .color-swatch').forEach(s => s.classList.remove('active'));
+                        textColorSwatch.classList.add('active');
                     }
                 }
-            } catch (error) {
-                console.error('Failed to load project data:', error);
+                if (project.config.colors.background) {
+                    console.log('Loading background color:', project.config.colors.background);
+                    this.updateColor('Background Color', project.config.colors.background);
+                    
+                    // Update background color swatch
+                    const bgColorSwatch = document.querySelector(`.color-group:last-child [data-color="${project.config.colors.background}"]`);
+                    if (bgColorSwatch) {
+                        document.querySelectorAll('.color-group:last-child .color-swatch').forEach(s => s.classList.remove('active'));
+                        bgColorSwatch.classList.add('active');
+                    }
+                }
             }
+
+            // Load visibility settings
+            if (project.config.visibility) {
+                Object.keys(project.config.visibility).forEach(layer => {
+                    this.layerVisibility[layer] = project.config.visibility[layer];
+                    this.updateLayerVisibility(layer);
+                    
+                    // Update visibility toggle UI
+                    const toggle = document.querySelector(`[data-layer="${layer}"]`);
+                    if (toggle && toggle.type === 'checkbox') {
+                        toggle.checked = project.config.visibility[layer];
+                    }
+                });
+            }
+
+            // Load icon configurations with new structure
+            if (project.config.iconConfig) {
+                if (project.config.iconConfig.topIcon) {
+                    this.topIconConfig = { ...this.topIconConfig, ...project.config.iconConfig.topIcon };
+                }
+                if (project.config.iconConfig.bottomIcons) {
+                    this.bottomIconsConfig = { ...this.bottomIconsConfig, ...project.config.iconConfig.bottomIcons };
+                    
+                    // Update UI slider if exists
+                    const iconCountSlider = document.getElementById('icon-count');
+                    if (iconCountSlider && project.config.iconConfig.bottomIcons.count) {
+                        iconCountSlider.value = project.config.iconConfig.bottomIcons.count;
+                        const valueDisplay = iconCountSlider.nextElementSibling;
+                        if (valueDisplay) valueDisplay.textContent = project.config.iconConfig.bottomIcons.count;
+                    }
+                }
+            }
+
+            // Load editor state
+            if (project.config.editorState) {
+                if (typeof project.config.editorState.isTransparent !== 'undefined') {
+                    this.setBackgroundTransparency(project.config.editorState.isTransparent);
+                }
+                if (project.config.editorState.currentFrame) {
+                    this.currentFrame = project.config.editorState.currentFrame;
+                }
+                if (project.config.editorState.zoomLevel) {
+                    this.zoomLevel = project.config.editorState.zoomLevel;
+                }
+            }
+
+            // Final refresh after all data is loaded
+            setTimeout(() => {
+                this.recalculateLayout();
+                this.stage.batchDraw();
+                console.log('✅ Project data loaded successfully');
+            }, 200);
+
+            // Schedule auto-save for future changes (only once)
+            if (projectIntegration.scheduleAutoSave && !this._autoSaveSetup) {
+                const formInputs = document.querySelectorAll('#top-title, #main-title, #subtitle1, #subtitle2');
+                formInputs.forEach(input => {
+                    input.addEventListener('input', projectIntegration.scheduleAutoSave);
+                });
+                
+                // Add color swatch listeners for auto-save
+                const colorSwatches = document.querySelectorAll('.color-swatch');
+                colorSwatches.forEach(swatch => {
+                    swatch.addEventListener('click', projectIntegration.scheduleAutoSave);
+                });
+                
+                this._autoSaveSetup = true; // Prevent duplicate event listeners
+                console.log('Auto-save listeners setup complete');
+            }
+
+        } catch (error) {
+            console.error('❌ Failed to load project data:', error);
         }
     }
+
+    // Note: Thumbnail generation is now handled directly in the save function
+    // using simple canvas capture - see template_001.html saveCurrentProject()
 }
 
 // Initialize the application when DOM is loaded with proper font loading
