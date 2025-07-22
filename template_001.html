@@ -116,7 +116,7 @@
                     <div class="form-group">
                         <label>Choose Top Icon</label>
                         <div id="top-icon-selector" class="icon-selector-container">
-                            <!-- Icon gallery trigger will be inserted here -->
+                            <!-- Simple icon gallery trigger will be inserted here -->
                         </div>
                         <span class="form-hint">Choose from 64 professionally designed icons organized by category</span>
                     </div>
@@ -610,7 +610,7 @@ TWO LINES</textarea>
     </div>
 
     <script src="shared/js/project-manager.js"></script>
-    <script src="shared/js/icon-gallery.js"></script>
+    <script src="shared/js/simple-icon-gallery.js"></script>
     <script src="shared/js/template-engine.js"></script>
     <script>
         // Template configuration for template_001
@@ -1220,9 +1220,9 @@ TWO LINES</textarea>
             };
         }
 
-        // Initialize Icon Gallery Integration - FIXED VERSION
+        // Initialize Simple Icon Gallery - Clean, Reliable Version
         function initializeIconGalleries() {
-            console.log('🎨 Initializing Icon Gallery Integration...');
+            console.log('🎨 Initializing Simple Icon Gallery Integration...');
             
             // Wait for template editor to be ready
             if (!window.templateEditor) {
@@ -1240,35 +1240,57 @@ TWO LINES</textarea>
                 return;
             }
 
-            // 🔧 SOLUTION: Create ONE shared IconGallery instance for all buttons
-            if (!window.globalIconGallery) {
-                window.globalIconGallery = new IconGallery({
-                    iconRegistryPath: 'templates/template_001/assets/icons/icon-registry.json',
-                    iconBasePath: 'templates/template_001/assets/icons/',
-                    onSelect: null, // Will be set dynamically for each button
-                    onCancel: null
+            // Create ONE shared SimpleIconGallery instance for all buttons
+            if (!window.simpleIconGallery) {
+                window.simpleIconGallery = new SimpleIconGallery({
+                    iconBasePath: 'templates/template_001/assets/icons/'
                 });
-                console.log('✅ Global shared icon gallery created');
+                console.log('✅ SimpleIconGallery created');
             }
 
-            // Helper function to create icon trigger buttons
-            function createIconButton(container, placeholder, onSelectCallback) {
+            // Helper function to create simple icon trigger buttons
+            function createSimpleIconButton(container, placeholder, onSelectCallback) {
                 const button = document.createElement('button');
-                button.className = 'icon-gallery-trigger';
-                button.innerHTML = `
-                    <svg class="current-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <rect x="3" y="3" width="18" height="18" stroke="currentColor" stroke-width="2" rx="3"/>
-                        <path d="M9 12h6M12 9v6" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                    <span class="trigger-text">${placeholder}</span>
+                button.className = 'simple-icon-trigger';
+                button.style.cssText = `
+                    background: #333;
+                    color: #ccc;
+                    border: 1px solid #555;
+                    border-radius: 6px;
+                    padding: 12px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                    width: 100%;
                 `;
                 
+                button.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <rect x="2" y="2" width="16" height="16" stroke="currentColor" stroke-width="2" rx="2"/>
+                        <path d="M6 10h8M10 6v8" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span>${placeholder}</span>
+                `;
+                
+                // Hover effects
+                button.addEventListener('mouseenter', () => {
+                    button.style.background = '#444';
+                    button.style.borderColor = '#0066ff';
+                    button.style.color = 'white';
+                });
+                
+                button.addEventListener('mouseleave', () => {
+                    button.style.background = '#333';
+                    button.style.borderColor = '#555';
+                    button.style.color = '#ccc';
+                });
+                
                 button.addEventListener('click', () => {
-                    console.log(`Opening gallery for: ${placeholder}`);
-                    // Set the callback for this specific button
-                    window.globalIconGallery.options.onSelect = onSelectCallback;
-                    // Open the shared gallery
-                    window.globalIconGallery.open();
+                    console.log(`Opening simple gallery for: ${placeholder}`);
+                    window.simpleIconGallery.open(onSelectCallback);
                 });
                 
                 container.appendChild(button);
@@ -1278,21 +1300,120 @@ TWO LINES</textarea>
             // Initialize Top Icon Selector
             const topIconContainer = document.getElementById('top-icon-selector');
             if (topIconContainer) {
-                const topButton = createIconButton(
-                    topIconContainer,
-                    'Choose Top Icon',
-                    (iconData) => {
+                topIconContainer.innerHTML = ''; // Clear existing content
+                
+                // Create top icon preview button
+                const topButton = document.createElement('button');
+                topButton.className = 'top-icon-preview-button';
+                topButton.style.cssText = `
+                    width: 60px;
+                    height: 60px;
+                    background: #333;
+                    border: 2px solid #555;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    position: relative;
+                    transition: all 0.2s;
+                    padding: 6px;
+                    margin: 0 auto;
+                `;
+                
+                // Add icon preview area
+                const topIconPreview = document.createElement('div');
+                topIconPreview.className = 'top-icon-preview-area';
+                topIconPreview.style.cssText = `
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+                topButton.appendChild(topIconPreview);
+                
+                // Load default top icon (celebration 1)
+                const defaultTopIcon = 'icon-023-celebration.svg';
+                const defaultTopIconPath = 'templates/template_001/assets/icons/' + defaultTopIcon;
+                const topImg = document.createElement('img');
+                topImg.src = defaultTopIconPath;
+                topImg.style.cssText = `
+                    max-width: 100%;
+                    max-height: 100%;
+                    filter: brightness(0) saturate(100%) invert(100%);
+                `;
+                topImg.onload = () => {
+                    topIconPreview.appendChild(topImg);
+                };
+                topImg.onerror = () => {
+                    // Fallback if icon doesn't load
+                    topIconPreview.innerHTML = '⭐';
+                    topIconPreview.style.color = 'white';
+                    topIconPreview.style.fontSize = '32px';
+                };
+                
+                // Store default icon data
+                topButton.iconData = {
+                    filename: defaultTopIcon,
+                    name: 'Default Top Icon',
+                    path: defaultTopIconPath,
+                    fullPath: defaultTopIconPath
+                };
+                
+                // Hover effects
+                topButton.addEventListener('mouseenter', () => {
+                    topButton.style.borderColor = '#0066ff';
+                    topButton.style.background = '#444';
+                });
+                
+                topButton.addEventListener('mouseleave', () => {
+                    topButton.style.borderColor = '#555';
+                    topButton.style.background = '#333';
+                });
+                
+                // Click handler
+                topButton.addEventListener('click', () => {
+                    console.log('Opening gallery for top icon');
+                    window.simpleIconGallery.open((iconData) => {
                         console.log('Top icon selected:', iconData);
+                        
+                        // Update canvas
                         if (editor.updateTopIconFromGallery) {
                             editor.updateTopIconFromGallery(iconData);
                         }
-                        // Update button display
-                        topButton.innerHTML = `
-                            <span class="trigger-text">${iconData.originalName}</span>
+                        
+                        // Update button icon preview
+                        const iconPreview = topButton.querySelector('.top-icon-preview-area');
+                        iconPreview.innerHTML = '';
+                        
+                        const newImg = document.createElement('img');
+                        newImg.src = iconData.path;
+                        newImg.style.cssText = `
+                            max-width: 100%;
+                            max-height: 100%;
+                            filter: brightness(0) saturate(100%) invert(100%);
                         `;
-                        topButton.classList.add('has-selection');
+                        newImg.onload = () => {
+                            iconPreview.appendChild(newImg);
+                        };
+                        
+                        // Store icon data
+                        topButton.iconData = iconData;
+                        
+                        // Visual feedback
+                        topButton.style.borderColor = '#0066ff';
+                    });
+                });
+                
+                topIconContainer.appendChild(topButton);
+                
+                // Load default top icon on canvas
+                setTimeout(() => {
+                    if (editor.updateTopIconFromGallery) {
+                        editor.updateTopIconFromGallery(topButton.iconData);
                     }
-                );
+                }, 100);
                 
                 window.topIconButton = topButton;
                 console.log('✅ Top icon selector initialized');
@@ -1300,44 +1421,176 @@ TWO LINES</textarea>
 
             // Initialize Bottom Icons Selectors
             const bottomIconsGrid = document.getElementById('bottom-icons-grid');
-            if (bottomIconsGrid && editor.bottomIconsConfig) {
+            
+            // Ensure bottom icons config exists
+            if (!editor.bottomIconsConfig) {
+                editor.bottomIconsConfig = { count: 4 };
+                console.log('🔧 Initialized bottom icons config with default count: 4');
+            }
+            
+            if (bottomIconsGrid) {
                 function updateBottomIconsUI() {
-                    const iconCount = editor.bottomIconsConfig.count || 4;
+                    // Get icon count from slider value directly to ensure sync
+                    const iconCountSlider = document.getElementById('icon-count');
+                    const iconCount = iconCountSlider ? parseInt(iconCountSlider.value) : 4;
+                    
+                    console.log(`🔧 Updating bottom icons UI for count: ${iconCount}`);
+                    
+                    // Update the editor config to match
+                    if (editor.bottomIconsConfig) {
+                        editor.bottomIconsConfig.count = iconCount;
+                    }
                     
                     // Clear existing
                     bottomIconsGrid.innerHTML = '';
                     window.bottomIconButtons = [];
 
+                    // Update grid layout based on icon count
+                    if (iconCount === 0) {
+                        bottomIconsGrid.style.display = 'none';
+                        return;
+                    } else {
+                        bottomIconsGrid.style.display = 'flex';
+                        bottomIconsGrid.style.flexDirection = 'row';
+                        bottomIconsGrid.style.gap = '2px';
+                        bottomIconsGrid.style.alignItems = 'center';
+                        bottomIconsGrid.style.justifyContent = 'flex-start';
+                        bottomIconsGrid.style.flexWrap = 'nowrap';
+                    }
+
                     // Create icon selectors for current count
                     for (let i = 0; i < iconCount; i++) {
                         const slotDiv = document.createElement('div');
                         slotDiv.className = 'bottom-icon-slot';
-                        slotDiv.innerHTML = `<div class="bottom-icon-slot-label">Icon ${i + 1}</div>`;
+                        slotDiv.style.cssText = `
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 0;
+                        `;
                         
-                        // 🔧 FIX: Use closure to properly capture the loop variable
-                        const button = createIconButton(
-                            slotDiv,
-                            `Icon ${i + 1}`,
-                            ((slotIndex) => {
+                        // Use Celebration 1 for all default icons
+                        const defaultIcon = 'icon-023-celebration.svg';
+                        
+                        const button = document.createElement('button');
+                        button.className = 'icon-preview-button';
+                        button.style.cssText = `
+                            width: 36px;
+                            height: 36px;
+                            background: #333;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            position: relative;
+                            transition: all 0.2s;
+                            padding: 2px;
+                        `;
+                        
+                        // No slot number - removed for cleaner look
+                        
+                        // Add icon preview area
+                        const iconPreview = document.createElement('div');
+                        iconPreview.className = 'icon-preview-area';
+                        iconPreview.style.cssText = `
+                            width: 18px;
+                            height: 18px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        `;
+                        button.appendChild(iconPreview);
+                        
+                        // Load default icon
+                        const defaultIconPath = 'templates/template_001/assets/icons/' + defaultIcon;
+                        const img = document.createElement('img');
+                        img.src = defaultIconPath;
+                        img.style.cssText = `
+                            max-width: 100%;
+                            max-height: 100%;
+                            filter: brightness(0) saturate(100%) invert(100%);
+                        `;
+                        img.onload = () => {
+                            iconPreview.appendChild(img);
+                        };
+                        img.onerror = () => {
+                            // Fallback if icon doesn't load
+                            iconPreview.innerHTML = '⭐';
+                            iconPreview.style.color = 'white';
+                        };
+                        
+                        // Store default icon data for this slot
+                        button.iconData = {
+                            filename: defaultIcon,
+                            name: `Default ${i + 1}`,
+                            path: defaultIconPath,
+                            fullPath: defaultIconPath
+                        };
+                        
+                        // Hover effects
+                        button.addEventListener('mouseenter', () => {
+                            button.style.borderColor = '#0066ff';
+                            button.style.background = '#444';
+                        });
+                        
+                        button.addEventListener('mouseleave', () => {
+                            button.style.borderColor = '#555';
+                            button.style.background = '#333';
+                        });
+                        
+                        // Click handler to open gallery
+                        button.addEventListener('click', () => {
+                            console.log(`Opening gallery for bottom icon slot ${i + 1}`);
+                            window.simpleIconGallery.open(((slotIndex) => {
                                 return (iconData) => {
                                     console.log(`Bottom icon ${slotIndex + 1} selected:`, iconData);
+                                    
+                                    // Update canvas
                                     if (editor.updateBottomIconFromGallery) {
                                         editor.updateBottomIconFromGallery(iconData, slotIndex);
                                     }
-                                    // Update button display
-                                    window.bottomIconButtons[slotIndex].innerHTML = `
-                                        <span class="trigger-text">${iconData.originalName}</span>
+                                    
+                                    // Update button icon preview
+                                    const button = window.bottomIconButtons[slotIndex];
+                                    const iconPreview = button.querySelector('.icon-preview-area');
+                                    
+                                    // Clear existing icon
+                                    iconPreview.innerHTML = '';
+                                    
+                                    // Add new icon
+                                    const newImg = document.createElement('img');
+                                    newImg.src = iconData.path;
+                                    newImg.style.cssText = `
+                                        max-width: 100%;
+                                        max-height: 100%;
+                                        filter: brightness(0) saturate(100%) invert(100%);
                                     `;
-                                    window.bottomIconButtons[slotIndex].classList.add('has-selection');
+                                    newImg.onload = () => {
+                                        iconPreview.appendChild(newImg);
+                                    };
+                                    
+                                    // Store icon data
+                                    button.iconData = iconData;
+                                    
+                                    // Visual feedback
+                                    button.style.borderColor = '#0066ff';
                                 };
-                            })(i) // ✅ Properly capture the loop variable
-                        );
+                            })(i));
+                        });
                         
+                        slotDiv.appendChild(button);
                         bottomIconsGrid.appendChild(slotDiv);
                         window.bottomIconButtons[i] = button;
+                        
+                        // Load default icon on canvas
+                        if (editor.updateBottomIconFromGallery) {
+                            editor.updateBottomIconFromGallery(button.iconData, i);
+                        }
                     }
                     
-                    console.log(`✅ Created ${iconCount} bottom icon selectors with shared gallery`);
+                    console.log(`✅ Created ${iconCount} simple bottom icon selectors`);
                 }
 
                 // Initial setup
@@ -1346,21 +1599,59 @@ TWO LINES</textarea>
                 // Listen for icon count changes
                 const iconCountSlider = document.getElementById('icon-count');
                 if (iconCountSlider) {
+                    // Update the display value immediately
+                    const updateSliderValue = () => {
+                        const valueDisplay = iconCountSlider.nextElementSibling;
+                        if (valueDisplay && valueDisplay.classList.contains('slider-value')) {
+                            valueDisplay.textContent = iconCountSlider.value;
+                        }
+                    };
+                    
                     iconCountSlider.addEventListener('input', () => {
-                        editor.bottomIconsConfig.count = parseInt(iconCountSlider.value);
+                        const newCount = parseInt(iconCountSlider.value);
+                        console.log(`🎚️ Slider changed to: ${newCount}`);
+                        
+                        // Update slider display
+                        updateSliderValue();
+                        
+                        // Update editor config
+                        if (editor.bottomIconsConfig) {
+                            editor.bottomIconsConfig.count = newCount;
+                        }
+                        
+                        // Update UI
                         updateBottomIconsUI();
+                        
+                        // Update canvas if needed
                         if (editor.createBottomIconsExact) {
                             editor.createBottomIconsExact();
                             editor.recalculateLayout();
                             editor.stage.batchDraw();
                         }
                     });
+                    
+                    // Initial slider value update
+                    updateSliderValue();
                 }
 
                 console.log('✅ Bottom icons selectors initialized');
             }
 
-            console.log('🎨 Icon Gallery Integration complete!');
+            console.log('🎨 Simple Icon Gallery Integration complete!');
+            
+            // Debug helper for icon count synchronization
+            window.debugIconCount = function() {
+                const slider = document.getElementById('icon-count');
+                const grid = document.getElementById('bottom-icons-grid');
+                const buttons = window.bottomIconButtons || [];
+                
+                console.log('🔍 Icon Count Debug Info:');
+                console.log('- Slider value:', slider ? slider.value : 'Not found');
+                console.log('- Editor config count:', window.templateEditor?.bottomIconsConfig?.count);
+                console.log('- Grid children count:', grid ? grid.children.length : 'Grid not found');
+                console.log('- Button array length:', buttons.length);
+                console.log('- Actual panels in DOM:', grid ? Array.from(grid.children).map((child, i) => `Panel ${i + 1}: ${child.className}`).join(', ') : 'None');
+            };
         }
 
         // Start icon gallery initialization after DOM is ready
@@ -1599,6 +1890,7 @@ TWO LINES</textarea>
         }
         
         console.log('🛡️ Navigation protection during save operations enabled');
+
     </script>
 </body>
 </html> 

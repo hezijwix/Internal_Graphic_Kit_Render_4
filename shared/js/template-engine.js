@@ -1395,15 +1395,111 @@ class TemplateEditor {
     }
     
     applyColorToSVGIcon(iconKonvaObject, color) {
-        // For SVG icons, we can apply color filters to simulate color changes
-        // This is a simplified approach - in a more advanced implementation,
-        // you might want to parse and modify the SVG directly
-        if (iconKonvaObject && typeof iconKonvaObject.fill === 'function') {
-            iconKonvaObject.fill(color);
+        // Apply CSS filters to colorize SVG icons properly
+        // This method works with Konva.Image objects that contain SVG data
+        if (!iconKonvaObject) return;
+        
+        console.log('🎨 Applying color to SVG icon:', color);
+        
+        try {
+            // Convert hex color to RGB for filter calculations
+            const rgb = this.hexToRgb(color);
+            if (!rgb) {
+                console.warn('Invalid color format:', color);
+                return;
+            }
+            
+            // Create CSS filter that converts black SVG to desired color
+            // This works for both stroke and fill based SVGs
+            const filter = this.createColorFilter(rgb);
+            
+            // Apply the filter to the Konva image object
+            iconKonvaObject.filters([Konva.Filters.CSS]);
+            iconKonvaObject.cssFilter(filter);
+            
+            console.log('✅ Color filter applied:', filter);
+            
+        } catch (error) {
+            console.error('❌ Failed to apply color to SVG icon:', error);
         }
-        if (iconKonvaObject && typeof iconKonvaObject.stroke === 'function') {
-            iconKonvaObject.stroke(color);
+    }
+    
+    // Helper method to convert hex to RGB
+    hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+    
+    // Method to directly colorize SVG content before rendering
+    colorizeReferenceSVG(svgContent, color) {
+        try {
+            console.log('🎨 Colorizing SVG with color:', color);
+            
+            // Replace black strokes and fills with the desired color
+            let colorizedSVG = svgContent
+                // Replace stroke="black" with desired color
+                .replace(/stroke="black"/g, `stroke="${color}"`)
+                // Replace fill="black" with desired color  
+                .replace(/fill="black"/g, `fill="${color}"`)
+                // Replace stroke="#000000" with desired color
+                .replace(/stroke="#000000"/g, `stroke="${color}"`)
+                // Replace fill="#000000" with desired color
+                .replace(/fill="#000000"/g, `fill="${color}"`)
+                // Replace stroke="#000" with desired color
+                .replace(/stroke="#000"/g, `stroke="${color}"`)
+                // Replace fill="#000" with desired color
+                .replace(/fill="#000"/g, `fill="${color}"`);
+            
+            console.log('🔄 SVG color replacements completed');
+            return colorizedSVG;
+            
+        } catch (error) {
+            console.error('❌ Failed to colorize SVG:', error);
+            return svgContent; // Return original if colorization fails
         }
+    }
+    
+    // Helper method to create CSS filter for colorizing black SVGs (backup method)
+    createColorFilter(rgb) {
+        // Convert RGB values to 0-1 range
+        const r = rgb.r / 255;
+        const g = rgb.g / 255;
+        const b = rgb.b / 255;
+        
+        // For white (#FFFFFF), use a simple invert
+        if (rgb.r === 255 && rgb.g === 255 && rgb.b === 255) {
+            return 'invert(1) brightness(1)';
+        }
+        
+        // For other colors, calculate appropriate filter values
+        const brightness = Math.max(r, g, b);
+        const saturation = brightness > 0 ? 1 - Math.min(r, g, b) / brightness : 0;
+        
+        // Calculate hue (simplified)
+        let hue = 0;
+        if (brightness > 0) {
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const delta = max - min;
+            
+            if (delta > 0) {
+                if (max === r) {
+                    hue = ((g - b) / delta) % 6;
+                } else if (max === g) {
+                    hue = (b - r) / delta + 2;
+                } else {
+                    hue = (r - g) / delta + 4;
+                }
+                hue = Math.round(hue * 60);
+                if (hue < 0) hue += 360;
+            }
+        }
+        
+        return `invert(1) sepia(1) saturate(${Math.round(saturation * 500)}%) hue-rotate(${hue}deg) brightness(${brightness})`;
     }
     
 
@@ -2752,13 +2848,16 @@ class TemplateEditor {
     updateTopIconFromGallery(iconData) {
         console.log('🎨 Updating top icon from gallery:', iconData);
         
-        if (!iconData || !this.templateObjects.topIcon) {
-            console.warn('❌ Cannot update top icon - missing data or icon object');
+        if (!iconData) {
+            console.warn('❌ Cannot update top icon - missing icon data');
             return;
         }
         
-        // Remove existing top icon
-        this.templateObjects.topIcon.destroy();
+        // Remove existing top icon if it exists
+        if (this.templateObjects.topIcon) {
+            this.templateObjects.topIcon.destroy();
+            this.templateObjects.topIcon = null;
+        }
         
         // Create new icon from SVG file
         this.createSVGTopIconFromGallery(iconData);
@@ -2767,14 +2866,25 @@ class TemplateEditor {
     updateBottomIconFromGallery(iconData, slotIndex) {
         console.log(`🎨 Updating bottom icon ${slotIndex + 1} from gallery:`, iconData);
         
-        if (!iconData || slotIndex >= this.templateObjects.bottomIcons.length) {
+        if (!iconData || slotIndex < 0) {
             console.warn('❌ Cannot update bottom icon - missing data or invalid slot');
             return;
+        }
+        
+        // Ensure bottom icons array exists and has enough slots
+        if (!this.templateObjects.bottomIcons) {
+            this.templateObjects.bottomIcons = [];
+        }
+        
+        // Extend array if needed
+        while (this.templateObjects.bottomIcons.length <= slotIndex) {
+            this.templateObjects.bottomIcons.push(null);
         }
         
         // Remove existing icon at this slot
         if (this.templateObjects.bottomIcons[slotIndex]) {
             this.templateObjects.bottomIcons[slotIndex].destroy();
+            this.templateObjects.bottomIcons[slotIndex] = null;
         }
         
         // Create new icon from SVG file
@@ -2782,24 +2892,55 @@ class TemplateEditor {
     }
     
     async createSVGTopIconFromGallery(iconData) {
+        console.log('🔧 Creating top icon from gallery:', iconData.isCustom ? 'Custom Icon' : iconData.fullPath);
+        
         try {
-            // Load SVG content
-            const response = await fetch(iconData.fullPath);
-            if (!response.ok) {
-                throw new Error(`Failed to load icon: ${response.status}`);
+            let svgContent;
+            
+            if (iconData.isCustom) {
+                // For custom icons, check if it's SVG data URL
+                if (iconData.dataUrl.startsWith('data:image/svg+xml')) {
+                    // Extract SVG content from data URL
+                    const base64Data = iconData.dataUrl.split(',')[1];
+                    svgContent = atob(base64Data);
+                    console.log('📄 Custom SVG content extracted from data URL, length:', svgContent.length);
+                } else {
+                    // For PNG/JPG custom icons, we can skip SVG processing and directly use the data URL
+                    console.log('🖼️ Custom raster image detected, loading directly...');
+                    this.loadCustomImageIcon(iconData, 'top');
+                    return;
+                }
+            } else {
+                // Load SVG content from file
+                const response = await fetch(iconData.fullPath);
+                if (!response.ok) {
+                    throw new Error(`Failed to load icon: ${response.status}`);
+                }
+                
+                svgContent = await response.text();
+                console.log('📄 Default SVG content loaded, length:', svgContent.length);
             }
             
-            const svgContent = await response.text();
+            // Get current text color
+            const currentTextColor = this.getCurrentTextColor();
+            console.log('🎨 Current text color:', currentTextColor);
             
-            // Create blob URL for the SVG
-            const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+            // Modify SVG content to use the desired color
+            const colorizedSVG = this.colorizeReferenceSVG(svgContent, currentTextColor);
+            console.log('🖌️ SVG colorized');
+            
+            // Create blob URL for the colorized SVG
+            const blob = new Blob([colorizedSVG], { type: 'image/svg+xml' });
             const url = URL.createObjectURL(blob);
+            console.log('🔗 Blob URL created:', url);
             
             // Create image element and load
             const img = new Image();
             img.onload = () => {
-                // Get current position (if icon exists) or default position
-                const iconY = this.templateObjects.topIcon ? this.templateObjects.topIcon.y() : 200;
+                console.log('🖼️ Image loaded successfully, creating Konva object...');
+                
+                // Use default top icon position
+                const iconY = 200;
                 
                 this.templateObjects.topIcon = new Konva.Image({
                     x: 960,
@@ -2812,10 +2953,7 @@ class TemplateEditor {
                     listening: true
                 });
                 
-                // Apply current text color to icon
-                const currentTextColor = this.getCurrentTextColor();
-                this.applyColorToSVGIcon(this.templateObjects.topIcon, currentTextColor);
-                
+                console.log('📝 Adding to layer and updating stage...');
                 this.contentLayer.add(this.templateObjects.topIcon);
                 this.stage.batchDraw();
                 this.updateGSAPTimeline();
@@ -2826,11 +2964,12 @@ class TemplateEditor {
                 console.log(`✅ Top icon updated with ${iconData.originalName}`);
             };
             
-            img.onerror = () => {
-                console.error(`❌ Failed to load top icon image: ${iconData.originalName}`);
+            img.onerror = (e) => {
+                console.error(`❌ Failed to load top icon image: ${iconData.originalName}`, e);
                 URL.revokeObjectURL(url);
             };
             
+            console.log('🚀 Setting image source...');
             img.src = url;
             
         } catch (error) {
@@ -2840,16 +2979,40 @@ class TemplateEditor {
     
     async createSVGBottomIconFromGallery(iconData, slotIndex) {
         try {
-            // Load SVG content
-            const response = await fetch(iconData.fullPath);
-            if (!response.ok) {
-                throw new Error(`Failed to load icon: ${response.status}`);
+            let svgContent;
+            
+            if (iconData.isCustom) {
+                // For custom icons, check if it's SVG data URL
+                if (iconData.dataUrl.startsWith('data:image/svg+xml')) {
+                    // Extract SVG content from data URL
+                    const base64Data = iconData.dataUrl.split(',')[1];
+                    svgContent = atob(base64Data);
+                    console.log('📄 Custom SVG content extracted for bottom icon, length:', svgContent.length);
+                } else {
+                    // For PNG/JPG custom icons, use direct loading
+                    console.log('🖼️ Custom raster image detected for bottom icon, loading directly...');
+                    const customIconData = { ...iconData, slotIndex };
+                    this.loadCustomImageIcon(customIconData, 'bottom');
+                    return;
+                }
+            } else {
+                // Load SVG content from file
+                const response = await fetch(iconData.fullPath);
+                if (!response.ok) {
+                    throw new Error(`Failed to load icon: ${response.status}`);
+                }
+                
+                svgContent = await response.text();
             }
             
-            const svgContent = await response.text();
+            // Get current text color
+            const currentTextColor = this.getCurrentTextColor();
             
-            // Create blob URL for the SVG
-            const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+            // Modify SVG content to use the desired color
+            const colorizedSVG = this.colorizeReferenceSVG(svgContent, currentTextColor);
+            
+            // Create blob URL for the colorized SVG
+            const blob = new Blob([colorizedSVG], { type: 'image/svg+xml' });
             const url = URL.createObjectURL(blob);
             
             // Create image element and load
@@ -2868,10 +3031,6 @@ class TemplateEditor {
                     offsetY: 20,
                     listening: true
                 });
-                
-                // Apply current text color to icon
-                const currentTextColor = this.getCurrentTextColor();
-                this.applyColorToSVGIcon(icon, currentTextColor);
                 
                 this.templateObjects.bottomIcons[slotIndex] = icon;
                 this.contentLayer.add(icon);
@@ -3655,6 +3814,79 @@ function loadPresetState(presetData) {
     // - Layer visibility states
     // - Icon configurations
     // - Trigger canvas redraw
+    
+    /**
+     * Load custom raster image icon (PNG/JPG) directly
+     */
+    loadCustomImageIcon(iconData, iconType) {
+        console.log('🖼️ Loading custom raster image icon:', iconData.name, iconType);
+        
+        const img = new Image();
+        img.onload = () => {
+            console.log('✅ Custom raster image loaded successfully');
+            
+            if (iconType === 'top') {
+                const iconY = 200;
+                
+                this.templateObjects.topIcon = new Konva.Image({
+                    x: 960,
+                    y: iconY,
+                    image: img,
+                    width: 120,
+                    height: 120,
+                    offsetX: 60,
+                    offsetY: 60,
+                    listening: true
+                });
+                
+                this.contentLayer.add(this.templateObjects.topIcon);
+                console.log('✅ Custom top raster icon added to canvas');
+                
+            } else if (iconType === 'bottom' && typeof iconData.slotIndex !== 'undefined') {
+                const slotIndex = iconData.slotIndex;
+                
+                // Ensure bottom icons array exists
+                if (!this.templateObjects.bottomIcons) {
+                    this.templateObjects.bottomIcons = [];
+                }
+                
+                // Extend array if needed
+                while (this.templateObjects.bottomIcons.length <= slotIndex) {
+                    this.templateObjects.bottomIcons.push(null);
+                }
+                
+                // Calculate position for bottom icon
+                const spacing = 150;
+                const totalWidth = Math.max(0, (this.bottomIconsConfig.count - 1) * spacing);
+                const startX = 960 - (totalWidth / 2);
+                const iconX = startX + (slotIndex * spacing);
+                const iconY = 900;
+                
+                this.templateObjects.bottomIcons[slotIndex] = new Konva.Image({
+                    x: iconX,
+                    y: iconY,
+                    image: img,
+                    width: 100,
+                    height: 100,
+                    offsetX: 50,
+                    offsetY: 50,
+                    listening: true
+                });
+                
+                this.contentLayer.add(this.templateObjects.bottomIcons[slotIndex]);
+                console.log(`✅ Custom bottom raster icon ${slotIndex + 1} added to canvas`);
+            }
+            
+            this.stage.batchDraw();
+            
+        };
+        
+        img.onerror = () => {
+            console.error('❌ Failed to load custom raster image:', iconData.name);
+        };
+        
+        img.src = iconData.dataUrl;
+    }
 }
 
 // Add CSS animation styles for notification

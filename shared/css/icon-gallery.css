@@ -161,6 +161,10 @@
     transition: all 0.2s;
     position: relative;
     overflow: hidden;
+    
+    /* CSS isolation for better SVG rendering */
+    isolation: isolate;
+    contain: layout style paint;
 }
 
 .icon-gallery-item:hover {
@@ -184,11 +188,42 @@
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
+    
+    /* Enhanced SVG rendering properties */
+    color-scheme: dark;
+    shape-rendering: geometricPrecision;
+    vector-effect: non-scaling-stroke;
+    
+    /* Force color inheritance and override any embedded styles */
+    color: #ffffff !important;
 }
 
 .icon-gallery-item svg * {
     fill: #ffffff !important;
     stroke: #ffffff !important;
+    
+    /* Override any problematic attributes that might cause invisibility */
+    color: #ffffff !important;
+}
+
+/* Additional specificity rules to override embedded SVG attributes */
+.icon-gallery-item svg path,
+.icon-gallery-item svg circle,
+.icon-gallery-item svg rect,
+.icon-gallery-item svg line,
+.icon-gallery-item svg polyline,
+.icon-gallery-item svg polygon,
+.icon-gallery-item svg ellipse {
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
+    color: #ffffff !important;
+}
+
+/* Force visibility for any elements that might be hidden */
+.icon-gallery-item .icon-placeholder,
+.icon-gallery-item .icon-placeholder * {
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .icon-gallery-item .icon-placeholder {
