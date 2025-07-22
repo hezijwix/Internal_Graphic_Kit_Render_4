@@ -28,6 +28,34 @@ class TemplateEditor {
             bottomIcons: []
         };
         
+        // Base Position System for Animation Structure
+        this.basePositions = {
+            topIcon: { x: 960, y: 200, width: 56, height: 56 },
+            topTitle: { x: 960, y: 280, width: 1490, height: 64 },
+            mainTitle: { x: 960, y: 390, width: 1490, height: 180 },
+            subtitle1: { x: 960, y: 520, width: 1490, height: 75 },
+            subtitle2: { x: 960, y: 630, width: 1490, height: 40 },
+            bottomIcons: { x: 960, y: 720, spacing: 260, iconSize: 40 }
+        };
+        
+        // Animation Position States
+        this.positionStates = {
+            initial: {}, // Where elements start before animating in
+            base: {},    // Final resting position (calculated dynamically)
+            exit: {}     // Where elements move when animating out
+        };
+        
+        // Position calculation settings
+        this.layoutConfig = {
+            canvasWidth: 1920,
+            canvasHeight: 1080,
+            contentWidth: 1490, // 1920 - (215px * 2)
+            leftMargin: 215,
+            rightMargin: 215,
+            elementGap: 26,
+            centerX: 960
+        };
+        
         // Layer visibility state
         this.layerVisibility = {
             topIcon: true,
@@ -61,6 +89,193 @@ class TemplateEditor {
         // GSAP Timeline
         this.timeline = null;
         this.animationDuration = 10; // seconds
+        
+        // ================================
+        // ANIMATION SYSTEM - CENTRALIZED CONFIGURATION
+        // ================================
+        this.animationSystem = {
+            // Global animation settings
+            global: {
+                duration: 10, // Total animation duration in seconds
+                phases: {
+                    intro: { start: 0, end: 2 },   // Elements animate in
+                    hold: { start: 2, end: 8 },    // Elements stay visible
+                    exit: { start: 8, end: 10 }    // Elements animate out
+                },
+                timing: {
+                    elementDelay: 0.15,  // Delay between each element (cascade effect)
+                    exitStagger: 0.08,   // Stagger delay for exit animations
+                    iconStagger: 0.1     // Individual stagger for bottom icons
+                },
+                defaultEasing: {
+                    intro: "power2.out",
+                    exit: "power2.in",
+                    bounce: "back.out(1.7)"
+                }
+            },
+            
+            // Element-specific animation definitions
+            elements: {
+                topIcon: {
+                    name: "Top Icon",
+                    intro: {
+                        from: { x: 0, y: -50, opacity: 0, scale: 0.3, rotation: -45 },
+                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
+                        duration: 1.0,
+                        ease: "back.out(1.7)",
+                        order: 0
+                    },
+                    exit: {
+                        to: { x: 0, y: -100, opacity: 0, scale: 1.5, rotation: 45 },
+                        duration: 1.5,
+                        ease: "power2.in"
+                    }
+                },
+                
+                topTitle: {
+                    name: "Top Title",
+                    intro: {
+                        from: { x: -100, y: 0, opacity: 0, scale: 0.8, rotation: 0 },
+                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
+                        duration: 1.2,
+                        ease: "power2.out",
+                        order: 1
+                    },
+                    exit: {
+                        to: { opacity: 0, scale: 0.8 },
+                        duration: 1.5,
+                        ease: "power2.in"
+                    }
+                },
+                
+                mainTitle: {
+                    name: "Main Title",
+                    intro: {
+                        from: { x: 0, y: 30, opacity: 0, scale: 0.9, rotation: 0 },
+                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
+                        duration: 1.5,
+                        ease: "power2.out",
+                        order: 2
+                    },
+                    exit: {
+                        to: { opacity: 0, scale: 0.8 },
+                        duration: 1.5,
+                        ease: "power2.in"
+                    }
+                },
+                
+                subtitle1: {
+                    name: "Subtitle 1",
+                    intro: {
+                        from: { x: -100, y: 0, opacity: 0, scale: 0.8, rotation: 0 },
+                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
+                        duration: 1.0,
+                        ease: "power2.out",
+                        order: 3
+                    },
+                    exit: {
+                        to: { opacity: 0, scale: 0.8 },
+                        duration: 1.5,
+                        ease: "power2.in"
+                    }
+                },
+                
+                subtitle2: {
+                    name: "Subtitle 2",
+                    intro: {
+                        from: { x: -100, y: 0, opacity: 0, scale: 0.8, rotation: 0 },
+                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
+                        duration: 1.0,
+                        ease: "power2.out",
+                        order: 4
+                    },
+                    exit: {
+                        to: { opacity: 0, scale: 0.8 },
+                        duration: 1.5,
+                        ease: "power2.in"
+                    }
+                },
+                
+                bottomIcons: {
+                    name: "Bottom Icons",
+                    intro: {
+                        from: { x: 0, y: 80, opacity: 0, scale: 0.1, rotation: 180 },
+                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
+                        duration: 0.8,
+                        ease: "back.out(1.7)",
+                        order: 5,
+                        stagger: 0.1
+                    },
+                    exit: {
+                        to: { x: 0, y: 50, opacity: 0, scale: 0, rotation: -180 },
+                        duration: 1.5,
+                        ease: "power2.in"
+                    }
+                }
+            },
+            
+            // Animation presets for easy style switching
+            presets: {
+                current: 'slideInLeft',
+                
+                slideInLeft: {
+                    name: "Slide In Left",
+                    description: "Elements slide in from the left with fade and cascade timing",
+                    icon: "→",
+                    overrides: {
+                        // Current configuration is the default
+                    }
+                },
+                
+                fadeIn: {
+                    name: "Fade In",
+                    description: "Simple fade in effect with subtle scale",
+                    icon: "○",
+                    overrides: {
+                        all: {
+                            intro: {
+                                from: { opacity: 0, scale: 0.95 },
+                                to: { opacity: 1, scale: 1 },
+                                duration: 1.0,
+                                ease: "power2.out"
+                            }
+                        }
+                    }
+                },
+                
+                scaleUp: {
+                    name: "Scale Up",
+                    description: "Elements scale up from center with bounce",
+                    icon: "⚡",
+                    overrides: {
+                        all: {
+                            intro: {
+                                from: { opacity: 0, scale: 0.1, rotation: 0 },
+                                to: { opacity: 1, scale: 1, rotation: 0 },
+                                duration: 0.8,
+                                ease: "back.out(1.7)"
+                            }
+                        }
+                    }
+                },
+                
+                spiral: {
+                    name: "Spiral In",
+                    description: "Elements spiral in with dramatic rotation",
+                    icon: "🌀",
+                    overrides: {
+                        all: {
+                            intro: {
+                                from: { opacity: 0, scale: 0.3, rotation: 720 },
+                                to: { opacity: 1, scale: 1, rotation: 0 },
+                                duration: 1.5,
+                                ease: "power2.out"
+                            }
+                        }
+                    }
+                }
+            }
+        }
         
         // Background transparency
         this.currentBackgroundColor = '#0D0D0D';
@@ -2115,6 +2330,9 @@ class TemplateEditor {
         // Create bottom icons (4 icons spaced 260px apart)
         this.createBottomIconsExact();
         
+        // Calculate base positions for animation system
+        this.calculateBasePositions();
+        
         // Set initial animation positions (everything starts hidden)
         this.setInitialPositions();
         
@@ -2284,33 +2502,12 @@ class TemplateEditor {
     }
     
     setInitialPositions() {
-        // Set starting positions for animations - all objects start invisible for fade in
-        if (this.templateObjects.topIcon) {
-            this.templateObjects.topIcon.opacity(0);
-        }
+        console.log('📥 Setting initial positions for animations using base position system...');
         
-        if (this.templateObjects.topTitle) {
-            this.templateObjects.topTitle.opacity(0);
-        }
+        // Use the base position system to set initial positions
+        this.setElementsToInitialPositions();
         
-        if (this.templateObjects.mainTitle) {
-            this.templateObjects.mainTitle.opacity(0);
-        }
-        
-        if (this.templateObjects.subtitle1) {
-            this.templateObjects.subtitle1.opacity(0);
-        }
-        
-        if (this.templateObjects.subtitle2) {
-            this.templateObjects.subtitle2.opacity(0);
-        }
-        
-        // Bottom icons start invisible
-        this.templateObjects.bottomIcons.forEach((icon) => {
-            icon.opacity(0);
-        });
-        
-        console.log('Initial positions set for animations');
+        console.log('✅ Initial positions set for animations using base position system');
     }
     
     initializeTextVisibility() {
@@ -2374,13 +2571,18 @@ class TemplateEditor {
         }
     }
     
-    recalculateLayout() {
-        console.log('Recalculating layout with current visibility settings...');
+    // ================================
+    // BASE POSITION SYSTEM METHODS
+    // ================================
+    
+    /**
+     * Calculate base positions for all elements based on current layout
+     * This creates the "resting" positions that elements animate to/from
+     */
+    calculateBasePositions() {
+        console.log('🎯 Calculating base positions for animation system...');
         
-        const canvasHeight = 1080;
-        const elementGap = 26;
-        
-        // Define element heights (dynamically calculated for text elements)
+        // Get current element heights for dynamic calculation
         const elementHeights = {
             topIcon: 58,
             topTitle: this.templateObjects.topTitle ? this.templateObjects.topTitle.height() : 64,
@@ -2390,187 +2592,789 @@ class TemplateEditor {
             bottomIcons: 57
         };
         
-        console.log('Dynamic heights:', {
-            topTitle: elementHeights.topTitle,
-            mainTitle: elementHeights.mainTitle,
-            subtitle1: elementHeights.subtitle1,
-            subtitle2: elementHeights.subtitle2
-        });
-        
-        // Get list of visible elements and their heights
+        // Get list of visible elements for centering calculation
         const visibleElements = [];
         let totalHeight = 0;
         
-        if (this.layerVisibility.topIcon && this.templateObjects.topIcon) {
-            visibleElements.push({ name: 'topIcon', height: elementHeights.topIcon, object: this.templateObjects.topIcon });
+        if (this.layerVisibility.topIcon) {
+            visibleElements.push({ name: 'topIcon', height: elementHeights.topIcon });
             totalHeight += elementHeights.topIcon;
         }
-        
-        if (this.layerVisibility.topTitle && this.templateObjects.topTitle) {
-            visibleElements.push({ name: 'topTitle', height: elementHeights.topTitle, object: this.templateObjects.topTitle });
+        if (this.layerVisibility.topTitle) {
+            visibleElements.push({ name: 'topTitle', height: elementHeights.topTitle });
             totalHeight += elementHeights.topTitle;
         }
-        
-        if (this.layerVisibility.mainTitle && this.templateObjects.mainTitle) {
-            visibleElements.push({ name: 'mainTitle', height: elementHeights.mainTitle, object: this.templateObjects.mainTitle });
+        if (this.layerVisibility.mainTitle) {
+            visibleElements.push({ name: 'mainTitle', height: elementHeights.mainTitle });
             totalHeight += elementHeights.mainTitle;
         }
-        
-        if (this.layerVisibility.subtitle1 && this.templateObjects.subtitle1) {
-            visibleElements.push({ name: 'subtitle1', height: elementHeights.subtitle1, object: this.templateObjects.subtitle1 });
+        if (this.layerVisibility.subtitle1) {
+            visibleElements.push({ name: 'subtitle1', height: elementHeights.subtitle1 });
             totalHeight += elementHeights.subtitle1;
         }
-        
-        if (this.layerVisibility.subtitle2 && this.templateObjects.subtitle2) {
-            visibleElements.push({ name: 'subtitle2', height: elementHeights.subtitle2, object: this.templateObjects.subtitle2 });
+        if (this.layerVisibility.subtitle2) {
+            visibleElements.push({ name: 'subtitle2', height: elementHeights.subtitle2 });
             totalHeight += elementHeights.subtitle2;
         }
-        
-        if (this.layerVisibility.bottomIcons && this.templateObjects.bottomIcons.length > 0) {
-            visibleElements.push({ name: 'bottomIcons', height: elementHeights.bottomIcons, objects: this.templateObjects.bottomIcons });
+        if (this.layerVisibility.bottomIcons) {
+            visibleElements.push({ name: 'bottomIcons', height: elementHeights.bottomIcons });
             totalHeight += elementHeights.bottomIcons;
         }
         
         // Add gaps between visible elements
         const gapsNeeded = Math.max(0, visibleElements.length - 1);
-        totalHeight += gapsNeeded * elementGap;
+        totalHeight += gapsNeeded * this.layoutConfig.elementGap;
         
         // Calculate starting Y position to center the design
-        let currentY = (canvasHeight - totalHeight) / 2;
+        let currentY = (this.layoutConfig.canvasHeight - totalHeight) / 2;
         
-        console.log(`Visible elements: ${visibleElements.length}, Total height: ${totalHeight}px, Starting Y: ${currentY}`);
+        // Clear previous base positions
+        this.positionStates.base = {};
         
-        // Position each visible element
+        // Calculate base position for each visible element
         visibleElements.forEach((element, index) => {
             const yPosition = currentY + (element.height / 2);
             
+            // Store base position
+            this.positionStates.base[element.name] = {
+                x: this.layoutConfig.centerX,
+                y: yPosition,
+                width: element.name === 'topIcon' ? 56 : 
+                       element.name === 'bottomIcons' ? 40 :
+                       this.layoutConfig.contentWidth,
+                height: element.height,
+                visible: true
+            };
+            
+            // Special handling for bottom icons
             if (element.name === 'bottomIcons') {
-                // Update bottom icons Y position
-                this.bottomIconsY = yPosition;
-                element.objects.forEach(icon => {
-                    icon.y(yPosition);
-                });
-                console.log(`${element.name} repositioned to Y=${yPosition}`);
-            } else {
-                // Update single object Y position
-                element.object.y(yPosition);
-                
-                // For text objects, ensure proper vertical centering
-                if (element.object.getClassName() === 'Text') {
-                    element.object.offsetY(element.object.height() / 2);
-                }
-                
-                console.log(`${element.name} repositioned to Y=${yPosition}`);
+                this.positionStates.base[element.name].spacing = this.calculateIconSpacing();
+                this.positionStates.base[element.name].count = this.bottomIconsConfig.count;
             }
             
+            console.log(`📍 Base position set for ${element.name}:`, this.positionStates.base[element.name]);
+            
             // Move to next position
-            currentY += element.height + (index < visibleElements.length - 1 ? elementGap : 0);
+            currentY += element.height + (index < visibleElements.length - 1 ? this.layoutConfig.elementGap : 0);
         });
         
-        console.log('Layout recalculation complete');
+        // Calculate initial positions (where elements start before animating in)
+        this.calculateInitialPositions();
+        
+        // Calculate exit positions (where elements move when animating out)
+        this.calculateExitPositions();
+        
+        console.log('✅ Base position calculation complete');
+        return this.positionStates.base;
     }
     
-    createGSAPTimeline() {
-        // Create master timeline
-        this.timeline = gsap.timeline({ 
-            paused: true,
-            duration: this.animationDuration,
-            ease: "power2.inOut"
+    /**
+     * Calculate initial positions for animation-in effects
+     */
+    calculateInitialPositions() {
+        this.positionStates.initial = {};
+        
+        Object.keys(this.positionStates.base).forEach(elementName => {
+            const basePos = this.positionStates.base[elementName];
+            
+            // Default: start 100px to the left and invisible
+            this.positionStates.initial[elementName] = {
+                x: basePos.x - 100,
+                y: basePos.y,
+                opacity: 0,
+                scale: 0.8,
+                rotation: 0
+            };
+            
+            // Customize initial positions based on element type
+            switch (elementName) {
+                case 'topIcon':
+                    this.positionStates.initial[elementName] = {
+                        x: basePos.x,
+                        y: basePos.y - 50,
+                        opacity: 0,
+                        scale: 0.3,
+                        rotation: -45
+                    };
+                    break;
+                    
+                case 'mainTitle':
+                    this.positionStates.initial[elementName] = {
+                        x: basePos.x,
+                        y: basePos.y + 30,
+                        opacity: 0,
+                        scale: 0.9,
+                        rotation: 0
+                    };
+                    break;
+                    
+                case 'bottomIcons':
+                    this.positionStates.initial[elementName] = {
+                        x: basePos.x,
+                        y: basePos.y + 80,
+                        opacity: 0,
+                        scale: 0.1,
+                        rotation: 180
+                    };
+                    break;
+            }
         });
         
-        // Collect all visible objects for animation
-        const visibleObjects = [];
-        if (this.templateObjects.topIcon && this.layerVisibility.topIcon) {
-            visibleObjects.push(this.templateObjects.topIcon);
-        }
-        if (this.templateObjects.topTitle && this.layerVisibility.topTitle) {
-            visibleObjects.push(this.templateObjects.topTitle);
-        }
-        if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
-            visibleObjects.push(this.templateObjects.mainTitle);
-        }
-        if (this.templateObjects.subtitle1 && this.layerVisibility.subtitle1) {
-            visibleObjects.push(this.templateObjects.subtitle1);
-        }
-        if (this.templateObjects.subtitle2 && this.layerVisibility.subtitle2) {
-            visibleObjects.push(this.templateObjects.subtitle2);
-        }
-        if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
-            visibleObjects.push(...this.templateObjects.bottomIcons);
+        console.log('📥 Initial positions calculated for animation-in');
+    }
+    
+    /**
+     * Calculate exit positions for animation-out effects
+     */
+    calculateExitPositions() {
+        this.positionStates.exit = {};
+        
+        Object.keys(this.positionStates.base).forEach(elementName => {
+            const basePos = this.positionStates.base[elementName];
+            
+            // Default: fade out in place
+            this.positionStates.exit[elementName] = {
+                x: basePos.x,
+                y: basePos.y,
+                opacity: 0,
+                scale: 0.8,
+                rotation: 0
+            };
+            
+            // Customize exit positions based on element type
+            switch (elementName) {
+                case 'topIcon':
+                    this.positionStates.exit[elementName] = {
+                        x: basePos.x,
+                        y: basePos.y - 100,
+                        opacity: 0,
+                        scale: 1.5,
+                        rotation: 45
+                    };
+                    break;
+                    
+                case 'bottomIcons':
+                    this.positionStates.exit[elementName] = {
+                        x: basePos.x,
+                        y: basePos.y + 50,
+                        opacity: 0,
+                        scale: 0,
+                        rotation: -180
+                    };
+                    break;
+            }
+        });
+        
+        console.log('📤 Exit positions calculated for animation-out');
+    }
+    
+    /**
+     * Calculate optimal icon spacing based on main title width
+     */
+    calculateIconSpacing() {
+        if (!this.templateObjects.mainTitle || !this.layerVisibility.mainTitle) {
+            return 260; // Default spacing
         }
         
-        // Intro animations (0-2s) - cascade from top to bottom
-        let delay = 0;
-        const animationStep = 0.15; // 150ms between each element
+        const longestLineWidth = this.getMainTitleLongestLineWidth();
+        return Math.max(200, Math.min(400, longestLineWidth / Math.max(1, this.bottomIconsConfig.count - 1)));
+    }
+    
+    /**
+     * Set all elements to their base positions
+     */
+    setElementsToBasePositions() {
+        console.log('🎯 Setting all elements to base positions...');
         
-        if (this.templateObjects.topIcon && this.layerVisibility.topIcon) {
-            this.timeline.to(this.templateObjects.topIcon, {
-                opacity: 1,
-                duration: 1.0,
-                ease: "power2.out"
-            }, delay);
-            delay += animationStep;
+        Object.keys(this.positionStates.base).forEach(elementName => {
+            const basePos = this.positionStates.base[elementName];
+            const element = this.templateObjects[elementName];
+            
+            if (elementName === 'bottomIcons' && Array.isArray(element)) {
+                // Handle bottom icons array
+                element.forEach((icon, index) => {
+                    if (icon && index < basePos.count) {
+                        const iconPositions = this.calculateIconPositions(basePos.count);
+                        icon.x(iconPositions[index]);
+                        icon.y(basePos.y);
+                        icon.opacity(1);
+                        icon.scaleX(1);
+                        icon.scaleY(1);
+                        icon.rotation(0);
+                    }
+                });
+            } else if (element) {
+                // Handle single elements
+                element.x(basePos.x);
+                element.y(basePos.y);
+                element.opacity(1);
+                element.scaleX(1);
+                element.scaleY(1);
+                element.rotation(0);
+                
+                // Handle text centering
+                if (element.getClassName() === 'Text') {
+                    element.offsetX(this.layoutConfig.contentWidth / 2);
+                    element.offsetY(element.height() / 2);
+                }
+            }
+        });
+        
+        this.stage.batchDraw();
+        console.log('✅ All elements set to base positions');
+    }
+    
+    /**
+     * Set all elements to their initial positions (before animation)
+     */
+    setElementsToInitialPositions() {
+        console.log('📥 Setting all elements to initial positions...');
+        
+        Object.keys(this.positionStates.initial).forEach(elementName => {
+            const initialPos = this.positionStates.initial[elementName];
+            const element = this.templateObjects[elementName];
+            
+            if (elementName === 'bottomIcons' && Array.isArray(element)) {
+                // Handle bottom icons array
+                element.forEach((icon, index) => {
+                    if (icon) {
+                        const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
+                        icon.x(iconPositions[index] + (initialPos.x - this.positionStates.base[elementName].x));
+                        icon.y(initialPos.y);
+                        icon.opacity(initialPos.opacity);
+                        icon.scaleX(initialPos.scale);
+                        icon.scaleY(initialPos.scale);
+                        icon.rotation(initialPos.rotation);
+                    }
+                });
+            } else if (element) {
+                // Handle single elements
+                element.x(initialPos.x);
+                element.y(initialPos.y);
+                element.opacity(initialPos.opacity);
+                element.scaleX(initialPos.scale);
+                element.scaleY(initialPos.scale);
+                element.rotation(initialPos.rotation);
+            }
+        });
+        
+        this.stage.batchDraw();
+        console.log('✅ All elements set to initial positions');
+    }
+    
+    /**
+     * Get base position for a specific element
+     */
+    getBasePosition(elementName) {
+        return this.positionStates.base[elementName] || null;
+    }
+    
+    /**
+     * Get initial position for a specific element
+     */
+    getInitialPosition(elementName) {
+        return this.positionStates.initial[elementName] || null;
+    }
+    
+    /**
+     * Get exit position for a specific element
+     */
+    getExitPosition(elementName) {
+        return this.positionStates.exit[elementName] || null;
+    }
+    
+    // ================================
+    // ANIMATION SYSTEM METHODS
+    // ================================
+    
+    /**
+     * Get animation configuration for a specific element
+     */
+    getAnimationConfig(elementName) {
+        return this.animationSystem.elements[elementName] || null;
+    }
+    
+    /**
+     * Set animation configuration for a specific element
+     */
+    setElementAnimation(elementName, animationProps) {
+        if (!this.animationSystem.elements[elementName]) {
+            console.warn(`Element '${elementName}' not found in animation system`);
+            return;
         }
         
-        if (this.templateObjects.topTitle && this.layerVisibility.topTitle) {
-            this.timeline.to(this.templateObjects.topTitle, {
-                opacity: 1,
-                duration: 1.2,
-                ease: "power2.out"
-            }, delay);
-            delay += animationStep;
+        // Deep merge animation properties
+        this.animationSystem.elements[elementName] = {
+            ...this.animationSystem.elements[elementName],
+            ...animationProps
+        };
+        
+        console.log(`🎬 Updated animation for ${elementName}:`, animationProps);
+        
+        // Recreate timeline with new configuration
+        this.updateGSAPTimeline();
+    }
+    
+    /**
+     * Set animation preset (changes all elements)
+     */
+    setAnimationPreset(presetName) {
+        if (!this.animationSystem.presets[presetName]) {
+            console.warn(`Animation preset '${presetName}' not found`);
+            return;
         }
         
-        if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
-            this.timeline.to(this.templateObjects.mainTitle, {
-                opacity: 1,
-                duration: 1.5,
-                ease: "power2.out"
-            }, delay);
-            delay += animationStep;
-        }
+        const preset = this.animationSystem.presets[presetName];
+        this.animationSystem.presets.current = presetName;
         
-        if (this.templateObjects.subtitle1 && this.layerVisibility.subtitle1) {
-            this.timeline.to(this.templateObjects.subtitle1, {
-                opacity: 1,
-                duration: 1.0,
-                ease: "power2.out"
-            }, delay);
-            delay += animationStep;
-        }
+        console.log(`🎭 Applying animation preset: ${preset.name}`);
         
-        if (this.templateObjects.subtitle2 && this.layerVisibility.subtitle2) {
-            this.timeline.to(this.templateObjects.subtitle2, {
-                opacity: 1,
-                duration: 1.0,
-                ease: "power2.out"
-            }, delay);
-            delay += animationStep;
-        }
-        
-        // Bottom icons with stagger effect
-        if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
-            this.templateObjects.bottomIcons.forEach((icon, index) => {
-                this.timeline.to(icon, {
-                    opacity: 1,
-                    duration: 0.8,
-                    ease: "back.out(1.7)"
-                }, delay + (index * 0.1));
+        // Apply preset overrides
+        if (preset.overrides && preset.overrides.all) {
+            // Apply to all elements
+            Object.keys(this.animationSystem.elements).forEach(elementName => {
+                this.animationSystem.elements[elementName] = {
+                    ...this.animationSystem.elements[elementName],
+                    ...preset.overrides.all
+                };
             });
         }
         
-        // Hold middle section (2s to 8s)
-        this.timeline.to({}, { duration: 6 }, 2);
+        // Apply specific element overrides
+        if (preset.overrides) {
+            Object.keys(preset.overrides).forEach(elementName => {
+                if (elementName !== 'all' && this.animationSystem.elements[elementName]) {
+                    this.animationSystem.elements[elementName] = {
+                        ...this.animationSystem.elements[elementName],
+                        ...preset.overrides[elementName]
+                    };
+                }
+            });
+        }
         
-        // Exit animations - simple fade out (8s to 10s)
-        this.timeline.to(visibleObjects, {
-            opacity: 0,
-            duration: 1.5,
-            ease: "power2.in",
-            stagger: 0.08
-        }, 8);
+        // Recreate timeline with new preset
+        this.updateGSAPTimeline();
         
-        console.log('GSAP Timeline created with', visibleObjects.length, 'visible objects, duration:', this.animationDuration, 'seconds');
+        console.log(`✅ Animation preset '${preset.name}' applied successfully`);
+    }
+    
+    /**
+     * Get available animation presets
+     */
+    getAnimationPresets() {
+        return Object.keys(this.animationSystem.presets)
+            .filter(key => key !== 'current')
+            .map(key => ({
+                id: key,
+                ...this.animationSystem.presets[key]
+            }));
+    }
+    
+    /**
+     * Get current animation preset
+     */
+    getCurrentAnimationPreset() {
+        return this.animationSystem.presets.current;
+    }
+    
+    /**
+     * Convert relative position to absolute position based on base position
+     */
+    convertToAbsolutePosition(relativeProps, basePosition) {
+        const absolute = { ...relativeProps };
+        
+        if (relativeProps.x !== undefined) {
+            absolute.x = basePosition.x + relativeProps.x;
+        }
+        if (relativeProps.y !== undefined) {
+            absolute.y = basePosition.y + relativeProps.y;
+        }
+        
+        return absolute;
+    }
+    
+    /**
+     * Check if element is visible and should be animated
+     */
+    isElementVisible(elementName) {
+        return this.layerVisibility[elementName] && this.templateObjects[elementName];
+    }
+    
+    /**
+     * Get element object for animation
+     */
+    getElementObject(elementName) {
+        return this.templateObjects[elementName];
+    }
+    
+    /**
+     * Create intro animations using animation system configuration
+     */
+    createIntroAnimationsFromSystem() {
+        console.log('🎬 Creating intro animations from animation system...');
+        
+        const elements = this.animationSystem.elements;
+        const timing = this.animationSystem.global.timing;
+        
+        // Sort elements by animation order
+        const sortedElements = Object.keys(elements)
+            .filter(elementName => this.isElementVisible(elementName))
+            .sort((a, b) => elements[a].intro.order - elements[b].intro.order);
+        
+        sortedElements.forEach(elementName => {
+            const elementConfig = elements[elementName];
+            const element = this.getElementObject(elementName);
+            
+            if (elementName === 'bottomIcons') {
+                this.animateBottomIconsFromSystem(elementConfig, element);
+            } else {
+                this.animateElementFromSystem(elementName, elementConfig, element);
+            }
+        });
+        
+        console.log(`✅ Created intro animations for ${sortedElements.length} elements`);
+    }
+    
+    /**
+     * Animate single element using animation system configuration
+     */
+    animateElementFromSystem(elementName, config, element) {
+        const basePos = this.getBasePosition(elementName);
+        const delay = config.intro.order * this.animationSystem.global.timing.elementDelay;
+        
+        // Convert relative positions to absolute positions
+        const fromProps = this.convertToAbsolutePosition(config.intro.from, basePos);
+        const toProps = this.convertToAbsolutePosition(config.intro.to, basePos);
+        
+        // Set initial position safely
+        if (fromProps.x !== undefined) element.x(fromProps.x);
+        if (fromProps.y !== undefined) element.y(fromProps.y);
+        if (fromProps.opacity !== undefined) element.opacity(fromProps.opacity);
+        if (fromProps.scale !== undefined) {
+            element.scaleX(fromProps.scale);
+            element.scaleY(fromProps.scale);
+        }
+        if (fromProps.rotation !== undefined) element.rotation(fromProps.rotation);
+        
+        // Create safe animation properties
+        const animProps = {
+            duration: config.intro.duration,
+            ease: config.intro.ease
+        };
+        
+        if (toProps.x !== undefined) animProps.x = toProps.x;
+        if (toProps.y !== undefined) animProps.y = toProps.y;
+        if (toProps.opacity !== undefined) animProps.opacity = toProps.opacity;
+        if (toProps.scale !== undefined) {
+            animProps.scaleX = toProps.scale;
+            animProps.scaleY = toProps.scale;
+        }
+        if (toProps.rotation !== undefined) animProps.rotation = toProps.rotation;
+        
+        // Always ensure final values for missing properties
+        if (animProps.opacity === undefined) animProps.opacity = 1;
+        if (animProps.scaleX === undefined) {
+            animProps.scaleX = 1;
+            animProps.scaleY = 1;
+        }
+        if (animProps.rotation === undefined) animProps.rotation = 0;
+        
+        // Animate to final position
+        this.timeline.to(element, animProps, delay);
+        
+        console.log(`🎭 Animated ${elementName} with delay ${delay}s`);
+    }
+    
+    /**
+     * Animate bottom icons with stagger using animation system configuration
+     */
+    animateBottomIconsFromSystem(config, iconsArray) {
+        if (!Array.isArray(iconsArray) || iconsArray.length === 0) return;
+        
+        const basePos = this.getBasePosition('bottomIcons');
+        const iconPositions = this.calculateIconPositions(basePos.count);
+        const baseDelay = config.intro.order * this.animationSystem.global.timing.elementDelay;
+        
+        iconsArray.forEach((icon, index) => {
+            if (icon && index < basePos.count) {
+                // Convert relative positions to absolute for this icon
+                const fromProps = this.convertToAbsolutePosition(config.intro.from, {
+                    x: iconPositions[index],
+                    y: basePos.y
+                });
+                
+                // Set initial position
+                icon.x(fromProps.x);
+                icon.y(fromProps.y);
+                icon.opacity(fromProps.opacity || 0);
+                icon.scaleX(fromProps.scale || 1);
+                icon.scaleY(fromProps.scale || 1);
+                icon.rotation(fromProps.rotation || 0);
+                
+                // Animate to final position
+                this.timeline.to(icon, {
+                    x: iconPositions[index],
+                    y: basePos.y,
+                    opacity: 1,
+                    scaleX: 1,
+                    scaleY: 1,
+                    rotation: 0,
+                    duration: config.intro.duration,
+                    ease: config.intro.ease
+                }, baseDelay + (index * config.intro.stagger));
+            }
+        });
+        
+        console.log(`🎭 Animated ${iconsArray.length} bottom icons with stagger`);
+    }
+    
+    /**
+     * Create exit animations using animation system configuration
+     */
+    createExitAnimationsFromSystem() {
+        console.log('🎬 Creating exit animations from animation system...');
+        
+        const visibleElements = [];
+        Object.keys(this.animationSystem.elements).forEach(elementName => {
+            if (this.isElementVisible(elementName)) {
+                const element = this.getElementObject(elementName);
+                if (elementName === 'bottomIcons' && Array.isArray(element)) {
+                    visibleElements.push(...element.filter(icon => icon));
+                } else if (element) {
+                    visibleElements.push(element);
+                }
+            }
+        });
+        
+        if (visibleElements.length > 0) {
+            this.timeline.to(visibleElements, {
+                opacity: 0,
+                scaleX: 0.8,
+                scaleY: 0.8,
+                duration: 1.5,
+                ease: this.animationSystem.global.defaultEasing.exit,
+                stagger: this.animationSystem.global.timing.exitStagger
+            }, this.animationSystem.global.phases.exit.start);
+        }
+        
+        console.log(`✅ Created exit animations for ${visibleElements.length} elements`);
+    }
+    
+    // ================================
+    // ANIMATION SYSTEM QUICK ACCESS & DEBUGGING
+    // ================================
+    
+    /**
+     * Quick access to animation system for console debugging
+     */
+    getAnimationSystemConfig() {
+        return this.animationSystem;
+    }
+    
+    /**
+     * Debug animation system state
+     */
+    debugAnimationSystem() {
+        console.log('🎬 === ANIMATION SYSTEM DEBUG ===');
+        console.log('Current Preset:', this.getCurrentAnimationPreset());
+        console.log('Available Presets:', this.getAnimationPresets().map(p => p.name));
+        console.log('Global Config:', this.animationSystem.global);
+        console.log('Element Visibility:');
+        Object.keys(this.animationSystem.elements).forEach(element => {
+            console.log(`  ${element}: ${this.isElementVisible(element)}`);
+        });
+        console.log('Base Positions:', this.positionStates.base);
+        console.log('=================================');
+    }
+    
+    /**
+     * Quick animation preset switching with feedback
+     */
+    quickPreset(presetName) {
+        const available = this.getAnimationPresets().map(p => p.id);
+        if (!available.includes(presetName)) {
+            console.error(`❌ Preset '${presetName}' not found. Available: ${available.join(', ')}`);
+            return;
+        }
+        
+        this.setAnimationPreset(presetName);
+        console.log(`✅ Switched to '${presetName}' preset`);
+    }
+    
+    /**
+     * Quick element animation modification
+     */
+    quickElementAnim(elementName, properties) {
+        if (!this.animationSystem.elements[elementName]) {
+            console.error(`❌ Element '${elementName}' not found`);
+            return;
+        }
+        
+        this.setElementAnimation(elementName, properties);
+        console.log(`✅ Updated animation for '${elementName}'`);
+    }
+    
+    /**
+     * Reset to default animation system
+     */
+    resetAnimationSystem() {
+        console.log('🔄 Resetting animation system to defaults...');
+        
+        // Reset to slideInLeft preset
+        this.setAnimationPreset('slideInLeft');
+        
+        console.log('✅ Animation system reset to defaults');
+    }
+    
+    // ================================
+    // LAYOUT RECALCULATION (UPDATED)
+    // ================================
+    
+    recalculateLayout() {
+        console.log('Recalculating layout with base position system...');
+        
+        // Calculate base positions first
+        this.calculateBasePositions();
+        
+        // Apply base positions to actual elements
+        this.setElementsToBasePositions();
+        
+        // Update bottom icons positioning
+        if (this.layerVisibility.bottomIcons && this.templateObjects.bottomIcons.length > 0) {
+            this.createBottomIconsExact();
+        }
+        
+        console.log('Layout recalculation complete with base position system');
+    }
+    
+    createGSAPTimeline() {
+        console.log('🎬 Creating GSAP timeline using Animation System...');
+        
+        try {
+            // Ensure base positions are calculated first
+            if (!this.positionStates.base || Object.keys(this.positionStates.base).length === 0) {
+                console.log('📐 Calculating base positions...');
+                this.calculateBasePositions();
+            }
+            
+            // Create master timeline using animation system configuration
+            const config = this.animationSystem;
+            console.log('🎛️ Animation config:', config);
+            
+            this.timeline = gsap.timeline({ 
+                paused: true,
+                duration: config.global.duration,
+                ease: "power2.inOut"
+            });
+            
+            console.log('⏱️ GSAP timeline created, duration:', config.global.duration);
+            
+            // Set all elements to initial positions at timeline start
+            this.timeline.call(() => {
+                console.log('🎯 Setting elements to initial positions...');
+                this.setElementsToInitialPositions();
+            }, [], config.global.phases.intro.start);
+            
+            // Create intro animations using animation system
+            console.log('🎬 Creating intro animations...');
+            this.createIntroAnimationsFromSystem();
+            
+            // Hold middle section - elements stay at base positions
+            this.timeline.to({}, { 
+                duration: config.global.phases.hold.end - config.global.phases.hold.start 
+            }, config.global.phases.hold.start);
+            
+            // Create exit animations using animation system
+            console.log('🚪 Creating exit animations...');
+            this.createExitAnimationsFromSystem();
+            
+            console.log(`✅ GSAP Timeline created using Animation System`);
+            console.log(`🎭 Current preset: ${config.presets.current}`);
+            console.log(`📊 Animation phases:`, config.global.phases);
+            console.log(`⏱️ Timeline duration: ${this.timeline.duration()}s`);
+            
+        } catch (error) {
+            console.error('❌ Error creating GSAP timeline:', error);
+            // Fallback to a simple timeline if animation system fails
+            this.createFallbackTimeline();
+        }
+    }
+    
+    /**
+     * Fallback timeline creation if animation system fails
+     */
+    createFallbackTimeline() {
+        console.log('🔧 Creating fallback timeline...');
+        
+        this.timeline = gsap.timeline({ 
+            paused: true,
+            duration: 10,
+            ease: "power2.inOut"
+        });
+        
+        // Simple fade in for all visible elements
+        const visibleElements = [];
+        Object.keys(this.templateObjects).forEach(key => {
+            const obj = this.templateObjects[key];
+            if (obj && this.layerVisibility[key]) {
+                if (Array.isArray(obj)) {
+                    visibleElements.push(...obj.filter(item => item));
+                } else {
+                    visibleElements.push(obj);
+                }
+            }
+        });
+        
+        if (visibleElements.length > 0) {
+            // Set initial opacity to 0
+            visibleElements.forEach(el => el.opacity(0));
+            
+            // Fade in over 2 seconds
+            this.timeline.to(visibleElements, {
+                opacity: 1,
+                duration: 2,
+                stagger: 0.1
+            }, 0);
+            
+            // Hold for 6 seconds
+            this.timeline.to({}, { duration: 6 }, 2);
+            
+            // Fade out over 2 seconds
+            this.timeline.to(visibleElements, {
+                opacity: 0,
+                duration: 2,
+                stagger: 0.05
+            }, 8);
+        }
+        
+        console.log(`✅ Fallback timeline created with ${visibleElements.length} elements`);
+    }
+    
+    /**
+     * Test timeline functionality
+     */
+    testTimeline() {
+        console.log('🧪 Testing timeline functionality...');
+        
+        if (!this.timeline) {
+            console.error('❌ No timeline found');
+            return;
+        }
+        
+        console.log('⏱️ Timeline duration:', this.timeline.duration());
+        console.log('📊 Timeline progress:', this.timeline.progress());
+        console.log('🎮 Timeline paused:', this.timeline.paused());
+        
+        // Test basic seek
+        this.timeline.seek(1);
+        console.log('✅ Seek to 1 second - OK');
+        
+        // Test play for 1 second then pause
+        this.timeline.play();
+        setTimeout(() => {
+            this.timeline.pause();
+            console.log('✅ Play/pause test - OK');
+        }, 1000);
     }
     
     updateGSAPTimeline() {
