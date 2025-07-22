@@ -2892,34 +2892,17 @@ class TemplateEditor {
     }
     
     async createSVGTopIconFromGallery(iconData) {
-        console.log('🔧 Creating top icon from gallery:', iconData.isCustom ? 'Custom Icon' : iconData.fullPath);
+        console.log('🔧 Creating top icon from gallery:', iconData.fullPath);
         
         try {
-            let svgContent;
-            
-            if (iconData.isCustom) {
-                // For custom icons, check if it's SVG data URL
-                if (iconData.dataUrl.startsWith('data:image/svg+xml')) {
-                    // Extract SVG content from data URL
-                    const base64Data = iconData.dataUrl.split(',')[1];
-                    svgContent = atob(base64Data);
-                    console.log('📄 Custom SVG content extracted from data URL, length:', svgContent.length);
-                } else {
-                    // For PNG/JPG custom icons, we can skip SVG processing and directly use the data URL
-                    console.log('🖼️ Custom raster image detected, loading directly...');
-                    this.loadCustomImageIcon(iconData, 'top');
-                    return;
-                }
-            } else {
-                // Load SVG content from file
-                const response = await fetch(iconData.fullPath);
-                if (!response.ok) {
-                    throw new Error(`Failed to load icon: ${response.status}`);
-                }
-                
-                svgContent = await response.text();
-                console.log('📄 Default SVG content loaded, length:', svgContent.length);
+            // Load SVG content
+            const response = await fetch(iconData.fullPath);
+            if (!response.ok) {
+                throw new Error(`Failed to load icon: ${response.status}`);
             }
+            
+            const svgContent = await response.text();
+            console.log('📄 SVG content loaded, length:', svgContent.length);
             
             // Get current text color
             const currentTextColor = this.getCurrentTextColor();
@@ -2979,31 +2962,13 @@ class TemplateEditor {
     
     async createSVGBottomIconFromGallery(iconData, slotIndex) {
         try {
-            let svgContent;
-            
-            if (iconData.isCustom) {
-                // For custom icons, check if it's SVG data URL
-                if (iconData.dataUrl.startsWith('data:image/svg+xml')) {
-                    // Extract SVG content from data URL
-                    const base64Data = iconData.dataUrl.split(',')[1];
-                    svgContent = atob(base64Data);
-                    console.log('📄 Custom SVG content extracted for bottom icon, length:', svgContent.length);
-                } else {
-                    // For PNG/JPG custom icons, use direct loading
-                    console.log('🖼️ Custom raster image detected for bottom icon, loading directly...');
-                    const customIconData = { ...iconData, slotIndex };
-                    this.loadCustomImageIcon(customIconData, 'bottom');
-                    return;
-                }
-            } else {
-                // Load SVG content from file
-                const response = await fetch(iconData.fullPath);
-                if (!response.ok) {
-                    throw new Error(`Failed to load icon: ${response.status}`);
-                }
-                
-                svgContent = await response.text();
+            // Load SVG content
+            const response = await fetch(iconData.fullPath);
+            if (!response.ok) {
+                throw new Error(`Failed to load icon: ${response.status}`);
             }
+            
+            const svgContent = await response.text();
             
             // Get current text color
             const currentTextColor = this.getCurrentTextColor();
@@ -3814,79 +3779,6 @@ function loadPresetState(presetData) {
     // - Layer visibility states
     // - Icon configurations
     // - Trigger canvas redraw
-    
-    /**
-     * Load custom raster image icon (PNG/JPG) directly
-     */
-    loadCustomImageIcon(iconData, iconType) {
-        console.log('🖼️ Loading custom raster image icon:', iconData.name, iconType);
-        
-        const img = new Image();
-        img.onload = () => {
-            console.log('✅ Custom raster image loaded successfully');
-            
-            if (iconType === 'top') {
-                const iconY = 200;
-                
-                this.templateObjects.topIcon = new Konva.Image({
-                    x: 960,
-                    y: iconY,
-                    image: img,
-                    width: 120,
-                    height: 120,
-                    offsetX: 60,
-                    offsetY: 60,
-                    listening: true
-                });
-                
-                this.contentLayer.add(this.templateObjects.topIcon);
-                console.log('✅ Custom top raster icon added to canvas');
-                
-            } else if (iconType === 'bottom' && typeof iconData.slotIndex !== 'undefined') {
-                const slotIndex = iconData.slotIndex;
-                
-                // Ensure bottom icons array exists
-                if (!this.templateObjects.bottomIcons) {
-                    this.templateObjects.bottomIcons = [];
-                }
-                
-                // Extend array if needed
-                while (this.templateObjects.bottomIcons.length <= slotIndex) {
-                    this.templateObjects.bottomIcons.push(null);
-                }
-                
-                // Calculate position for bottom icon
-                const spacing = 150;
-                const totalWidth = Math.max(0, (this.bottomIconsConfig.count - 1) * spacing);
-                const startX = 960 - (totalWidth / 2);
-                const iconX = startX + (slotIndex * spacing);
-                const iconY = 900;
-                
-                this.templateObjects.bottomIcons[slotIndex] = new Konva.Image({
-                    x: iconX,
-                    y: iconY,
-                    image: img,
-                    width: 100,
-                    height: 100,
-                    offsetX: 50,
-                    offsetY: 50,
-                    listening: true
-                });
-                
-                this.contentLayer.add(this.templateObjects.bottomIcons[slotIndex]);
-                console.log(`✅ Custom bottom raster icon ${slotIndex + 1} added to canvas`);
-            }
-            
-            this.stage.batchDraw();
-            
-        };
-        
-        img.onerror = () => {
-            console.error('❌ Failed to load custom raster image:', iconData.name);
-        };
-        
-        img.src = iconData.dataUrl;
-    }
 }
 
 // Add CSS animation styles for notification

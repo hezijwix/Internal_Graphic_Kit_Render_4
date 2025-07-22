@@ -18,10 +18,10 @@ class SimpleIconGallery {
         // Hardcoded icon list for reliability - no JSON dependencies
         this.icons = this.generateIconList();
         
-        // Load custom icons from localStorage
+        // Custom uploaded icons storage (in localStorage for persistence)
         this.customIcons = this.loadCustomIcons();
         
-        console.log('🎨 SimpleIconGallery initialized with', this.icons.length, 'default icons and', this.customIcons.length, 'custom icons');
+        console.log('🎨 SimpleIconGallery initialized with', this.icons.length, 'preset icons and', this.customIcons.length, 'custom icons');
     }
     
     /**
@@ -88,11 +88,11 @@ class SimpleIconGallery {
             const stored = localStorage.getItem('wix_custom_icons');
             if (stored) {
                 const customIcons = JSON.parse(stored);
-                console.log('📁 Loaded', customIcons.length, 'custom icons from localStorage');
+                console.log('📂 Loaded', customIcons.length, 'custom icons from storage');
                 return customIcons;
             }
         } catch (error) {
-            console.warn('Failed to load custom icons:', error);
+            console.warn('Failed to load custom icons from storage:', error);
         }
         return [];
     }
@@ -103,35 +103,33 @@ class SimpleIconGallery {
     saveCustomIcons() {
         try {
             localStorage.setItem('wix_custom_icons', JSON.stringify(this.customIcons));
-            console.log('💾 Saved', this.customIcons.length, 'custom icons to localStorage');
+            console.log('💾 Saved', this.customIcons.length, 'custom icons to storage');
         } catch (error) {
             console.error('Failed to save custom icons:', error);
-            // Check if storage is full
-            if (error.name === 'QuotaExceededError') {
-                alert('Storage full! Please remove some custom icons.');
-            }
         }
     }
     
     /**
-     * Add a custom icon
+     * Add a custom icon to the gallery
      */
     addCustomIcon(iconData) {
-        // Generate unique ID
-        const id = 'custom-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        // Generate unique ID based on filename and timestamp
+        const id = `custom-${Date.now()}-${iconData.filename.replace(/[^a-zA-Z0-9]/g, '')}`;
         
         const customIcon = {
             id: id,
             filename: iconData.filename,
-            name: iconData.name,
+            name: iconData.name || iconData.filename.replace(/\.[^/.]+$/, ""), // Remove extension
             category: 'custom',
-            dataUrl: iconData.dataUrl, // Base64 data URL
+            dataURL: iconData.dataURL, // Store the base64 data
             uploadDate: new Date().toISOString(),
-            fileType: iconData.fileType,
-            fileSize: iconData.fileSize
+            fileSize: iconData.fileSize || 0
         };
         
-        this.customIcons.push(customIcon);
+        // Add to custom icons array
+        this.customIcons.unshift(customIcon); // Add to beginning for easy access
+        
+        // Save to localStorage
         this.saveCustomIcons();
         
         console.log('✅ Added custom icon:', customIcon.name);
@@ -139,30 +137,10 @@ class SimpleIconGallery {
     }
     
     /**
-     * Remove a custom icon
+     * Get all icons (preset + custom)
      */
-    removeCustomIcon(iconId) {
-        const index = this.customIcons.findIndex(icon => icon.id === iconId);
-        if (index !== -1) {
-            const removed = this.customIcons.splice(index, 1)[0];
-            this.saveCustomIcons();
-            console.log('🗑️ Removed custom icon:', removed.name);
-            return true;
-        }
-        return false;
-    }
-    
-    /**
-     * Get all icons (default + custom) for a category
-     */
-    getAllIcons(category = 'all') {
-        if (category === 'all') {
-            return [...this.icons, ...this.customIcons];
-        } else if (category === 'custom') {
-            return this.customIcons;
-        } else {
-            return this.icons.filter(icon => icon.category === category);
-        }
+    getAllIcons() {
+        return [...this.customIcons, ...this.icons];
     }
     
     /**
@@ -206,6 +184,9 @@ class SimpleIconGallery {
         // Create modal
         this.modal = document.createElement('div');
         this.modal.id = 'simple-icon-gallery-modal';
+        const allIconsCount = this.getAllIcons().length;
+        const customIconsCount = this.customIcons.length;
+        
         this.modal.innerHTML = `
             <div class="simple-gallery-overlay">
                 <div class="simple-gallery-modal">
@@ -214,24 +195,24 @@ class SimpleIconGallery {
                         <button class="simple-gallery-close" aria-label="Close gallery">×</button>
                     </div>
                     
-                    <div class="simple-gallery-categories">
-                        <button class="category-btn active" data-category="all">All (${this.icons.length + this.customIcons.length})</button>
-                        <button class="category-btn" data-category="arrow">Arrows (22)</button>
-                        <button class="category-btn" data-category="celebration">Celebration (27)</button>
-                        <button class="category-btn" data-category="stars">Stars (11)</button>
-                        <button class="category-btn" data-category="misc">Misc (4)</button>
-                        <button class="category-btn" data-category="custom">Custom (${this.customIcons.length})</button>
-                    </div>
-                    
-                    <div class="simple-gallery-upload">
-                        <button class="upload-icon-btn" id="upload-icon-btn">
+                    <div class="simple-gallery-upload-section">
+                        <button class="upload-custom-icon-btn" id="upload-custom-icon">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                 <path d="M8 1v10M4 7l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                             Upload Custom Icon
                         </button>
-                        <input type="file" id="icon-upload-input" accept=".svg,.png,.jpg,.jpeg" style="display: none;">
-                        <span class="upload-hint">SVG, PNG, JPG up to 1MB</span>
+                        <span class="upload-hint">SVG, PNG up to 2MB</span>
+                        <input type="file" id="custom-icon-input" accept=".svg,.png" style="display: none;">
+                    </div>
+                    
+                    <div class="simple-gallery-categories">
+                        <button class="category-btn active" data-category="all">All (${allIconsCount})</button>
+                        ${customIconsCount > 0 ? `<button class="category-btn" data-category="custom">Custom (${customIconsCount})</button>` : ''}
+                        <button class="category-btn" data-category="arrow">Arrows (22)</button>
+                        <button class="category-btn" data-category="celebration">Celebration (27)</button>
+                        <button class="category-btn" data-category="stars">Stars (11)</button>
+                        <button class="category-btn" data-category="misc">Misc (4)</button>
                     </div>
                     
                     <div class="simple-gallery-grid" id="simple-gallery-grid">
@@ -324,6 +305,49 @@ class SimpleIconGallery {
                 background: #ff6666;
             }
             
+            .simple-gallery-upload-section {
+                margin: 0 0 20px 0;
+                padding: 16px;
+                background: #262626;
+                border-radius: 8px;
+                border: 2px dashed #555;
+                text-align: center;
+                transition: all 0.2s;
+            }
+            
+            .simple-gallery-upload-section:hover {
+                border-color: #0066ff;
+                background: #2a2a2a;
+            }
+            
+            .upload-custom-icon-btn {
+                background: #0066ff;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s;
+                margin-bottom: 8px;
+            }
+            
+            .upload-custom-icon-btn:hover {
+                background: #0052cc;
+                transform: translateY(-1px);
+            }
+            
+            .upload-hint {
+                display: block;
+                color: #888;
+                font-size: 12px;
+                margin-top: 4px;
+            }
+            
             .simple-gallery-categories {
                 display: flex;
                 gap: 8px;
@@ -350,41 +374,6 @@ class SimpleIconGallery {
             .category-btn.active {
                 background: #0066ff;
                 color: white;
-            }
-            
-            .simple-gallery-upload {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                margin-bottom: 16px;
-                padding: 12px;
-                background: #0d0d0d;
-                border-radius: 8px;
-                border: 1px solid #333;
-            }
-            
-            .upload-icon-btn {
-                background: #0066ff;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 14px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                transition: background 0.2s;
-                font-weight: 500;
-            }
-            
-            .upload-icon-btn:hover {
-                background: #0052cc;
-            }
-            
-            .upload-hint {
-                font-size: 12px;
-                color: #999;
             }
             
             .simple-gallery-grid {
@@ -423,57 +412,6 @@ class SimpleIconGallery {
             .simple-icon-item.selected {
                 border-color: #0066ff;
                 background: #003366;
-            }
-            
-            .simple-icon-item.custom {
-                border-color: #ff6b35;
-                background: #1a1a1a;
-            }
-            
-            .simple-icon-item.custom:hover {
-                border-color: #ff8c42;
-                background: #2a1f1a;
-                box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-            }
-            
-            .simple-icon-item.custom.selected {
-                border-color: #ff6b35;
-                background: #332211;
-            }
-            
-            .custom-icon-badge {
-                position: absolute;
-                top: 4px;
-                right: 4px;
-                background: #ff6b35;
-                color: white;
-                font-size: 8px;
-                padding: 2px 4px;
-                border-radius: 3px;
-                font-weight: 600;
-                line-height: 1;
-            }
-            
-            .custom-icon-delete {
-                position: absolute;
-                top: 2px;
-                left: 2px;
-                background: #ff4444;
-                color: white;
-                border: none;
-                width: 16px;
-                height: 16px;
-                border-radius: 50%;
-                cursor: pointer;
-                font-size: 10px;
-                display: none;
-                align-items: center;
-                justify-content: center;
-                line-height: 1;
-            }
-            
-            .simple-icon-item.custom:hover .custom-icon-delete {
-                display: flex;
             }
             
             .simple-icon-preview {
@@ -594,17 +532,8 @@ class SimpleIconGallery {
         // Escape key to close
         document.addEventListener('keydown', this.handleEscapeKey.bind(this));
         
-        // Upload button
-        const uploadBtn = this.modal.querySelector('#upload-icon-btn');
-        const uploadInput = this.modal.querySelector('#icon-upload-input');
-        
-        uploadBtn.addEventListener('click', () => {
-            uploadInput.click();
-        });
-        
-        uploadInput.addEventListener('change', (e) => {
-            this.handleIconUpload(e);
-        });
+        // Upload functionality
+        this.setupUploadFunctionality();
     }
     
     /**
@@ -617,14 +546,218 @@ class SimpleIconGallery {
     }
     
     /**
+     * Setup upload functionality
+     */
+    setupUploadFunctionality() {
+        const uploadBtn = this.modal.querySelector('#upload-custom-icon');
+        const fileInput = this.modal.querySelector('#custom-icon-input');
+        
+        if (!uploadBtn || !fileInput) {
+            console.warn('Upload elements not found');
+            return;
+        }
+        
+        // Click upload button to trigger file input
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Handle file selection
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                this.handleFileUpload(file);
+            }
+        });
+        
+        // Drag and drop support
+        const uploadSection = this.modal.querySelector('.simple-gallery-upload-section');
+        if (uploadSection) {
+            uploadSection.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadSection.style.borderColor = '#0066ff';
+                uploadSection.style.background = '#2a2a2a';
+            });
+            
+            uploadSection.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadSection.style.borderColor = '#555';
+                uploadSection.style.background = '#262626';
+            });
+            
+            uploadSection.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadSection.style.borderColor = '#555';
+                uploadSection.style.background = '#262626';
+                
+                const files = Array.from(e.dataTransfer.files);
+                const file = files.find(f => f.type === 'image/svg+xml' || f.type === 'image/png');
+                if (file) {
+                    this.handleFileUpload(file);
+                }
+            });
+        }
+    }
+    
+    /**
+     * Handle file upload
+     */
+    async handleFileUpload(file) {
+        console.log('📁 Processing uploaded file:', file.name);
+        
+        // Validate file type
+        if (!['image/svg+xml', 'image/png'].includes(file.type)) {
+            alert('Please upload SVG or PNG files only.');
+            return;
+        }
+        
+        // Validate file size (2MB limit)
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        if (file.size > maxSize) {
+            alert('File size must be under 2MB.');
+            return;
+        }
+        
+        try {
+            // Show loading state
+            const uploadBtn = this.modal.querySelector('#upload-custom-icon');
+            const originalHTML = uploadBtn.innerHTML;
+            uploadBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="37.7" stroke-dashoffset="37.7">
+                        <animate attributeName="stroke-dashoffset" dur="1s" values="37.7;0;37.7" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+                Processing...
+            `;
+            uploadBtn.disabled = true;
+            
+            // Convert file to data URL
+            const dataURL = await this.fileToDataURL(file);
+            
+            // Create icon data
+            const iconData = {
+                filename: file.name,
+                name: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+                dataURL: dataURL,
+                fileSize: file.size
+            };
+            
+            // Add to custom icons
+            const customIcon = this.addCustomIcon(iconData);
+            
+            // Update the UI
+            this.refreshGallery();
+            
+            // Restore button
+            uploadBtn.innerHTML = originalHTML;
+            uploadBtn.disabled = false;
+            
+            // Show success message
+            this.showUploadSuccess(customIcon.name);
+            
+            console.log('✅ File uploaded successfully:', customIcon.name);
+            
+        } catch (error) {
+            console.error('❌ Upload failed:', error);
+            alert('Upload failed: ' + error.message);
+            
+            // Restore button
+            const uploadBtn = this.modal.querySelector('#upload-custom-icon');
+            uploadBtn.innerHTML = originalHTML;
+            uploadBtn.disabled = false;
+        }
+    }
+    
+    /**
+     * Convert file to data URL
+     */
+    fileToDataURL(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    /**
+     * Refresh the gallery after adding custom icons
+     */
+    refreshGallery() {
+        // Update category counts
+        const allBtn = this.modal.querySelector('[data-category="all"]');
+        const customBtn = this.modal.querySelector('[data-category="custom"]');
+        
+        if (allBtn) {
+            allBtn.textContent = `All (${this.getAllIcons().length})`;
+        }
+        
+        // Add custom category button if it doesn't exist
+        if (!customBtn && this.customIcons.length > 0) {
+            const categoriesDiv = this.modal.querySelector('.simple-gallery-categories');
+            const customButton = document.createElement('button');
+            customButton.className = 'category-btn';
+            customButton.dataset.category = 'custom';
+            customButton.textContent = `Custom (${this.customIcons.length})`;
+            
+            // Insert after "All" button
+            const allButton = categoriesDiv.querySelector('[data-category="all"]');
+            allButton.parentNode.insertBefore(customButton, allButton.nextSibling);
+            
+            // Add event listener
+            customButton.addEventListener('click', () => {
+                this.modal.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+                customButton.classList.add('active');
+                this.loadIcons('custom');
+            });
+        } else if (customBtn) {
+            customBtn.textContent = `Custom (${this.customIcons.length})`;
+        }
+        
+        // Reload current category
+        const activeBtn = this.modal.querySelector('.category-btn.active');
+        const currentCategory = activeBtn ? activeBtn.dataset.category : 'all';
+        this.loadIcons(currentCategory);
+    }
+    
+    /**
+     * Show upload success message
+     */
+    showUploadSuccess(iconName) {
+        const uploadSection = this.modal.querySelector('.simple-gallery-upload-section');
+        const originalHTML = uploadSection.innerHTML;
+        
+        uploadSection.innerHTML = `
+            <div style="color: #22c55e; font-weight: 500;">
+                ✅ "${iconName}" uploaded successfully!
+            </div>
+            <div style="color: #888; font-size: 12px; margin-top: 4px;">
+                Your custom icon is now available in the Custom category
+            </div>
+        `;
+        
+        setTimeout(() => {
+            uploadSection.innerHTML = originalHTML;
+            this.setupUploadFunctionality(); // Re-setup event listeners
+        }, 3000);
+    }
+    
+    /**
      * Load icons for a specific category
      */
     loadIcons(category = 'all') {
         const grid = this.modal.querySelector('#simple-gallery-grid');
         grid.innerHTML = '';
         
-        // Get all icons for the category (default + custom)
-        const iconsToShow = this.getAllIcons(category);
+        let iconsToShow;
+        if (category === 'all') {
+            iconsToShow = this.getAllIcons();
+        } else if (category === 'custom') {
+            iconsToShow = this.customIcons;
+        } else {
+            iconsToShow = this.icons.filter(icon => icon.category === category);
+        }
             
         console.log(`🔄 Loading ${iconsToShow.length} icons for category: ${category}`);
         
@@ -639,36 +772,17 @@ class SimpleIconGallery {
      */
     createIconElement(icon) {
         const iconItem = document.createElement('div');
-        iconItem.className = icon.category === 'custom' ? 'simple-icon-item custom' : 'simple-icon-item';
+        iconItem.className = 'simple-icon-item';
         iconItem.dataset.iconId = icon.id;
         
-        // Different HTML for custom vs default icons
-        if (icon.category === 'custom') {
-            iconItem.innerHTML = `
-                <button class="custom-icon-delete" title="Remove custom icon">×</button>
-                <div class="custom-icon-badge">CUSTOM</div>
-                <div class="simple-icon-preview">
-                    <div class="simple-icon-loading">Loading...</div>
-                </div>
-                <div class="simple-icon-name">${icon.name}</div>
-            `;
-            
-            // Add delete handler for custom icons
-            const deleteBtn = iconItem.querySelector('.custom-icon-delete');
-            deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent selection
-                this.deleteCustomIcon(icon, iconItem);
-            });
-        } else {
-            iconItem.innerHTML = `
-                <div class="simple-icon-preview">
-                    <div class="simple-icon-loading">Loading...</div>
-                </div>
-                <div class="simple-icon-name">${icon.name}</div>
-            `;
-        }
+        iconItem.innerHTML = `
+            <div class="simple-icon-preview">
+                <div class="simple-icon-loading">Loading...</div>
+            </div>
+            <div class="simple-icon-name">${icon.name}</div>
+        `;
         
-        // Add click handler for selection
+        // Add click handler
         iconItem.addEventListener('click', () => this.selectIcon(icon, iconItem));
         
         // Load the icon image
@@ -682,6 +796,11 @@ class SimpleIconGallery {
      */
     loadIconImage(icon, iconElement) {
         const preview = iconElement.querySelector('.simple-icon-preview');
+        
+        // For custom icons, use dataURL; for preset icons, use file path
+        const iconSrc = icon.category === 'custom' 
+            ? icon.dataURL 
+            : this.options.iconBasePath + icon.filename;
         
         // Create img element
         const img = document.createElement('img');
@@ -697,18 +816,11 @@ class SimpleIconGallery {
         // Handle load error
         img.onerror = () => {
             preview.innerHTML = `<div class="simple-icon-error">Failed to load</div>`;
-            console.warn('Failed to load icon:', icon.category === 'custom' ? icon.dataUrl : iconPath);
+            console.warn('Failed to load icon:', iconSrc);
         };
         
-        // Set source - different for custom vs default icons
-        if (icon.category === 'custom') {
-            // Custom icons use data URL
-            img.src = icon.dataUrl;
-        } else {
-            // Default icons use file path
-            const iconPath = this.options.iconBasePath + icon.filename;
-            img.src = iconPath;
-        }
+        // Set source to trigger load
+        img.src = iconSrc;
     }
     
     /**
@@ -723,37 +835,17 @@ class SimpleIconGallery {
         
         console.log('🎯 Icon selected:', icon.name);
         
-        // Prepare icon data for callback - different for custom vs default icons
-        let iconData;
-        
-        if (icon.category === 'custom') {
-            // Custom icons use data URL
-            iconData = {
-                id: icon.id,
-                filename: icon.filename,
-                name: icon.name,
-                category: icon.category,
-                path: icon.dataUrl, // Use data URL for custom icons
-                fullPath: icon.dataUrl, // Template editor expects this property
-                originalName: icon.name,
-                isCustom: true,
-                dataUrl: icon.dataUrl,
-                fileType: icon.fileType,
-                uploadDate: icon.uploadDate
-            };
-        } else {
-            // Default icons use file path
-            iconData = {
-                id: icon.id,
-                filename: icon.filename,
-                name: icon.name,
-                category: icon.category,
-                path: this.options.iconBasePath + icon.filename,
-                fullPath: this.options.iconBasePath + icon.filename, // Template editor expects this property
-                originalName: icon.name,
-                isCustom: false
-            };
-        }
+        // Prepare icon data for callback
+        const iconData = {
+            id: icon.id,
+            filename: icon.filename,
+            name: icon.name,
+            category: icon.category,
+            path: icon.category === 'custom' ? icon.dataURL : this.options.iconBasePath + icon.filename,
+            fullPath: icon.category === 'custom' ? icon.dataURL : this.options.iconBasePath + icon.filename, // Template editor expects this property
+            originalName: icon.name, // For compatibility with existing code
+            isCustom: icon.category === 'custom' // Flag for custom handling
+        };
         
         // Call the selection callback
         if (this.currentCallback) {
@@ -768,200 +860,6 @@ class SimpleIconGallery {
         setTimeout(() => {
             this.close();
         }, 200);
-    }
-    
-    /**
-     * Handle icon upload
-     */
-    async handleIconUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        console.log('📁 File selected for upload:', file.name, file.type, `${Math.round(file.size/1024)}KB`);
-        
-        // Validate file type
-        const allowedTypes = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/jpg'];
-        if (!allowedTypes.includes(file.type)) {
-            alert('Please select an SVG, PNG, or JPG file.');
-            event.target.value = ''; // Reset input
-            return;
-        }
-        
-        // Validate file size (1MB limit)
-        const maxSize = 1024 * 1024; // 1MB
-        if (file.size > maxSize) {
-            alert('File size must be less than 1MB. Please choose a smaller file.');
-            event.target.value = ''; // Reset input
-            return;
-        }
-        
-        try {
-            // Show loading state
-            const uploadBtn = this.modal.querySelector('#upload-icon-btn');
-            const originalHTML = uploadBtn.innerHTML;
-            uploadBtn.disabled = true;
-            uploadBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="37.7" stroke-dashoffset="37.7">
-                        <animate attributeName="stroke-dashoffset" dur="1s" values="37.7;0;37.7" repeatCount="indefinite"/>
-                    </circle>
-                </svg>
-                Uploading...
-            `;
-            
-            // Convert file to data URL
-            const dataUrl = await this.fileToDataUrl(file);
-            
-            // Generate a clean name from filename
-            const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9\s]/g, ' ').trim();
-            
-            // Add to custom icons
-            const iconData = {
-                filename: file.name,
-                name: cleanName || 'Custom Icon',
-                dataUrl: dataUrl,
-                fileType: file.type,
-                fileSize: file.size
-            };
-            
-            const customIcon = this.addCustomIcon(iconData);
-            
-            console.log('✅ Custom icon uploaded successfully:', customIcon.name);
-            
-            // Update category counts in UI
-            this.updateCategoryCounts();
-            
-            // Refresh current view if showing 'all' or 'custom' category
-            const activeCategory = this.modal.querySelector('.category-btn.active');
-            const currentCategory = activeCategory ? activeCategory.dataset.category : 'all';
-            
-            if (currentCategory === 'all' || currentCategory === 'custom') {
-                this.loadIcons(currentCategory);
-            }
-            
-            // Switch to custom category to show the new icon
-            const customCategoryBtn = this.modal.querySelector('[data-category="custom"]');
-            if (customCategoryBtn) {
-                // Update active state
-                this.modal.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-                customCategoryBtn.classList.add('active');
-                this.loadIcons('custom');
-            }
-            
-            // Show success message
-            this.showNotification('Icon uploaded successfully!', 'success');
-            
-        } catch (error) {
-            console.error('❌ Upload failed:', error);
-            alert(`Upload failed: ${error.message}`);
-        } finally {
-            // Reset upload button
-            const uploadBtn = this.modal.querySelector('#upload-icon-btn');
-            uploadBtn.disabled = false;
-            uploadBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 1v10M4 7l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Upload Custom Icon
-            `;
-            
-            // Reset file input
-            event.target.value = '';
-        }
-    }
-    
-    /**
-     * Convert file to data URL
-     */
-    fileToDataUrl(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.onerror = () => reject(new Error('Failed to read file'));
-            reader.readAsDataURL(file);
-        });
-    }
-    
-    /**
-     * Delete a custom icon
-     */
-    deleteCustomIcon(icon, iconElement) {
-        if (confirm(`Delete "${icon.name}"?\n\nThis action cannot be undone.`)) {
-            const success = this.removeCustomIcon(icon.id);
-            
-            if (success) {
-                // Remove from UI
-                iconElement.remove();
-                
-                // Update category counts
-                this.updateCategoryCounts();
-                
-                console.log('🗑️ Custom icon deleted:', icon.name);
-                this.showNotification('Icon deleted successfully', 'info');
-            } else {
-                console.error('❌ Failed to delete icon:', icon.name);
-                alert('Failed to delete icon. Please try again.');
-            }
-        }
-    }
-    
-    /**
-     * Update category button counts
-     */
-    updateCategoryCounts() {
-        const allBtn = this.modal.querySelector('[data-category="all"]');
-        const customBtn = this.modal.querySelector('[data-category="custom"]');
-        
-        if (allBtn) {
-            allBtn.textContent = `All (${this.icons.length + this.customIcons.length})`;
-        }
-        
-        if (customBtn) {
-            customBtn.textContent = `Custom (${this.customIcons.length})`;
-        }
-    }
-    
-    /**
-     * Show notification message
-     */
-    showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `gallery-notification ${type}`;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            z-index: 10001;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-        `;
-        notification.textContent = message;
-        
-        // Add to page
-        document.body.appendChild(notification);
-        
-        // Slide in
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-        }, 100);
-        
-        // Remove after delay
-        setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 3000);
     }
 }
 
