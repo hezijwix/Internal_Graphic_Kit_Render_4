@@ -979,20 +979,10 @@ class TemplateEditor {
         const baseY = 140;
         let currentY = baseY;
         
-        // Create top icon
+        // Create top icon using configurable system (will be positioned by base position system)
         if (this.layerVisibility.topIcon) {
-            this.templateObjects.topIcon = new Konva.Ellipse({
-                x: 960,
-                y: 100,
-                radiusX: 62,
-                radiusY: 29,
-                stroke: '#FFFFFF',
-                strokeWidth: 2,
-                fill: 'transparent',
-                listening: true,
-                visible: true
-            });
-            this.contentLayer.add(this.templateObjects.topIcon);
+            // Create using configurable system with temporary Y position
+            this.createTopIconFromConfig(100); // Temporary position, will be corrected by base position system
             currentY += 90;
         }
         
@@ -1247,9 +1237,15 @@ class TemplateEditor {
         // For SVG icons, we'll create a Konva.Image from the SVG data
         const img = new Image();
         img.onload = () => {
+            // Use base position system if available, otherwise use default Y
+            let iconY = 200;
+            if (this.positionStates.base && this.positionStates.base.topIcon) {
+                iconY = this.positionStates.base.topIcon.y;
+            }
+            
             this.templateObjects.topIcon = new Konva.Image({
                 x: 960,
-                y: 200,
+                y: iconY,
                 image: img,
                 width: 56,
                 height: 56,
@@ -1273,9 +1269,15 @@ class TemplateEditor {
         // For PNG/GIF icons
         const img = new Image();
         img.onload = () => {
+            // Use base position system if available, otherwise use default Y
+            let iconY = 200;
+            if (this.positionStates.base && this.positionStates.base.topIcon) {
+                iconY = this.positionStates.base.topIcon.y;
+            }
+            
             this.templateObjects.topIcon = new Konva.Image({
                 x: 960,
-                y: 200,
+                y: iconY,
                 image: img,
                 width: 56,
                 height: 56,
@@ -1296,11 +1298,17 @@ class TemplateEditor {
         let icon;
         const currentTextColor = this.getCurrentTextColor();
         
+        // Use base position system if available, otherwise use default Y
+        let iconY = 200;
+        if (this.positionStates.base && this.positionStates.base.topIcon) {
+            iconY = this.positionStates.base.topIcon.y;
+        }
+        
         switch (iconType) {
             case 'circle':
                 icon = new Konva.Circle({
                     x: 960,
-                    y: 200,
+                    y: iconY,
                     radius: 28,
                     stroke: currentTextColor,
                     strokeWidth: 2,
@@ -1310,7 +1318,7 @@ class TemplateEditor {
             case 'star':
                 icon = new Konva.Star({
                     x: 960,
-                    y: 200,
+                    y: iconY,
                     numPoints: 5,
                     innerRadius: 16,
                     outerRadius: 28,
@@ -1322,7 +1330,7 @@ class TemplateEditor {
                 // Create a heart shape using path
                 icon = new Konva.Path({
                     x: 960,
-                    y: 200,
+                    y: iconY,
                     data: 'M12,21.35l-1.45-1.32C5.4,15.36,2,12.28,2,8.5 C2,5.42,4.42,3,7.5,3c1.74,0,3.41,0.81,4.5,2.09C13.09,3.81,14.76,3,16.5,3 C19.58,3,22,5.42,22,8.5c0,3.78-3.4,6.86-8.55,11.54L12,21.35z',
                     fill: currentTextColor,
                     scaleX: 2,
@@ -1336,7 +1344,7 @@ class TemplateEditor {
                 // Default ellipse
                 icon = new Konva.Ellipse({
                     x: 960,
-                    y: 200,
+                    y: iconY,
                     radiusX: 35,
                     radiusY: 28,
                     stroke: currentTextColor,
@@ -1440,14 +1448,23 @@ class TemplateEditor {
         const currentTextColor = this.getCurrentTextColor();
         const iconType = this.topIconConfig.type;
         
-        this.templateObjects.topIcon = this.createIconShape(iconType, 960, y, 28, currentTextColor);
+        // Use base position system if available, otherwise use provided Y
+        let iconY = y;
+        if (this.positionStates.base && this.positionStates.base.topIcon) {
+            iconY = this.positionStates.base.topIcon.y;
+            console.log(`🎯 Using dynamic Y position from base position system: ${iconY}`);
+        } else {
+            console.log(`⚠️ Using provided Y position: ${iconY}`);
+        }
+        
+        this.templateObjects.topIcon = this.createIconShape(iconType, 960, iconY, 28, currentTextColor);
         
         // Ensure icon is visible by default
         this.templateObjects.topIcon.opacity(1);
         this.templateObjects.topIcon.visible(true);
         
         this.contentLayer.add(this.templateObjects.topIcon);
-        console.log('✅ Top icon created and set to visible');
+        console.log(`✅ Top icon created and set to visible at Y=${iconY}`);
     }
     
     createBottomIcon(iconType, x, y, color) {
@@ -3418,7 +3435,7 @@ class TemplateEditor {
     }
     
     createGSAPTimeline() {
-        console.log('🎬 Creating GSAP timeline using Animation System...');
+        console.log('🎬 Creating GSAP timeline using Template Animation Configuration...');
         
         try {
             // Ensure base positions are calculated first
@@ -3427,75 +3444,58 @@ class TemplateEditor {
                 this.calculateBasePositions();
             }
             
-            // Create master timeline using animation system configuration
-            const config = this.animationSystem;
-            console.log('🎛️ Animation config:', config);
+            // Use Template Animation Configuration
+            const animConfig = window.TemplateAnimations || {};
+            console.log('🎛️ Template Animation config structure:', {
+                hasConfig: !!animConfig.global,
+                hasDuration: !!animConfig.global?.timeline?.duration,
+                hasPhases: !!animConfig.global?.phases,
+                enabledElements: animConfig.utils?.getEnabledElements()?.length || 0,
+                currentPreset: animConfig.presets?.current
+            });
+            
+            // Use template animation duration with fallback
+            const timelineDuration = animConfig.global?.timeline?.duration || this.animationDuration || 10;
             
             this.timeline = gsap.timeline({ 
                 paused: true,
-                duration: config.global.duration,
+                duration: timelineDuration,
                 ease: "power2.inOut"
             });
             
-            console.log('⏱️ GSAP timeline created, duration:', config.global.duration);
+            console.log('⏱️ GSAP timeline created successfully!');
+            console.log(`   Duration: ${timelineDuration} seconds`);
+            console.log(`   Animation phases:`, animConfig.global?.phases || 'Using fallback phases');
             
-            // DISABLED: Set all elements to initial positions (prevents opacity: 0 issue)
-            // this.timeline.call(() => {
-            //     console.log('🎯 Setting elements to initial positions...');
-            //     this.setElementsToInitialPositions();
-            // }, [], config.global.phases.intro.start);
-            
-            // DISABLED: Create intro animations (blank timeline approach)
-            // console.log('🎬 Creating intro animations...');
-            // this.createIntroAnimationsFromSystem();
-            
-            // Add Main Title In Animation - Move from positive Y with opacity fade-in
-            if (this.templateObjects.mainTitle) {
-                console.log('🎬 Adding main title In animation...');
-                
-                // Get the main title's base position
-                const mainTitleBase = this.positionStates.base.mainTitle;
-                if (mainTitleBase) {
-                    // Set initial position: positive Y offset + opacity 0
-                    const startY = mainTitleBase.y + 100; // 100px below base position
-                    
-                    // Set initial state immediately
-                    this.templateObjects.mainTitle.y(startY);
-                    this.templateObjects.mainTitle.opacity(0);
-                    
-                    // Force redraw to show initial state
-                    this.stage.batchDraw();
-                    
-                    // Add animation to timeline: move to base position with opacity fade-in
-                    this.timeline.to(this.templateObjects.mainTitle, {
-                        y: mainTitleBase.y,      // Move to base Y position
-                        opacity: 1,              // Fade in to full opacity
-                        duration: 3,             // 3 seconds duration
-                        ease: "expo.out"         // GSAP expo.out easing
-                    }, 0.5); // Start at 0.5 seconds into timeline
-                    
-                    console.log(`✅ Main title animation added: ${startY} → ${mainTitleBase.y} over 3s with expo.out`);
-                    console.log(`🎯 Animation starts at 0.5s and runs until 3.5s in timeline`);
-                } else {
-                    console.warn('⚠️ Main title base position not found');
-                }
+            // Apply animations from configuration
+            if (animConfig.utils && animConfig.utils.getEnabledElements) {
+                console.log('🎬 Applying animations from Template Animation Configuration...');
+                this.applyTemplateAnimations(animConfig);
             } else {
-                console.warn('⚠️ Main title element not found');
+                console.warn('⚠️ Template Animation Configuration not available, using fallback');
+                this.applyFallbackMainTitleAnimation();
             }
             
             // Hold middle section - elements stay at base positions
+            const holdStart = animConfig.global?.phases?.hold?.start || 2;
+            const holdEnd = animConfig.global?.phases?.hold?.end || 8;
+            const holdDuration = holdEnd - holdStart;
+            
             this.timeline.to({}, { 
-                duration: config.global.phases.hold.end - config.global.phases.hold.start 
-            }, config.global.phases.hold.start);
+                duration: holdDuration 
+            }, holdStart);
+            
+            console.log(`📍 Hold section: ${holdStart}s - ${holdEnd}s (${holdDuration}s duration)`);
             
             // DISABLED: Create exit animations (blank timeline approach)
             // console.log('🚪 Creating exit animations...');
             // this.createExitAnimationsFromSystem();
             
-            console.log(`✅ GSAP Timeline created using Animation System`);
-            console.log(`🎭 Current preset: ${config.presets.current}`);
-            console.log(`📊 Animation phases:`, config.global.phases);
+            console.log(`✅ GSAP Timeline created using Template Animation Configuration`);
+            console.log(`🎭 Current preset: ${animConfig.presets?.current || 'default'}`);
+            console.log(`📊 Animation phases:`, animConfig.global?.phases || 'using fallbacks');
             console.log(`⏱️ Timeline duration: ${this.timeline.duration()}s`);
+            console.log(`🎬 Template animations applied: ${animConfig.utils ? 'SUCCESS' : 'FALLBACK'}`);
             
             // Emergency fix: Ensure icons are visible if timeline doesn't auto-play
             setTimeout(() => {
@@ -3507,6 +3507,13 @@ class TemplateEditor {
             
         } catch (error) {
             console.error('❌ Error creating GSAP timeline:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                animationSystem: !!this.animationSystem,
+                templateObjects: Object.keys(this.templateObjects),
+                basePositions: Object.keys(this.positionStates?.base || {})
+            });
             // Fallback to a simple timeline if animation system fails
             this.createFallbackTimeline();
         }
@@ -3514,6 +3521,265 @@ class TemplateEditor {
         // Add global debugging methods
         window.forceIconsVisible = () => this.forceIconsVisible();
         window.debugIconStates = () => this.debugIconStates();
+    }
+    
+    /**
+     * Apply template animations from configuration
+     * @param {Object} animConfig - Template animation configuration
+     */
+    applyTemplateAnimations(animConfig) {
+        console.log('🎬 Applying template animations from configuration...');
+        
+        try {
+            const enabledElements = animConfig.utils.getEnabledElements();
+            console.log(`📊 Found ${enabledElements.length} enabled elements to animate`);
+            
+            enabledElements.forEach((elementInfo, index) => {
+                const { category, name, config } = elementInfo;
+                console.log(`🎯 Processing ${category}.${name} (${index + 1}/${enabledElements.length})`);
+                
+                // Get the actual Konva element
+                const element = this.getTemplateElement(name);
+                if (!element) {
+                    console.warn(`⚠️ Element ${name} not found in template objects`);
+                    return;
+                }
+                
+                // Apply intro animation
+                if (config.animations?.intro) {
+                    this.applyElementAnimation(element, name, config.animations.intro, 'intro');
+                }
+                
+                // Apply exit animation (if enabled in future)
+                // if (config.animations?.exit) {
+                //     this.applyElementAnimation(element, name, config.animations.exit, 'exit');
+                // }
+            });
+            
+            console.log('✅ All template animations applied successfully');
+            
+        } catch (error) {
+            console.error('❌ Error applying template animations:', error);
+            console.log('🔧 Falling back to basic main title animation');
+            this.applyFallbackMainTitleAnimation();
+        }
+    }
+    
+    /**
+     * Get template element by name with mapping
+     * @param {string} name - Element name from configuration
+     * @returns {Konva.Node|null} - Konva element or null
+     */
+    getTemplateElement(name) {
+        // Direct mapping for most elements
+        if (this.templateObjects[name]) {
+            return this.templateObjects[name];
+        }
+        
+        // Special cases for bottom icons
+        if (name === 'bottomIcons' && Array.isArray(this.templateObjects.bottomIcons)) {
+            return this.templateObjects.bottomIcons; // Return array for batch processing
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Apply animation to a specific element
+     * @param {Konva.Node|Array} element - Konva element or array of elements
+     * @param {string} elementName - Element name for logging
+     * @param {Object} animConfig - Animation configuration
+     * @param {string} phase - Animation phase (intro, exit)
+     */
+    applyElementAnimation(element, elementName, animConfig, phase) {
+        if (!element || !animConfig) return;
+        
+        console.log(`🎬 Applying ${phase} animation to ${elementName}`);
+        console.log(`   Config:`, {
+            from: animConfig.from,
+            to: animConfig.to,
+            duration: animConfig.duration,
+            ease: animConfig.ease,
+            delay: animConfig.delay
+        });
+        
+        try {
+            // Handle arrays (like bottom icons)
+            if (Array.isArray(element)) {
+                this.applyArrayElementAnimation(element, elementName, animConfig, phase);
+                return;
+            }
+            
+            // Get base position for relative animations
+            const basePosition = this.positionStates.base?.[elementName];
+            
+            // Set initial state from 'from' properties
+            if (animConfig.from) {
+                this.setElementState(element, animConfig.from, basePosition);
+            }
+            
+            // Force redraw to show initial state
+            this.stage.batchDraw();
+            
+            // Create GSAP animation properties
+            const toProps = this.processAnimationProperties(animConfig.to || {}, basePosition);
+            
+            // Add animation to timeline
+            const timelinePosition = animConfig.delay || 0;
+            
+            const animationTween = this.timeline.to(element, {
+                ...toProps,
+                duration: animConfig.duration || 1,
+                ease: animConfig.ease || "power2.out",
+                onStart: () => {
+                    console.log(`▶️ ${elementName} ${phase} animation started`);
+                },
+                onComplete: () => {
+                    console.log(`✅ ${elementName} ${phase} animation completed`);
+                }
+            }, timelinePosition);
+            
+            console.log(`✅ ${elementName} ${phase} animation added to timeline at ${timelinePosition}s`);
+            
+        } catch (error) {
+            console.error(`❌ Error applying animation to ${elementName}:`, error);
+        }
+    }
+    
+    /**
+     * Apply animation to array of elements (like bottom icons)
+     * @param {Array} elements - Array of Konva elements
+     * @param {string} elementName - Element name for logging
+     * @param {Object} animConfig - Animation configuration
+     * @param {string} phase - Animation phase
+     */
+    applyArrayElementAnimation(elements, elementName, animConfig, phase) {
+        console.log(`🎬 Applying ${phase} animation to ${elements.length} ${elementName}`);
+        
+        elements.forEach((element, index) => {
+            if (!element) return;
+            
+            // Calculate stagger delay
+            const staggerDelay = (animConfig.stagger || 0) * index;
+            const totalDelay = (animConfig.delay || 0) + staggerDelay;
+            
+            // Set initial state
+            if (animConfig.from) {
+                this.setElementState(element, animConfig.from);
+            }
+            
+            // Create animation properties
+            const toProps = this.processAnimationProperties(animConfig.to || {});
+            
+            // Add to timeline with stagger
+            this.timeline.to(element, {
+                ...toProps,
+                duration: animConfig.duration || 1,
+                ease: animConfig.ease || "power2.out",
+                onStart: () => {
+                    console.log(`▶️ ${elementName}[${index}] ${phase} animation started`);
+                },
+                onComplete: () => {
+                    console.log(`✅ ${elementName}[${index}] ${phase} animation completed`);
+                }
+            }, totalDelay);
+        });
+        
+        this.stage.batchDraw();
+    }
+    
+    /**
+     * Set element state from animation properties
+     * @param {Konva.Node} element - Konva element
+     * @param {Object} props - Properties to set
+     * @param {Object} basePosition - Base position for relative calculations
+     */
+    setElementState(element, props, basePosition = null) {
+        Object.entries(props).forEach(([prop, value]) => {
+            if (typeof element[prop] === 'function') {
+                let finalValue = value;
+                
+                // Handle relative values (strings starting with +/-)
+                if (typeof value === 'string' && (value.startsWith('+') || value.startsWith('-'))) {
+                    const offset = parseFloat(value);
+                    if (basePosition && basePosition[prop] !== undefined) {
+                        finalValue = basePosition[prop] + offset;
+                    } else if (element[prop]() !== undefined) {
+                        finalValue = element[prop]() + offset;
+                    }
+                }
+                
+                element[prop](finalValue);
+            }
+        });
+    }
+    
+    /**
+     * Process animation properties for GSAP
+     * @param {Object} props - Animation properties
+     * @param {Object} basePosition - Base position for relative calculations
+     * @returns {Object} - Processed properties for GSAP
+     */
+    processAnimationProperties(props, basePosition = null) {
+        const processed = {};
+        
+        Object.entries(props).forEach(([prop, value]) => {
+            let finalValue = value;
+            
+            // Handle relative values and base position references
+            if (typeof value === 'string') {
+                if (value.startsWith('+') || value.startsWith('-')) {
+                    // Relative offset from base position
+                    const offset = parseFloat(value);
+                    if (basePosition && basePosition[prop] !== undefined) {
+                        finalValue = basePosition[prop] + offset;
+                    } else {
+                        finalValue = value; // Let GSAP handle relative values
+                    }
+                } else if (value === "0" && basePosition && basePosition[prop] !== undefined) {
+                    // "0" means base position
+                    finalValue = basePosition[prop];
+                }
+            }
+            
+            processed[prop] = finalValue;
+        });
+        
+        return processed;
+    }
+    
+    /**
+     * Fallback main title animation for when config is not available
+     */
+    applyFallbackMainTitleAnimation() {
+        console.log('🔧 Applying fallback main title animation...');
+        
+        if (!this.templateObjects.mainTitle) {
+            console.warn('⚠️ Main title element not found for fallback animation');
+            return;
+        }
+        
+        const mainTitleBase = this.positionStates.base?.mainTitle;
+        if (mainTitleBase) {
+            const startY = mainTitleBase.y + 100;
+            
+            this.templateObjects.mainTitle.y(startY);
+            this.templateObjects.mainTitle.opacity(0);
+            this.stage.batchDraw();
+            
+            this.timeline.to(this.templateObjects.mainTitle, {
+                y: mainTitleBase.y,
+                opacity: 1,
+                duration: 3,
+                ease: "expo.out",
+                onStart: () => console.log('▶️ Fallback main title animation started'),
+                onComplete: () => console.log('✅ Fallback main title animation completed')
+            }, 0.5);
+            
+            console.log('✅ Fallback main title animation applied');
+        } else {
+            console.error('❌ Cannot apply fallback animation - no base position');
+        }
     }
     
     /**
@@ -4028,8 +4294,14 @@ class TemplateEditor {
             img.onload = () => {
                 console.log('🖼️ Image loaded successfully, creating Konva object...');
                 
-                // Use default top icon position
-                const iconY = 200;
+                // Use base position system if available, otherwise use default Y
+                let iconY = 200;
+                if (this.positionStates.base && this.positionStates.base.topIcon) {
+                    iconY = this.positionStates.base.topIcon.y;
+                    console.log(`🎯 Using dynamic Y position from base position system: ${iconY}`);
+                } else {
+                    console.log(`⚠️ Using fallback Y position: ${iconY}`);
+                }
                 
                 this.templateObjects.topIcon = new Konva.Image({
                     x: 960,
