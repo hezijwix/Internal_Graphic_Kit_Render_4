@@ -2,6 +2,37 @@
 
 A professional web-based motion graphics template editor for creating animated video assets. This frontend-only implementation provides a fully functional interface for customizing templates with real-time preview and timeline controls.
 
+## 🚀 Quick Start
+
+### Option 1: Direct Browser Opening
+Simply double-click `index.html` or drag it into your browser to run the app directly.
+
+### Option 2: Local Server (Recommended)
+For optimal performance and to avoid CORS issues:
+
+```bash
+# Navigate to project directory
+cd path/to/Internal_Graphic_Kit_Render_4
+
+# Start local server (choose one):
+python3 -m http.server 8000        # Python 3
+php -S localhost:8000               # PHP (macOS/Linux)
+npx serve .                         # Node.js
+
+# Open in browser
+open http://localhost:8000          # macOS
+start http://localhost:8000         # Windows
+xdg-open http://localhost:8000      # Linux
+```
+
+### Browser Compatibility
+- Chrome/Chromium 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+**No build process required** - all dependencies loaded via CDN.
+
 ## 🚀 Features
 
 ### Core Functionality

@@ -23,6 +23,31 @@ templateEditor.timeline.pause();
 templateEditor.timeline.seek(2); // Go to 2 seconds
 ```
 
+### 🎭 **NEW: Phase Control Commands**
+```javascript
+// Quick phase toggles
+templateEditor.quickAnimateIn(true);     // Enable animate-in
+templateEditor.quickAnimateIn(false);    // Disable animate-in
+templateEditor.quickAnimateOut(true);    // Enable animate-out
+templateEditor.quickAnimateOut(false);   // Disable animate-out
+
+// Quick actions (as requested by user)
+templateEditor.quickDisableAnimateOut(); // Disable ALL animate-out
+templateEditor.quickEnableAnimateOut();  // Enable ALL animate-out
+
+// Check current phase status
+templateEditor.quickPhaseStatus();
+
+// Individual element phase control
+templateEditor.setElementAnimateIn('topIcon', false);    // Disable specific element animate-in
+templateEditor.setElementAnimateOut('mainTitle', true);  // Enable specific element animate-out
+
+// Advanced phase controls
+templateEditor.setAnimateInEnabled(true);   // Global animate-in toggle
+templateEditor.setAnimateOutEnabled(false); // Global animate-out toggle
+templateEditor.setHoldEnabled(true);        // Global hold phase toggle
+```
+
 ### Quick Preset Switching
 ```javascript
 // Switch to different animation styles
@@ -89,6 +114,19 @@ templateEditor.resetAnimationSystem();
 ```
 
 ## 📍 Quick Access Locations
+
+### ⚠️ **CURRENT STATUS: Animate-Out Disabled**
+```javascript
+// As requested by user, ALL animate-out animations are currently DISABLED
+// Elements will animate IN and stay visible (no animate-out)
+// Timeline structure: Animate-In → Hold (stay visible)
+
+// To check current status:
+templateEditor.quickPhaseStatus();
+
+// To re-enable animate-out if needed:
+templateEditor.quickEnableAnimateOut();
+```
 
 ### In Code (template-engine.js)
 ```javascript

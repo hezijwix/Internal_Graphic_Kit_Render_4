@@ -55,10 +55,10 @@
     --spacing-xl: 20px;
     --spacing-2xl: 24px;
     
-    /* Layout */
+    /* Layout variables */
     --header-height: 60px;
+    --timeline-height: 120px; /* Increased for better visibility */
     --tool-panel-width: 300px;
-    --timeline-height: 250px;
     --border-radius: 2px;
 }
 
@@ -71,6 +71,8 @@ body {
     overflow: hidden;
     height: 100vh;
     min-width: 1440px;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Typography */
@@ -348,7 +350,7 @@ button:focus {
 /* Main Content Layout */
 .main-content {
     display: flex;
-    height: calc(100vh - var(--header-height) - var(--timeline-height));
+    flex: 1;
     overflow: hidden;
 }
 
@@ -1031,9 +1033,12 @@ button:focus {
 .timeline-panel {
     height: var(--timeline-height);
     background-color: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
+    border-top: 2px solid var(--border-light);
     display: flex;
     flex-direction: column;
+    flex-shrink: 0; /* Prevent timeline from shrinking */
+    position: relative;
+    z-index: 10; /* Ensure timeline stays on top */
 }
 
 .timeline-header {
@@ -1100,49 +1105,7 @@ button:focus {
     overflow: hidden;
 }
 
-.layers-panel {
-    width: var(--tool-panel-width);
-    background-color: var(--bg-tertiary);
-    border-right: 1px solid var(--border-color);
-    padding: var(--spacing-sm);
-    overflow-y: auto;
-}
-
-.layer-item {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius);
-    margin-bottom: var(--spacing-xs);
-    transition: background-color 0.2s ease;
-}
-
-.layer-item:hover {
-    background-color: var(--hover-bg);
-}
-
-.layer-item.active {
-    background-color: var(--accent-blue);
-    color: var(--text-primary);
-}
-
-.layer-visibility, .layer-lock {
-    width: 24px;
-    height: 24px;
-    padding: var(--spacing-xs);
-    background: none;
-    border: none;
-    color: inherit;
-}
-
-.layer-name {
-    flex: 1;
-    font-size: var(--font-size-sm);
-    color: inherit;
-}
-
-/* Timeline Track */
+/* Timeline Track - Now takes full width */
 .timeline-track {
     flex: 1;
     position: relative;
@@ -1151,7 +1114,7 @@ button:focus {
 }
 
 .timecode-ruler {
-    height: 30px;
+    height: 50px; /* Increased from 30px for better visibility */
     background-color: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-color);
     position: relative;
@@ -1170,38 +1133,6 @@ button:focus {
     align-items: center;
 }
 
-.timeline-layers {
-    display: flex;
-    flex-direction: column;
-}
-
-.timeline-layer {
-    height: 40px;
-    border-bottom: 1px solid var(--border-color);
-    position: relative;
-    background-color: var(--bg-secondary);
-}
-
-.keyframe {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 8px;
-    height: 8px;
-    background-color: var(--accent-blue);
-    border-radius: 2px;
-    z-index: 10;
-}
-
-.animation-block {
-    position: absolute;
-    top: 12px;
-    height: 16px;
-    background-color: var(--accent-blue);
-    opacity: 0.3;
-    border-radius: var(--border-radius);
-}
-
 .playhead {
     position: absolute;
     top: 0;
@@ -1217,7 +1148,7 @@ button:focus {
     border: 2px solid var(--text-primary);
     border-radius: 50%;
     position: absolute;
-    top: 24px;
+    top: 25px; /* Adjusted for 50px ruler height */
     left: 50%;
     transform: translateX(-50%);
     pointer-events: all;
@@ -1244,10 +1175,6 @@ button:focus {
     }
     
     .tool-panel {
-        width: 280px;
-    }
-    
-    .layers-panel {
         width: 280px;
     }
 }

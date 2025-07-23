@@ -56,15 +56,18 @@ class TemplateEditor {
             centerX: 960
         };
         
-        // Layer visibility state
+        // Layer visibility state - FORCE ICONS TO BE VISIBLE
         this.layerVisibility = {
-            topIcon: true,
+            topIcon: true,      // FORCE VISIBLE
             topTitle: true,
             mainTitle: true,
             subtitle1: true,
             subtitle2: true,
-            bottomIcons: true
+            bottomIcons: true   // FORCE VISIBLE
         };
+        
+        // Ensure visibility is locked for icons
+        console.log('🔒 Layer visibility initialized with icons FORCED visible');
         
         // Bottom icons configuration - unified circle icons
         this.bottomIconsConfig = {
@@ -102,6 +105,12 @@ class TemplateEditor {
                     hold: { start: 2, end: 8 },    // Elements stay visible
                     exit: { start: 8, end: 10 }    // Elements animate out
                 },
+                // PHASE CONTROL - Enable/Disable Animation Phases
+                phaseControls: {
+                    enableAnimateIn: true,   // Toggle animate-in phase
+                    enableAnimateOut: false, // Toggle animate-out phase - DISABLED BY USER REQUEST
+                    enableHold: true         // Toggle hold phase
+                },
                 timing: {
                     elementDelay: 0.15,  // Delay between each element (cascade effect)
                     exitStagger: 0.08,   // Stagger delay for exit animations
@@ -118,15 +127,17 @@ class TemplateEditor {
             elements: {
                 topIcon: {
                     name: "Top Icon",
-                    intro: {
+                    animateIn: {
+                        enabled: true,
                         from: { x: 0, y: -50, opacity: 0, scale: 0.3, rotation: -45 },
                         to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
                         duration: 1.0,
                         ease: "back.out(1.7)",
                         order: 0
                     },
-                    exit: {
-                        to: { x: 0, y: -100, opacity: 0, scale: 1.5, rotation: 45 },
+                    animateOut: {
+                        enabled: false, // DISABLED BY USER REQUEST
+                        to: { opacity: 0, scale: 0.8 },
                         duration: 1.5,
                         ease: "power2.in"
                     }
@@ -134,14 +145,16 @@ class TemplateEditor {
                 
                 topTitle: {
                     name: "Top Title",
-                    intro: {
+                    animateIn: {
+                        enabled: true,
                         from: { x: -100, y: 0, opacity: 0, scale: 0.8, rotation: 0 },
                         to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
                         duration: 1.2,
                         ease: "power2.out",
                         order: 1
                     },
-                    exit: {
+                    animateOut: {
+                        enabled: true,
                         to: { opacity: 0, scale: 0.8 },
                         duration: 1.5,
                         ease: "power2.in"
@@ -150,14 +163,16 @@ class TemplateEditor {
                 
                 mainTitle: {
                     name: "Main Title",
-                    intro: {
+                    animateIn: {
+                        enabled: true,
                         from: { x: 0, y: 30, opacity: 0, scale: 0.9, rotation: 0 },
                         to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
                         duration: 1.5,
                         ease: "power2.out",
                         order: 2
                     },
-                    exit: {
+                    animateOut: {
+                        enabled: true,
                         to: { opacity: 0, scale: 0.8 },
                         duration: 1.5,
                         ease: "power2.in"
@@ -166,14 +181,16 @@ class TemplateEditor {
                 
                 subtitle1: {
                     name: "Subtitle 1",
-                    intro: {
+                    animateIn: {
+                        enabled: true,
                         from: { x: -100, y: 0, opacity: 0, scale: 0.8, rotation: 0 },
                         to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
                         duration: 1.0,
                         ease: "power2.out",
                         order: 3
                     },
-                    exit: {
+                    animateOut: {
+                        enabled: true,
                         to: { opacity: 0, scale: 0.8 },
                         duration: 1.5,
                         ease: "power2.in"
@@ -182,14 +199,16 @@ class TemplateEditor {
                 
                 subtitle2: {
                     name: "Subtitle 2",
-                    intro: {
+                    animateIn: {
+                        enabled: true,
                         from: { x: -100, y: 0, opacity: 0, scale: 0.8, rotation: 0 },
                         to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
                         duration: 1.0,
                         ease: "power2.out",
                         order: 4
                     },
-                    exit: {
+                    animateOut: {
+                        enabled: true,
                         to: { opacity: 0, scale: 0.8 },
                         duration: 1.5,
                         ease: "power2.in"
@@ -198,7 +217,8 @@ class TemplateEditor {
                 
                 bottomIcons: {
                     name: "Bottom Icons",
-                    intro: {
+                    animateIn: {
+                        enabled: true,
                         from: { x: 0, y: 80, opacity: 0, scale: 0.1, rotation: 180 },
                         to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
                         duration: 0.8,
@@ -206,7 +226,8 @@ class TemplateEditor {
                         order: 5,
                         stagger: 0.1
                     },
-                    exit: {
+                    animateOut: {
+                        enabled: true,
                         to: { x: 0, y: 50, opacity: 0, scale: 0, rotation: -180 },
                         duration: 1.5,
                         ease: "power2.in"
@@ -233,7 +254,7 @@ class TemplateEditor {
                     icon: "○",
                     overrides: {
                         all: {
-                            intro: {
+                            animateIn: {
                                 from: { opacity: 0, scale: 0.95 },
                                 to: { opacity: 1, scale: 1 },
                                 duration: 1.0,
@@ -249,7 +270,7 @@ class TemplateEditor {
                     icon: "⚡",
                     overrides: {
                         all: {
-                            intro: {
+                            animateIn: {
                                 from: { opacity: 0, scale: 0.1, rotation: 0 },
                                 to: { opacity: 1, scale: 1, rotation: 0 },
                                 duration: 0.8,
@@ -265,7 +286,7 @@ class TemplateEditor {
                     icon: "🌀",
                     overrides: {
                         all: {
-                            intro: {
+                            animateIn: {
                                 from: { opacity: 0, scale: 0.3, rotation: 720 },
                                 to: { opacity: 1, scale: 1, rotation: 0 },
                                 duration: 1.5,
@@ -278,8 +299,14 @@ class TemplateEditor {
         }
         
         // Background transparency
+        this.backgroundTransparency = false;
         this.currentBackgroundColor = '#0D0D0D';
-        this.isTransparent = false;
+        
+        // DISABLE ALL ANIMATE-OUT BY USER REQUEST
+        // This must happen after animationSystem is defined
+        setTimeout(() => {
+            this.disableAllAnimateOut();
+        }, 0);
         
         // Zoom and pan state
         this.zoomLevel = 50; // Changed from 100% to 50% default
@@ -368,7 +395,8 @@ class TemplateEditor {
             card.addEventListener('click', (e) => this.selectAnimation(e.target.closest('.preset-card')));
         });
         
-        // Layer interactions
+        // Layer interactions - REMOVED (layer panels no longer in UI)
+        /*
         const layerItems = document.querySelectorAll('.layer-item');
         layerItems.forEach(layer => {
             layer.addEventListener('click', (e) => this.selectLayer(e.target.closest('.layer-item')));
@@ -389,6 +417,7 @@ class TemplateEditor {
                 this.toggleLayerLock(e.target.closest('.layer-item'));
             });
         });
+        */
         
         // Upload buttons
         const uploadBtn = document.querySelector('.upload-btn');
@@ -769,6 +798,8 @@ class TemplateEditor {
         console.log(`Selected animation: ${animationName}`);
     }
     
+    // Timeline interaction removed - no longer needed since layer panels are removed
+    /*
     selectLayer(layerItem) {
         document.querySelectorAll('.layer-item').forEach(layer => layer.classList.remove('active'));
         layerItem.classList.add('active');
@@ -821,6 +852,7 @@ class TemplateEditor {
         
         console.log('Layer lock toggled');
     }
+    */
     
     // Content Updates
     updateText(type, value) {
@@ -1196,8 +1228,8 @@ class TemplateEditor {
         // Create bottom icons (4 icons spaced 260px apart)
         this.createBottomIconsExact();
         
-        // Set initial animation positions (everything starts hidden)
-        this.setInitialPositions();
+        // Skip setting initial hidden positions - let icons stay visible
+        // this.setInitialPositions(); // COMMENTED OUT to prevent hiding icons
         
         // Initialize text-based visibility
         this.initializeTextVisibility();
@@ -1208,6 +1240,12 @@ class TemplateEditor {
         // Initial render
         this.stage.batchDraw();
         console.log('Template objects creation complete - matches Figma design');
+        
+        // EMERGENCY: Force icons visible immediately after creation
+        setTimeout(() => {
+            console.log('🚨 Emergency icon visibility check in createTemplateObjectsFromForm...');
+            this.forceIconsVisible();
+        }, 100);
     }
     
     updateIconSlots() {
@@ -1528,7 +1566,13 @@ class TemplateEditor {
         const iconType = this.topIconConfig.type;
         
         this.templateObjects.topIcon = this.createIconShape(iconType, 960, y, 28, currentTextColor);
+        
+        // Ensure icon is visible by default
+        this.templateObjects.topIcon.opacity(1);
+        this.templateObjects.topIcon.visible(true);
+        
         this.contentLayer.add(this.templateObjects.topIcon);
+        console.log('✅ Top icon created and set to visible');
     }
     
     createBottomIcon(iconType, x, y, color) {
@@ -2333,8 +2377,8 @@ class TemplateEditor {
         // Calculate base positions for animation system
         this.calculateBasePositions();
         
-        // Set initial animation positions (everything starts hidden)
-        this.setInitialPositions();
+        // Skip setting initial hidden positions - let icons stay visible
+        // this.setInitialPositions(); // COMMENTED OUT to prevent hiding icons
         
         // Initialize text-based visibility
         this.initializeTextVisibility();
@@ -2345,6 +2389,12 @@ class TemplateEditor {
         // Initial render
         this.stage.batchDraw();
         console.log('Template objects creation complete - matches Figma design');
+        
+        // EMERGENCY: Force icons visible immediately after creation
+        setTimeout(() => {
+            console.log('🚨 Emergency icon visibility check in createTemplateObjects...');
+            this.forceIconsVisible();
+        }, 100);
     }
     
     createBottomIconsExact() {
@@ -2373,9 +2423,15 @@ class TemplateEditor {
             const icon = this.createBottomIcon(iconType, iconPositions[i], iconY, currentTextColor);
             
             if (icon) {
+                // Ensure icon is visible by default
+                icon.opacity(1);
+                icon.visible(true);
+                icon.scaleX(1);
+                icon.scaleY(1);
+                
                 this.templateObjects.bottomIcons.push(icon);
                 this.contentLayer.add(icon);
-                console.log(`Bottom icon ${i + 1} (${iconType}) created at x:${iconPositions[i]}, y:${iconY}`);
+                console.log(`✅ Bottom icon ${i + 1} (${iconType}) created and set to visible at x:${iconPositions[i]}, y:${iconY}`);
             }
         }
         
@@ -2916,7 +2972,119 @@ class TemplateEditor {
     }
     
     /**
-     * Set animation preset (changes all elements)
+     * PHASE CONTROL METHODS - NEW
+     */
+    
+    /**
+     * Enable/Disable animate-in phase globally
+     */
+    setAnimateInEnabled(enabled) {
+        this.animationSystem.global.phaseControls.enableAnimateIn = enabled;
+        console.log(`🎬 Animate-in phase: ${enabled ? 'ENABLED' : 'DISABLED'}`);
+        this.updateGSAPTimeline();
+    }
+    
+    /**
+     * Enable/Disable animate-out phase globally
+     */
+    setAnimateOutEnabled(enabled) {
+        this.animationSystem.global.phaseControls.enableAnimateOut = enabled;
+        console.log(`🚪 Animate-out phase: ${enabled ? 'ENABLED' : 'DISABLED'}`);
+        this.updateGSAPTimeline();
+    }
+    
+    /**
+     * Enable/Disable hold phase globally
+     */
+    setHoldEnabled(enabled) {
+        this.animationSystem.global.phaseControls.enableHold = enabled;
+        console.log(`⏸️ Hold phase: ${enabled ? 'ENABLED' : 'DISABLED'}`);
+        this.updateGSAPTimeline();
+    }
+    
+    /**
+     * Set animate-in enabled/disabled for specific element
+     */
+    setElementAnimateIn(elementName, enabled) {
+        if (!this.animationSystem.elements[elementName]) {
+            console.warn(`Element '${elementName}' not found in animation system`);
+            return;
+        }
+        
+        this.animationSystem.elements[elementName].animateIn.enabled = enabled;
+        console.log(`🎬 ${elementName} animate-in: ${enabled ? 'ENABLED' : 'DISABLED'}`);
+        this.updateGSAPTimeline();
+    }
+    
+    /**
+     * Set animate-out enabled/disabled for specific element
+     */
+    setElementAnimateOut(elementName, enabled) {
+        if (!this.animationSystem.elements[elementName]) {
+            console.warn(`Element '${elementName}' not found in animation system`);
+            return;
+        }
+        
+        this.animationSystem.elements[elementName].animateOut.enabled = enabled;
+        console.log(`🚪 ${elementName} animate-out: ${enabled ? 'ENABLED' : 'DISABLED'}`);
+        this.updateGSAPTimeline();
+    }
+    
+    /**
+     * Disable all animate-out animations (as requested)
+     */
+    disableAllAnimateOut() {
+        console.log('🚪 Disabling ALL animate-out animations...');
+        
+        // Disable global animate-out phase
+        this.animationSystem.global.phaseControls.enableAnimateOut = false;
+        
+        // Disable animate-out for each element
+        Object.keys(this.animationSystem.elements).forEach(elementName => {
+            this.animationSystem.elements[elementName].animateOut.enabled = false;
+        });
+        
+        console.log('✅ All animate-out animations disabled');
+        this.updateGSAPTimeline();
+    }
+    
+    /**
+     * Enable all animate-out animations
+     */
+    enableAllAnimateOut() {
+        console.log('🚪 Enabling ALL animate-out animations...');
+        
+        // Enable global animate-out phase
+        this.animationSystem.global.phaseControls.enableAnimateOut = true;
+        
+        // Enable animate-out for each element
+        Object.keys(this.animationSystem.elements).forEach(elementName => {
+            this.animationSystem.elements[elementName].animateOut.enabled = true;
+        });
+        
+        console.log('✅ All animate-out animations enabled');
+        this.updateGSAPTimeline();
+    }
+    
+    /**
+     * Get phase control status
+     */
+    getPhaseControls() {
+        return {
+            ...this.animationSystem.global.phaseControls,
+            elements: Object.keys(this.animationSystem.elements).reduce((acc, elementName) => {
+                const element = this.animationSystem.elements[elementName];
+                acc[elementName] = {
+                    animateIn: element.animateIn.enabled,
+                    animateOut: element.animateOut.enabled
+                };
+                return acc;
+            }, {})
+        };
+    }
+    
+    /**
+     * Set animation preset (changes all elements) - UPDATED
      */
     setAnimationPreset(presetName) {
         if (!this.animationSystem.presets[presetName]) {
@@ -2933,10 +3101,19 @@ class TemplateEditor {
         if (preset.overrides && preset.overrides.all) {
             // Apply to all elements
             Object.keys(this.animationSystem.elements).forEach(elementName => {
-                this.animationSystem.elements[elementName] = {
-                    ...this.animationSystem.elements[elementName],
-                    ...preset.overrides.all
-                };
+                // Handle both old 'intro' and new 'animateIn' naming
+                if (preset.overrides.all.intro) {
+                    this.animationSystem.elements[elementName].animateIn = {
+                        ...this.animationSystem.elements[elementName].animateIn,
+                        ...preset.overrides.all.intro
+                    };
+                }
+                if (preset.overrides.all.animateIn) {
+                    this.animationSystem.elements[elementName].animateIn = {
+                        ...this.animationSystem.elements[elementName].animateIn,
+                        ...preset.overrides.all.animateIn
+                    };
+                }
             });
         }
         
@@ -2944,10 +3121,18 @@ class TemplateEditor {
         if (preset.overrides) {
             Object.keys(preset.overrides).forEach(elementName => {
                 if (elementName !== 'all' && this.animationSystem.elements[elementName]) {
-                    this.animationSystem.elements[elementName] = {
-                        ...this.animationSystem.elements[elementName],
-                        ...preset.overrides[elementName]
-                    };
+                    if (preset.overrides[elementName].intro) {
+                        this.animationSystem.elements[elementName].animateIn = {
+                            ...this.animationSystem.elements[elementName].animateIn,
+                            ...preset.overrides[elementName].intro
+                        };
+                    }
+                    if (preset.overrides[elementName].animateIn) {
+                        this.animationSystem.elements[elementName].animateIn = {
+                            ...this.animationSystem.elements[elementName].animateIn,
+                            ...preset.overrides[elementName].animateIn
+                        };
+                    }
                 }
             });
         }
@@ -3008,18 +3193,28 @@ class TemplateEditor {
     }
     
     /**
-     * Create intro animations using animation system configuration
+     * Create intro animations using animation system configuration - UPDATED
      */
     createIntroAnimationsFromSystem() {
         console.log('🎬 Creating intro animations from animation system...');
         
+        // Check if animate-in phase is globally enabled
+        if (!this.animationSystem.global.phaseControls.enableAnimateIn) {
+            console.log('⚠️ Animate-in phase is globally disabled, skipping...');
+            return;
+        }
+        
         const elements = this.animationSystem.elements;
         const timing = this.animationSystem.global.timing;
         
-        // Sort elements by animation order
+        // Sort elements by animation order and filter by enabled status
         const sortedElements = Object.keys(elements)
-            .filter(elementName => this.isElementVisible(elementName))
-            .sort((a, b) => elements[a].intro.order - elements[b].intro.order);
+            .filter(elementName => {
+                const isVisible = this.isElementVisible(elementName);
+                const isEnabled = elements[elementName].animateIn.enabled;
+                return isVisible && isEnabled;
+            })
+            .sort((a, b) => elements[a].animateIn.order - elements[b].animateIn.order);
         
         sortedElements.forEach(elementName => {
             const elementConfig = elements[elementName];
@@ -3036,15 +3231,15 @@ class TemplateEditor {
     }
     
     /**
-     * Animate single element using animation system configuration
+     * Animate single element using animation system configuration - UPDATED
      */
     animateElementFromSystem(elementName, config, element) {
         const basePos = this.getBasePosition(elementName);
-        const delay = config.intro.order * this.animationSystem.global.timing.elementDelay;
+        const delay = config.animateIn.order * this.animationSystem.global.timing.elementDelay;
         
         // Convert relative positions to absolute positions
-        const fromProps = this.convertToAbsolutePosition(config.intro.from, basePos);
-        const toProps = this.convertToAbsolutePosition(config.intro.to, basePos);
+        const fromProps = this.convertToAbsolutePosition(config.animateIn.from, basePos);
+        const toProps = this.convertToAbsolutePosition(config.animateIn.to, basePos);
         
         // Set initial position safely
         if (fromProps.x !== undefined) element.x(fromProps.x);
@@ -3058,8 +3253,8 @@ class TemplateEditor {
         
         // Create safe animation properties
         const animProps = {
-            duration: config.intro.duration,
-            ease: config.intro.ease
+            duration: config.animateIn.duration,
+            ease: config.animateIn.ease
         };
         
         if (toProps.x !== undefined) animProps.x = toProps.x;
@@ -3086,19 +3281,19 @@ class TemplateEditor {
     }
     
     /**
-     * Animate bottom icons with stagger using animation system configuration
+     * Animate bottom icons with stagger using animation system configuration - UPDATED
      */
     animateBottomIconsFromSystem(config, iconsArray) {
         if (!Array.isArray(iconsArray) || iconsArray.length === 0) return;
         
         const basePos = this.getBasePosition('bottomIcons');
         const iconPositions = this.calculateIconPositions(basePos.count);
-        const baseDelay = config.intro.order * this.animationSystem.global.timing.elementDelay;
+        const baseDelay = config.animateIn.order * this.animationSystem.global.timing.elementDelay;
         
         iconsArray.forEach((icon, index) => {
             if (icon && index < basePos.count) {
                 // Convert relative positions to absolute for this icon
-                const fromProps = this.convertToAbsolutePosition(config.intro.from, {
+                const fromProps = this.convertToAbsolutePosition(config.animateIn.from, {
                     x: iconPositions[index],
                     y: basePos.y
                 });
@@ -3119,9 +3314,9 @@ class TemplateEditor {
                     scaleX: 1,
                     scaleY: 1,
                     rotation: 0,
-                    duration: config.intro.duration,
-                    ease: config.intro.ease
-                }, baseDelay + (index * config.intro.stagger));
+                    duration: config.animateIn.duration,
+                    ease: config.animateIn.ease
+                }, baseDelay + (index * config.animateIn.stagger));
             }
         });
         
@@ -3129,14 +3324,23 @@ class TemplateEditor {
     }
     
     /**
-     * Create exit animations using animation system configuration
+     * Create exit animations using animation system configuration - UPDATED
      */
     createExitAnimationsFromSystem() {
-        console.log('🎬 Creating exit animations from animation system...');
+        console.log('🚪 Creating exit animations from animation system...');
+        
+        // Check if animate-out phase is globally enabled
+        if (!this.animationSystem.global.phaseControls.enableAnimateOut) {
+            console.log('⚠️ Animate-out phase is globally disabled, skipping...');
+            return;
+        }
         
         const visibleElements = [];
         Object.keys(this.animationSystem.elements).forEach(elementName => {
-            if (this.isElementVisible(elementName)) {
+            const elementConfig = this.animationSystem.elements[elementName];
+            
+            // Check if element is visible and animate-out is enabled for this element
+            if (this.isElementVisible(elementName) && elementConfig.animateOut.enabled) {
                 const element = this.getElementObject(elementName);
                 if (elementName === 'bottomIcons' && Array.isArray(element)) {
                     visibleElements.push(...element.filter(icon => icon));
@@ -3179,9 +3383,10 @@ class TemplateEditor {
         console.log('Current Preset:', this.getCurrentAnimationPreset());
         console.log('Available Presets:', this.getAnimationPresets().map(p => p.name));
         console.log('Global Config:', this.animationSystem.global);
+        console.log('Phase Controls:', this.getPhaseControls());
         console.log('Element Visibility:');
         Object.keys(this.animationSystem.elements).forEach(element => {
-            console.log(`  ${element}: ${this.isElementVisible(element)}`);
+            console.log(`  ${element}: visible=${this.isElementVisible(element)}`);
         });
         console.log('Base Positions:', this.positionStates.base);
         console.log('=================================');
@@ -3215,6 +3420,59 @@ class TemplateEditor {
     }
     
     /**
+     * QUICK PHASE CONTROL METHODS - NEW
+     */
+    
+    /**
+     * Quick toggle animate-in globally
+     */
+    quickAnimateIn(enabled) {
+        this.setAnimateInEnabled(enabled);
+        console.log(`🎬 Quick toggle: Animate-in ${enabled ? 'ON' : 'OFF'}`);
+    }
+    
+    /**
+     * Quick toggle animate-out globally
+     */
+    quickAnimateOut(enabled) {
+        this.setAnimateOutEnabled(enabled);
+        console.log(`🚪 Quick toggle: Animate-out ${enabled ? 'ON' : 'OFF'}`);
+    }
+    
+    /**
+     * Quick disable all animate-out (as requested)
+     */
+    quickDisableAnimateOut() {
+        this.disableAllAnimateOut();
+        console.log(`🚪 Quick action: All animate-out disabled`);
+    }
+    
+    /**
+     * Quick enable all animate-out
+     */
+    quickEnableAnimateOut() {
+        this.enableAllAnimateOut();
+        console.log(`🚪 Quick action: All animate-out enabled`);
+    }
+    
+    /**
+     * Show current phase status
+     */
+    quickPhaseStatus() {
+        const status = this.getPhaseControls();
+        console.log('🎭 === PHASE STATUS ===');
+        console.log(`Global Animate-In: ${status.enableAnimateIn ? '✅ ON' : '❌ OFF'}`);
+        console.log(`Global Animate-Out: ${status.enableAnimateOut ? '✅ ON' : '❌ OFF'}`);
+        console.log(`Global Hold: ${status.enableHold ? '✅ ON' : '❌ OFF'}`);
+        console.log('Element Controls:');
+        Object.keys(status.elements).forEach(element => {
+            const el = status.elements[element];
+            console.log(`  ${element}: In=${el.animateIn ? '✅' : '❌'} Out=${el.animateOut ? '✅' : '❌'}`);
+        });
+        console.log('=====================');
+    }
+    
+    /**
      * Reset to default animation system
      */
     resetAnimationSystem() {
@@ -3222,6 +3480,19 @@ class TemplateEditor {
         
         // Reset to slideInLeft preset
         this.setAnimationPreset('slideInLeft');
+        
+        // Reset phase controls to defaults
+        this.animationSystem.global.phaseControls.enableAnimateIn = true;
+        this.animationSystem.global.phaseControls.enableAnimateOut = true;
+        this.animationSystem.global.phaseControls.enableHold = true;
+        
+        // Reset all element phase controls
+        Object.keys(this.animationSystem.elements).forEach(elementName => {
+            this.animationSystem.elements[elementName].animateIn.enabled = true;
+            this.animationSystem.elements[elementName].animateOut.enabled = true;
+        });
+        
+        this.updateGSAPTimeline();
         
         console.log('✅ Animation system reset to defaults');
     }
@@ -3293,11 +3564,23 @@ class TemplateEditor {
             console.log(`📊 Animation phases:`, config.global.phases);
             console.log(`⏱️ Timeline duration: ${this.timeline.duration()}s`);
             
+            // Emergency fix: Ensure icons are visible if timeline doesn't auto-play
+            setTimeout(() => {
+                if (this.timeline && this.timeline.progress() === 0) {
+                    console.log('🔧 Timeline not playing, ensuring icons are visible...');
+                    this.forceIconsVisible();
+                }
+            }, 500);
+            
         } catch (error) {
             console.error('❌ Error creating GSAP timeline:', error);
             // Fallback to a simple timeline if animation system fails
             this.createFallbackTimeline();
         }
+        
+        // Add global debugging methods
+        window.forceIconsVisible = () => this.forceIconsVisible();
+        window.debugIconStates = () => this.debugIconStates();
     }
     
     /**
@@ -3377,6 +3660,81 @@ class TemplateEditor {
         }, 1000);
     }
     
+    // Emergency function to fix icon visibility issues - ENHANCED VERSION
+    forceIconsVisible() {
+        console.log('🚨 Emergency: Forcing icons to be visible...');
+        
+        // Force top icon visible
+        if (this.templateObjects.topIcon) {
+            this.templateObjects.topIcon.opacity(1);
+            this.templateObjects.topIcon.visible(true);
+            console.log('✅ Top icon forced visible');
+        } else {
+            console.log('❌ No top icon object found');
+        }
+        
+        // Force bottom icons visible
+        if (this.templateObjects.bottomIcons && Array.isArray(this.templateObjects.bottomIcons)) {
+            this.templateObjects.bottomIcons.forEach((icon, index) => {
+                if (icon) {
+                    icon.opacity(1);
+                    icon.visible(true);
+                    icon.scaleX(1);
+                    icon.scaleY(1);
+                    console.log(`✅ Bottom icon ${index + 1} forced visible`);
+                } else {
+                    console.log(`❌ Bottom icon ${index + 1} not found`);
+                }
+            });
+        } else {
+            console.log('❌ No bottom icons array found');
+        }
+        
+        // Force redraw
+        this.stage.batchDraw();
+        console.log('✅ Stage redrawn with forced visible icons');
+    }
+    
+    // Debug method to check icon states
+    debugIconStates() {
+        console.log('🔍 Debugging icon states...');
+        
+        if (this.templateObjects.topIcon) {
+            console.log('Top Icon:', {
+                x: this.templateObjects.topIcon.x(),
+                y: this.templateObjects.topIcon.y(),
+                opacity: this.templateObjects.topIcon.opacity(),
+                visible: this.templateObjects.topIcon.visible(),
+                scaleX: this.templateObjects.topIcon.scaleX(),
+                scaleY: this.templateObjects.topIcon.scaleY()
+            });
+        } else {
+            console.log('❌ Top icon not found');
+        }
+        
+        if (this.templateObjects.bottomIcons) {
+            console.log(`Bottom Icons (${this.templateObjects.bottomIcons.length} total):`);
+            this.templateObjects.bottomIcons.forEach((icon, index) => {
+                if (icon) {
+                    console.log(`  Icon ${index + 1}:`, {
+                        x: icon.x(),
+                        y: icon.y(),
+                        opacity: icon.opacity(),
+                        visible: icon.visible(),
+                        scaleX: icon.scaleX(),
+                        scaleY: icon.scaleY()
+                    });
+                } else {
+                    console.log(`  Icon ${index + 1}: ❌ null/undefined`);
+                }
+            });
+        } else {
+            console.log('❌ Bottom icons array not found');
+        }
+        
+        console.log('Layer visibility settings:', this.layerVisibility);
+    }
+    
     updateGSAPTimeline() {
         // Preserve current timeline state before recreation
         const currentProgress = this.timeline ? this.timeline.progress() : 0;
@@ -3444,7 +3802,8 @@ class TemplateEditor {
         this.uiLayer.add(selectionRect);
         this.stage.batchDraw();
         
-        // Update layer selection in timeline
+        // Layer selection in timeline - REMOVED (layer panels no longer in UI)
+        /*
         if (object === this.templateObjects.topIcon) {
             this.selectLayer(document.querySelector('.layer-item[data-layer="top-icon"]'));
         } else if (object === this.templateObjects.topTitle) {
@@ -3458,6 +3817,7 @@ class TemplateEditor {
         } else if (this.templateObjects.bottomIcons.includes(object)) {
             this.selectLayer(document.querySelector('.layer-item[data-layer="bottom-icons"]'));
         }
+        */
         
         console.log('Canvas object selected:', object.getClassName());
     }
@@ -4389,6 +4749,81 @@ class TemplateEditor {
 
     // Note: Thumbnail generation is now handled directly in the save function
     // using simple canvas capture - see template_001.html saveCurrentProject()
+    
+    // Emergency function to fix icon visibility issues
+    forceIconsVisible() {
+        console.log('🚨 Emergency: Forcing icons to be visible...');
+        
+        // Force top icon visible
+        if (this.templateObjects.topIcon) {
+            this.templateObjects.topIcon.opacity(1);
+            this.templateObjects.topIcon.visible(true);
+            console.log('✅ Top icon forced visible');
+        } else {
+            console.log('❌ No top icon object found');
+        }
+        
+        // Force bottom icons visible
+        if (this.templateObjects.bottomIcons && Array.isArray(this.templateObjects.bottomIcons)) {
+            this.templateObjects.bottomIcons.forEach((icon, index) => {
+                if (icon) {
+                    icon.opacity(1);
+                    icon.visible(true);
+                    icon.scaleX(1);
+                    icon.scaleY(1);
+                    console.log(`✅ Bottom icon ${index + 1} forced visible`);
+                } else {
+                    console.log(`❌ Bottom icon ${index + 1} not found`);
+                }
+            });
+        } else {
+            console.log('❌ No bottom icons array found');
+        }
+        
+        // Force redraw
+        this.stage.batchDraw();
+        console.log('✅ Stage redrawn with forced visible icons');
+    }
+    
+    // Debug method to check icon states
+    debugIconStates() {
+        console.log('🔍 Debugging icon states...');
+        
+        if (this.templateObjects.topIcon) {
+            console.log('Top Icon:', {
+                x: this.templateObjects.topIcon.x(),
+                y: this.templateObjects.topIcon.y(),
+                opacity: this.templateObjects.topIcon.opacity(),
+                visible: this.templateObjects.topIcon.visible(),
+                scaleX: this.templateObjects.topIcon.scaleX(),
+                scaleY: this.templateObjects.topIcon.scaleY()
+            });
+        } else {
+            console.log('❌ Top icon not found');
+        }
+        
+        if (this.templateObjects.bottomIcons) {
+            console.log(`Bottom Icons (${this.templateObjects.bottomIcons.length} total):`);
+            this.templateObjects.bottomIcons.forEach((icon, index) => {
+                if (icon) {
+                    console.log(`  Icon ${index + 1}:`, {
+                        x: icon.x(),
+                        y: icon.y(),
+                        opacity: icon.opacity(),
+                        visible: icon.visible(),
+                        scaleX: icon.scaleX(),
+                        scaleY: icon.scaleY()
+                    });
+                } else {
+                    console.log(`  Icon ${index + 1}: ❌ null/undefined`);
+                }
+            });
+        } else {
+            console.log('❌ Bottom icons array not found');
+        }
+        
+        console.log('Layer visibility settings:', this.layerVisibility);
+    }
 }
 
 // Initialize the application when DOM is loaded with proper font loading
