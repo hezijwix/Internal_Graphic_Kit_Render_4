@@ -76,6 +76,12 @@ class TemplateEditor {
         this.lastMouseX = 0;
         this.lastMouseY = 0;
         
+        // DOM element cache for performance
+        this.domCache = {};
+        
+        // Animation system
+        this.animationManager = null; // Will be initialized after canvas setup
+        
         this.initializeApp();
     }
     
@@ -120,7 +126,10 @@ class TemplateEditor {
         // Setup interaction handlers
         this.setupCanvasInteraction();
         
-        // Create GSAP timeline
+        // DISABLED: Animation system conflicts with blank timeline approach
+        // this.animationManager = new AnimationManager(this);
+        
+        // Create blank GSAP timeline
         this.createGSAPTimeline();
         
         console.log('Konva stage initialized: 1920x1080');
@@ -500,7 +509,7 @@ class TemplateEditor {
             
             // Convert percentage to frame and seek
             const targetFrame = Math.floor((percentage / 100) * this.totalFrames);
-            this.seekToFrame(targetFrame);
+            // DISABLED: this.seekToFrame(targetFrame);
         });
         
         document.addEventListener('mouseup', () => {
@@ -517,7 +526,7 @@ class TemplateEditor {
             
             // Convert percentage to frame and seek
             const targetFrame = Math.floor((percentage / 100) * this.totalFrames);
-            this.seekToFrame(targetFrame);
+            // DISABLED: this.seekToFrame(targetFrame);
         });
     }
     
@@ -978,8 +987,8 @@ class TemplateEditor {
         // Create bottom icons (4 icons spaced 260px apart)
         this.createBottomIconsExact();
         
-        // Set initial animation positions (everything starts hidden)
-        this.setInitialPositions();
+        // DISABLED: Set initial animation positions (everything starts hidden)
+        // this.setInitialPositions();
         
         // Initialize text-based visibility
         this.initializeTextVisibility();
@@ -1764,6 +1773,7 @@ class TemplateEditor {
     }
     
     startGSAPPlayback() {
+        // Blank timeline playback (no animations, just timeline functionality)
         if (this.timeline) {
             // If at the end, restart from beginning
             if (this.timeline.progress() >= 1) {
@@ -1778,6 +1788,7 @@ class TemplateEditor {
     }
     
     stopGSAPPlayback() {
+        // Blank timeline pause (no animations, just timeline functionality)
         if (this.timeline) {
             this.timeline.pause();
         }
@@ -1821,22 +1832,22 @@ class TemplateEditor {
     
     previousFrame() {
         this.currentFrame = Math.max(0, this.currentFrame - 1);
-        this.seekToFrame(this.currentFrame);
+        // DISABLED: this.seekToFrame(this.currentFrame);
     }
     
     nextFrame() {
         this.currentFrame = Math.min(this.totalFrames - 1, this.currentFrame + 1);
-        this.seekToFrame(this.currentFrame);
+        // DISABLED: this.seekToFrame(this.currentFrame);
     }
     
     goToBeginning() {
         this.currentFrame = 0;
-        this.seekToFrame(this.currentFrame);
+        // DISABLED: this.seekToFrame(this.currentFrame);
     }
     
     goToEnd() {
         this.currentFrame = this.totalFrames - 1;
-        this.seekToFrame(this.currentFrame);
+        // DISABLED: this.seekToFrame(this.currentFrame);
     }
     
     seekToFrame(frameNumber) {
@@ -2014,8 +2025,8 @@ class TemplateEditor {
         // Create bottom icons (4 icons spaced 260px apart)
         this.createBottomIconsExact();
         
-        // Set initial animation positions (everything starts hidden)
-        this.setInitialPositions();
+        // DISABLED: Set initial animation positions (everything starts hidden)
+        // this.setInitialPositions();
         
         // Initialize text-based visibility
         this.initializeTextVisibility();
@@ -2183,33 +2194,33 @@ class TemplateEditor {
     }
     
     setInitialPositions() {
-        // Set starting positions for animations - all objects start invisible for fade in
+        // Set all objects to visible state - no animations
         if (this.templateObjects.topIcon) {
-            this.templateObjects.topIcon.opacity(0);
+            this.templateObjects.topIcon.opacity(1);
         }
         
         if (this.templateObjects.topTitle) {
-            this.templateObjects.topTitle.opacity(0);
+            this.templateObjects.topTitle.opacity(1);
         }
         
         if (this.templateObjects.mainTitle) {
-            this.templateObjects.mainTitle.opacity(0);
+            this.templateObjects.mainTitle.opacity(1);
         }
         
         if (this.templateObjects.subtitle1) {
-            this.templateObjects.subtitle1.opacity(0);
+            this.templateObjects.subtitle1.opacity(1);
         }
         
         if (this.templateObjects.subtitle2) {
-            this.templateObjects.subtitle2.opacity(0);
+            this.templateObjects.subtitle2.opacity(1);
         }
         
-        // Bottom icons start invisible
+        // Bottom icons start visible
         this.templateObjects.bottomIcons.forEach((icon) => {
-            icon.opacity(0);
+            icon.opacity(1);
         });
         
-        console.log('Initial positions set for animations');
+        console.log('All objects set to visible state - no animations');
     }
     
     initializeTextVisibility() {
@@ -2370,106 +2381,39 @@ class TemplateEditor {
     }
     
     createGSAPTimeline() {
-        // Create master timeline
+        // Create blank master timeline - no animations
         this.timeline = gsap.timeline({ 
             paused: true,
             duration: this.animationDuration,
-            ease: "power2.inOut"
+            ease: "none"
         });
         
-        // Collect all visible objects for animation
-        const visibleObjects = [];
+        // Set all objects to visible state immediately (no animations)
         if (this.templateObjects.topIcon && this.layerVisibility.topIcon) {
-            visibleObjects.push(this.templateObjects.topIcon);
+            this.templateObjects.topIcon.opacity(1);
         }
         if (this.templateObjects.topTitle && this.layerVisibility.topTitle) {
-            visibleObjects.push(this.templateObjects.topTitle);
+            this.templateObjects.topTitle.opacity(1);
         }
         if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
-            visibleObjects.push(this.templateObjects.mainTitle);
+            this.templateObjects.mainTitle.opacity(1);
         }
         if (this.templateObjects.subtitle1 && this.layerVisibility.subtitle1) {
-            visibleObjects.push(this.templateObjects.subtitle1);
+            this.templateObjects.subtitle1.opacity(1);
         }
         if (this.templateObjects.subtitle2 && this.layerVisibility.subtitle2) {
-            visibleObjects.push(this.templateObjects.subtitle2);
+            this.templateObjects.subtitle2.opacity(1);
         }
         if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
-            visibleObjects.push(...this.templateObjects.bottomIcons);
-        }
-        
-        // Intro animations (0-2s) - cascade from top to bottom
-        let delay = 0;
-        const animationStep = 0.15; // 150ms between each element
-        
-        if (this.templateObjects.topIcon && this.layerVisibility.topIcon) {
-            this.timeline.to(this.templateObjects.topIcon, {
-                opacity: 1,
-                duration: 1.0,
-                ease: "power2.out"
-            }, delay);
-            delay += animationStep;
-        }
-        
-        if (this.templateObjects.topTitle && this.layerVisibility.topTitle) {
-            this.timeline.to(this.templateObjects.topTitle, {
-                opacity: 1,
-                duration: 1.2,
-                ease: "power2.out"
-            }, delay);
-            delay += animationStep;
-        }
-        
-        if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
-            this.timeline.to(this.templateObjects.mainTitle, {
-                opacity: 1,
-                duration: 1.5,
-                ease: "power2.out"
-            }, delay);
-            delay += animationStep;
-        }
-        
-        if (this.templateObjects.subtitle1 && this.layerVisibility.subtitle1) {
-            this.timeline.to(this.templateObjects.subtitle1, {
-                opacity: 1,
-                duration: 1.0,
-                ease: "power2.out"
-            }, delay);
-            delay += animationStep;
-        }
-        
-        if (this.templateObjects.subtitle2 && this.layerVisibility.subtitle2) {
-            this.timeline.to(this.templateObjects.subtitle2, {
-                opacity: 1,
-                duration: 1.0,
-                ease: "power2.out"
-            }, delay);
-            delay += animationStep;
-        }
-        
-        // Bottom icons with stagger effect
-        if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
-            this.templateObjects.bottomIcons.forEach((icon, index) => {
-                this.timeline.to(icon, {
-                    opacity: 1,
-                    duration: 0.8,
-                    ease: "back.out(1.7)"
-                }, delay + (index * 0.1));
+            this.templateObjects.bottomIcons.forEach(icon => {
+                icon.opacity(1);
             });
         }
         
-        // Hold middle section (2s to 8s)
-        this.timeline.to({}, { duration: 6 }, 2);
+        // Create empty timeline placeholders for timeline functionality
+        this.timeline.to({}, { duration: this.animationDuration }, 0);
         
-        // Exit animations - simple fade out (8s to 10s)
-        this.timeline.to(visibleObjects, {
-            opacity: 0,
-            duration: 1.5,
-            ease: "power2.in",
-            stagger: 0.08
-        }, 8);
-        
-        console.log('GSAP Timeline created with', visibleObjects.length, 'visible objects, duration:', this.animationDuration, 'seconds');
+        console.log('Blank GSAP Timeline created - no animations, duration:', this.animationDuration, 'seconds');
     }
     
     updateGSAPTimeline() {
@@ -2477,19 +2421,21 @@ class TemplateEditor {
         const currentProgress = this.timeline ? this.timeline.progress() : 0;
         const wasPlaying = this.isPlaying;
         
-        // Recreate the timeline with new objects
+        // Recreate the blank timeline with new objects
         this.createGSAPTimeline();
         
-        // Restore timeline position and state
+        // Restore timeline position (for scrubbing functionality)
         if (this.timeline && currentProgress > 0) {
             this.timeline.progress(currentProgress);
-            this.stage.batchDraw();
-            
-            // Resume playback if it was playing
-            if (wasPlaying) {
-                this.timeline.play();
-                this.updateTimelinePosition();
-            }
+        }
+        
+        // Ensure stage is redrawn with all objects visible
+        this.stage.batchDraw();
+        
+        // Resume playback if it was playing (timeline will just run without animations)
+        if (wasPlaying) {
+            this.timeline.play();
+            this.updateTimelinePosition();
         }
     }
     
@@ -3214,4 +3160,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         const editor = new TemplateEditor();
         editor.loadProject();
     }
-}); 
+});

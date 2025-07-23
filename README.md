@@ -20,7 +20,7 @@ php -S localhost:8000               # PHP (macOS/Linux)
 npx serve .                         # Node.js
 
 # Open in browser
-open http://localhost:8000          # macOS
+2          # macOS
 start http://localhost:8000         # Windows
 xdg-open http://localhost:8000      # Linux
 ```

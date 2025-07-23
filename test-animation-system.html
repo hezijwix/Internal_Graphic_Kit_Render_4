@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation System Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #111;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #2d5016;
+            color: #a9d18e;
+        }
+        .error {
+            background: #5c2e04;
+            color: #ffc7b3;
+        }
+        .warning {
+            background: #5c4b00;
+            color: #fff2cc;
+        }
+        button {
+            background: #0066ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0052cc;
+        }
+        #canvas-container {
+            width: 400px;
+            height: 300px;
+            border: 1px solid #555;
+            margin: 20px 0;
+        }
+    </style>
+    <!-- Load dependencies -->
+    <script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
+    <script src="https://unpkg.com/gsap@3.12.2/dist/gsap.min.js"></script>
+    <script src="shared/js/animation-system.js"></script>
+</head>
+<body>
+    <h1>🎭 Animation System Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>System Initialization</h2>
+        <div id="init-results"></div>
+        <button onclick="testInitialization()">Run Initialization Tests</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Canvas & Elements</h2>
+        <div id="canvas-container"></div>
+        <div id="canvas-results"></div>
+        <button onclick="testCanvasSetup()">Create Test Canvas</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Animation Controllers</h2>
+        <div id="controller-results"></div>
+        <button onclick="testControllers()">Test Controllers</button>
+        <button onclick="testTextAnimator()">Test Text Animator</button>
+        <button onclick="testIconAnimator()">Test Icon Animator</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Animation System Integration</h2>
+        <div id="integration-results"></div>
+        <button onclick="testSystemIntegration()">Test System Integration</button>
+        <button onclick="testGroupAnimations()">Test Group Animations</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Live Demos</h2>
+        <div id="demo-results"></div>
+        <button onclick="demoBasicAnimations()">Demo Basic Animations</button>
+        <button onclick="demoTextAnimations()">Demo Text Animations</button>
+        <button onclick="demoIconAnimations()">Demo Icon Animations</button>
+    </div>
+
+    <script>
+        let testResults = [];
+        let animationSystem = null;
+        let stage = null;
+        let layer = null;
+        let testText = null;
+        let testIcon = null;
+
+        function logResult(test, status, message, section = 'general') {
+            const result = { test, status, message, section, timestamp: new Date() };
+            testResults.push(result);
+            
+            const targetDiv = document.getElementById(`${section}-results`);
+            if (targetDiv) {
+                const div = document.createElement('div');
+                div.className = `test-result ${status}`;
+                div.innerHTML = `<strong>${test}:</strong> ${message}`;
+                targetDiv.appendChild(div);
+            }
+            
+            console.log(`${status.toUpperCase()}: ${test} - ${message}`);
+        }
+
+        function testInitialization() {
+            try {
+                // Test 1: Check if all classes are available
+                if (typeof AnimationSystem === 'undefined') {
+                    logResult('Class Loading', 'error', 'AnimationSystem class not found', 'init');
+                    return;
+                }
+                
+                if (typeof AnimationController === 'undefined') {
+                    logResult('Class Loading', 'error', 'AnimationController class not found', 'init');
+                    return;
+                }
+                
+                if (typeof TextAnimator === 'undefined') {
+                    logResult('Class Loading', 'error', 'TextAnimator class not found', 'init');
+                    return;
+                }
+                
+                if (typeof IconAnimator === 'undefined') {
+                    logResult('Class Loading', 'error', 'IconAnimator class not found', 'init');
+                    return;
+                }
+                
+                logResult('Class Loading', 'success', 'All animation classes loaded successfully', 'init');
+                
+                // Test 2: Check EASING object
+                if (typeof EASING === 'undefined') {
+                    logResult('EASING Constants', 'error', 'EASING object not found', 'init');
+                    return;
+                }
+                
+                const expectedEasings = ['LINEAR', 'EASE', 'BOUNCE', 'ELASTIC', 'BACK'];
+                const missingEasings = expectedEasings.filter(e => !(e in EASING));
+                
+                if (missingEasings.length > 0) {
+                    logResult('EASING Constants', 'warning', `Missing easings: ${missingEasings.join(', ')}`, 'init');
+                } else {
+                    logResult('EASING Constants', 'success', `All ${expectedEasings.length} easing types available`, 'init');
+                }
+                
+                // Test 3: Create AnimationSystem instance
+                animationSystem = new AnimationSystem();
+                if (!animationSystem) {
+                    logResult('System Creation', 'error', 'Failed to create AnimationSystem instance', 'init');
+                    return;
+                }
+                
+                logResult('System Creation', 'success', 'AnimationSystem instance created successfully', 'init');
+                
+                // Test 4: Check system stats
+                const stats = animationSystem.getStats();
+                logResult('System Stats', 'success', `Initial stats: ${JSON.stringify(stats)}`, 'init');
+                
+            } catch (error) {
+                logResult('Initialization', 'error', `Exception: ${error.message}`, 'init');
+                console.error('Initialization test error:', error);
+            }
+        }
+
+        function testCanvasSetup() {
+            try {
+                const container = document.getElementById('canvas-container');
+                container.innerHTML = ''; // Clear previous
+                
+                // Create Konva stage
+                stage = new Konva.Stage({
+                    container: 'canvas-container',
+                    width: 400,
+                    height: 300
+                });
+                
+                layer = new Konva.Layer();
+                stage.add(layer);
+                
+                logResult('Stage Creation', 'success', 'Konva stage created successfully', 'canvas');
+                
+                // Create test text element
+                testText = new Konva.Text({
+                    x: 50,
+                    y: 50,
+                    text: 'Test Text Animation',
+                    fontSize: 20,
+                    fontFamily: 'Arial',
+                    fill: 'white'
+                });
+                
+                layer.add(testText);
+                
+                // Create test shape (icon)
+                testIcon = new Konva.Circle({
+                    x: 200,
+                    y: 150,
+                    radius: 30,
+                    fill: '#0066ff',
+                    stroke: 'white',
+                    strokeWidth: 2
+                });
+                
+                layer.add(testIcon);
+                layer.draw();
+                
+                logResult('Elements Creation', 'success', 'Test text and icon elements created', 'canvas');
+                
+            } catch (error) {
+                logResult('Canvas Setup', 'error', `Exception: ${error.message}`, 'canvas');
+                console.error('Canvas setup error:', error);
+            }
+        }
+
+        function testControllers() {
+            try {
+                if (!animationSystem) {
+                    logResult('Controller Test', 'error', 'AnimationSystem not initialized', 'controller');
+                    return;
+                }
+                
+                if (!testText || !testIcon) {
+                    logResult('Controller Test', 'error', 'Test elements not created', 'controller');
+                    return;
+                }
+                
+                // Test 1: Register elements
+                const textController = animationSystem.register('testText', testText, 'text');
+                const iconController = animationSystem.register('testIcon', testIcon, 'icon');
+                
+                if (!textController || !iconController) {
+                    logResult('Element Registration', 'error', 'Failed to register test elements', 'controller');
+                    return;
+                }
+                
+                logResult('Element Registration', 'success', 'Test elements registered successfully', 'controller');
+                
+                // Test 2: Check controller types
+                const isTextAnimator = textController instanceof TextAnimator;
+                const isIconAnimator = iconController instanceof IconAnimator;
+                
+                if (!isTextAnimator) {
+                    logResult('Controller Types', 'error', 'Text element not registered as TextAnimator', 'controller');
+                    return;
+                }
+                
+                if (!isIconAnimator) {
+                    logResult('Controller Types', 'error', 'Icon element not registered as IconAnimator', 'controller');
+                    return;
+                }
+                
+                logResult('Controller Types', 'success', 'Controllers have correct types', 'controller');
+                
+                // Test 3: Test basic animation
+                textController.animate({
+                    x: 100,
+                    rotation: 10
+                }, {
+                    duration: 1,
+                    ease: EASING.BOUNCE_OUT
+                }, 'test-anim');
+                
+                logResult('Basic Animation', 'success', 'Basic animation started successfully', 'controller');
+                
+                // Test 4: Animation state tracking
+                setTimeout(() => {
+                    const isAnimating = textController.isAnimating('test-anim');
+                    const stats = animationSystem.getStats();
+                    logResult('Animation Tracking', 'success', 
+                        `Animation active: ${isAnimating}, Active elements: ${stats.activeAnimations}`, 'controller');
+                }, 100);
+                
+            } catch (error) {
+                logResult('Controller Test', 'error', `Exception: ${error.message}`, 'controller');
+                console.error('Controller test error:', error);
+            }
+        }
+
+        function testTextAnimator() {
+            try {
+                const textAnimator = animationSystem.getText('testText');
+                if (!textAnimator) {
+                    logResult('Text Animator', 'error', 'TextAnimator not found', 'controller');
+                    return;
+                }
+                
+                // Test character animation setup
+                textAnimator.enableCharacterAnimation();
+                logResult('Character Animation', 'success', 'Character animation enabled', 'controller');
+                
+                // Test typewriter effect
+                setTimeout(() => {
+                    textAnimator.typewriter({ speed: 0.05 });
+                    logResult('Typewriter Effect', 'success', 'Typewriter animation started', 'controller');
+                }, 1000);
+                
+            } catch (error) {
+                logResult('Text Animator', 'error', `Exception: ${error.message}`, 'controller');
+                console.error('Text animator test error:', error);
+            }
+        }
+
+        function testIconAnimator() {
+            try {
+                const iconAnimator = animationSystem.getIcon('testIcon');
+                if (!iconAnimator) {
+                    logResult('Icon Animator', 'error', 'IconAnimator not found', 'controller');
+                    return;
+                }
+                
+                // Test pulse animation
+                iconAnimator.pulse({ scale: 1.5, speed: 0.8 });
+                logResult('Pulse Animation', 'success', 'Icon pulse animation started', 'controller');
+                
+                // Test rotation after pulse
+                setTimeout(() => {
+                    iconAnimator.killAnimation('pulse');
+                    iconAnimator.rotate({ speed: 1, repeat: 2 });
+                    logResult('Rotation Animation', 'success', 'Icon rotation animation started', 'controller');
+                }, 3000);
+                
+            } catch (error) {
+                logResult('Icon Animator', 'error', `Exception: ${error.message}`, 'controller');
+                console.error('Icon animator test error:', error);
+            }
+        }
+
+        function testSystemIntegration() {
+            try {
+                if (!animationSystem) {
+                    logResult('System Integration', 'error', 'AnimationSystem not available', 'integration');
+                    return;
+                }
+                
+                // Test system-wide operations
+                const stats = animationSystem.getStats();
+                logResult('System Stats', 'success', 
+                    `Total: ${stats.totalElements}, Text: ${stats.textElements}, Icons: ${stats.iconElements}`, 'integration');
+                
+                // Test pause/resume all
+                animationSystem.pauseAll();
+                logResult('Pause All', 'success', 'All animations paused', 'integration');
+                
+                setTimeout(() => {
+                    animationSystem.resumeAll();
+                    logResult('Resume All', 'success', 'All animations resumed', 'integration');
+                }, 1000);
+                
+                // Test reset functionality
+                setTimeout(() => {
+                    animationSystem.resetAll(true, { duration: 0.5 });
+                    logResult('Reset All', 'success', 'All elements reset with animation', 'integration');
+                }, 3000);
+                
+            } catch (error) {
+                logResult('System Integration', 'error', `Exception: ${error.message}`, 'integration');
+                console.error('System integration test error:', error);
+            }
+        }
+
+        function testGroupAnimations() {
+            try {
+                // Test coordinated animations
+                const groupAnimations = [
+                    {
+                        elementId: 'testText',
+                        properties: { y: 150, scaleX: 1.2, scaleY: 1.2 },
+                        options: { duration: 1, ease: EASING.BACK_OUT }
+                    },
+                    {
+                        elementId: 'testIcon',
+                        properties: { y: 50, opacity: 0.7 },
+                        options: { duration: 1, ease: EASING.ELASTIC_OUT }
+                    }
+                ];
+                
+                animationSystem.animateGroup(groupAnimations, {
+                    stagger: 0.2,
+                    onComplete: () => {
+                        logResult('Group Animation', 'success', 'Group animation completed', 'integration');
+                    }
+                });
+                
+                logResult('Group Animation', 'success', 'Group animation started with stagger', 'integration');
+                
+            } catch (error) {
+                logResult('Group Animation', 'error', `Exception: ${error.message}`, 'integration');
+                console.error('Group animation test error:', error);
+            }
+        }
+
+        function demoBasicAnimations() {
+            try {
+                const textController = animationSystem.get('testText');
+                const iconController = animationSystem.get('testIcon');
+                
+                if (!textController || !iconController) {
+                    logResult('Demo Setup', 'error', 'Controllers not available for demo', 'demo');
+                    return;
+                }
+                
+                // Reset positions first
+                textController.set({ x: 50, y: 50, rotation: 0, scaleX: 1, scaleY: 1, opacity: 1 });
+                iconController.set({ x: 200, y: 150, rotation: 0, scaleX: 1, scaleY: 1, opacity: 1 });
+                
+                // Demo sequence
+                setTimeout(() => {
+                    textController.animate({ x: 150, rotation: 360 }, { duration: 2, ease: EASING.BACK_OUT });
+                }, 500);
+                
+                setTimeout(() => {
+                    iconController.animate({ scaleX: 2, scaleY: 2 }, { duration: 1.5, ease: EASING.ELASTIC_OUT });
+                }, 1000);
+                
+                setTimeout(() => {
+                    textController.animate({ y: 200, opacity: 0.5 }, { duration: 1, ease: EASING.EASE_OUT });
+                }, 1500);
+                
+                logResult('Basic Demo', 'success', 'Basic animation demo sequence started', 'demo');
+                
+            } catch (error) {
+                logResult('Basic Demo', 'error', `Exception: ${error.message}`, 'demo');
+                console.error('Basic demo error:', error);
+            }
+        }
+
+        function demoTextAnimations() {
+            try {
+                const textAnimator = animationSystem.getText('testText');
+                if (!textAnimator) {
+                    logResult('Text Demo', 'error', 'TextAnimator not available', 'demo');
+                    return;
+                }
+                
+                // Reset and setup
+                textAnimator.killAll();
+                textAnimator.disableCharacterAnimation();
+                textAnimator.set({ x: 50, y: 100, opacity: 1 });
+                
+                setTimeout(() => {
+                    testText.text('Character Animation Demo');
+                    layer.draw();
+                    
+                    textAnimator.enableCharacterAnimation({ spacing: 2 });
+                    logResult('Text Demo', 'success', 'Character animation enabled', 'demo');
+                    
+                    setTimeout(() => {
+                        textAnimator.wave({ amplitude: 15, frequency: 0.8 });
+                        logResult('Text Demo', 'success', 'Wave animation started', 'demo');
+                    }, 1000);
+                    
+                }, 500);
+                
+            } catch (error) {
+                logResult('Text Demo', 'error', `Exception: ${error.message}`, 'demo');
+                console.error('Text demo error:', error);
+            }
+        }
+
+        function demoIconAnimations() {
+            try {
+                const iconAnimator = animationSystem.getIcon('testIcon');
+                if (!iconAnimator) {
+                    logResult('Icon Demo', 'error', 'IconAnimator not available', 'demo');
+                    return;
+                }
+                
+                // Reset
+                iconAnimator.killAll();
+                iconAnimator.set({ x: 200, y: 150, rotation: 0, scaleX: 1, scaleY: 1, opacity: 1 });
+                
+                // Demo sequence
+                setTimeout(() => {
+                    iconAnimator.bounceIn({ duration: 1 });
+                    logResult('Icon Demo', 'success', 'Bounce in animation started', 'demo');
+                }, 500);
+                
+                setTimeout(() => {
+                    iconAnimator.glow({ minOpacity: 0.3, speed: 0.8 });
+                    logResult('Icon Demo', 'success', 'Glow effect started', 'demo');
+                }, 2000);
+                
+                setTimeout(() => {
+                    iconAnimator.shake({ intensity: 8, speed: 0.1 });
+                    logResult('Icon Demo', 'success', 'Shake animation started', 'demo');
+                }, 4000);
+                
+            } catch (error) {
+                logResult('Icon Demo', 'error', `Exception: ${error.message}`, 'demo');
+                console.error('Icon demo error:', error);
+            }
+        }
+
+        // Auto-run initialization test on load
+        window.addEventListener('load', () => {
+            console.log('🎭 Animation System Test Suite Loaded');
+            setTimeout(testInitialization, 500);
+        });
+        
+        // Global error handler
+        window.addEventListener('error', (e) => {
+            logResult('Global Error', 'error', `${e.message} at ${e.filename}:${e.lineno}`, 'general');
+        });
+        
+        // Export for debugging
+        window.testAnimationSystem = {
+            testResults,
+            animationSystem: () => animationSystem,
+            stage: () => stage,
+            layer: () => layer,
+            getStats: () => animationSystem ? animationSystem.getStats() : null
+        };
+    </script>
+</body>
+</html>

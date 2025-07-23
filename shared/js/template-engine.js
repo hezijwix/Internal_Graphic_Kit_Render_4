@@ -87,6 +87,10 @@ class TemplateEditor {
             bottom: [null, null, null, null, null, null] // Support up to 6 bottom icons
         };
         
+        // Store current icon data for dynamic color updates
+        this.currentTopIconData = null;
+        this.currentBottomIconsData = [null, null, null, null, null, null]; // Store bottom icon data for color updates
+        
 
         
         // GSAP Timeline
@@ -94,219 +98,18 @@ class TemplateEditor {
         this.animationDuration = 10; // seconds
         
         // ================================
-        // ANIMATION SYSTEM - CENTRALIZED CONFIGURATION
+        // NEW ANIMATION SYSTEM - MODERN CONTROL FRAMEWORK
         // ================================
-        this.animationSystem = {
-            // Global animation settings
-            global: {
-                duration: 10, // Total animation duration in seconds
-                phases: {
-                    intro: { start: 0, end: 2 },   // Elements animate in
-                    hold: { start: 2, end: 8 },    // Elements stay visible
-                    exit: { start: 8, end: 10 }    // Elements animate out
-                },
-                // PHASE CONTROL - Enable/Disable Animation Phases
-                phaseControls: {
-                    enableAnimateIn: true,   // Toggle animate-in phase
-                    enableAnimateOut: false, // Toggle animate-out phase - DISABLED BY USER REQUEST
-                    enableHold: true         // Toggle hold phase
-                },
-                timing: {
-                    elementDelay: 0.15,  // Delay between each element (cascade effect)
-                    exitStagger: 0.08,   // Stagger delay for exit animations
-                    iconStagger: 0.1     // Individual stagger for bottom icons
-                },
-                defaultEasing: {
-                    intro: "power2.out",
-                    exit: "power2.in",
-                    bounce: "back.out(1.7)"
-                }
-            },
-            
-            // Element-specific animation definitions
-            elements: {
-                topIcon: {
-                    name: "Top Icon",
-                    animateIn: {
-                        enabled: true,
-                        from: { x: 0, y: -50, opacity: 0, scale: 0.3, rotation: -45 },
-                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
-                        duration: 1.0,
-                        ease: "back.out(1.7)",
-                        order: 0
-                    },
-                    animateOut: {
-                        enabled: false, // DISABLED BY USER REQUEST
-                        to: { opacity: 0, scale: 0.8 },
-                        duration: 1.5,
-                        ease: "power2.in"
-                    }
-                },
-                
-                topTitle: {
-                    name: "Top Title",
-                    animateIn: {
-                        enabled: true,
-                        from: { x: -100, y: 0, opacity: 0, scale: 0.8, rotation: 0 },
-                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
-                        duration: 1.2,
-                        ease: "power2.out",
-                        order: 1
-                    },
-                    animateOut: {
-                        enabled: true,
-                        to: { opacity: 0, scale: 0.8 },
-                        duration: 1.5,
-                        ease: "power2.in"
-                    }
-                },
-                
-                mainTitle: {
-                    name: "Main Title",
-                    animateIn: {
-                        enabled: true,
-                        from: { x: 0, y: 30, opacity: 0, scale: 0.9, rotation: 0 },
-                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
-                        duration: 1.5,
-                        ease: "power2.out",
-                        order: 2
-                    },
-                    animateOut: {
-                        enabled: true,
-                        to: { opacity: 0, scale: 0.8 },
-                        duration: 1.5,
-                        ease: "power2.in"
-                    }
-                },
-                
-                subtitle1: {
-                    name: "Subtitle 1",
-                    animateIn: {
-                        enabled: true,
-                        from: { x: -100, y: 0, opacity: 0, scale: 0.8, rotation: 0 },
-                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
-                        duration: 1.0,
-                        ease: "power2.out",
-                        order: 3
-                    },
-                    animateOut: {
-                        enabled: true,
-                        to: { opacity: 0, scale: 0.8 },
-                        duration: 1.5,
-                        ease: "power2.in"
-                    }
-                },
-                
-                subtitle2: {
-                    name: "Subtitle 2",
-                    animateIn: {
-                        enabled: true,
-                        from: { x: -100, y: 0, opacity: 0, scale: 0.8, rotation: 0 },
-                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
-                        duration: 1.0,
-                        ease: "power2.out",
-                        order: 4
-                    },
-                    animateOut: {
-                        enabled: true,
-                        to: { opacity: 0, scale: 0.8 },
-                        duration: 1.5,
-                        ease: "power2.in"
-                    }
-                },
-                
-                bottomIcons: {
-                    name: "Bottom Icons",
-                    animateIn: {
-                        enabled: true,
-                        from: { x: 0, y: 80, opacity: 0, scale: 0.1, rotation: 180 },
-                        to: { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 },
-                        duration: 0.8,
-                        ease: "back.out(1.7)",
-                        order: 5,
-                        stagger: 0.1
-                    },
-                    animateOut: {
-                        enabled: true,
-                        to: { x: 0, y: 50, opacity: 0, scale: 0, rotation: -180 },
-                        duration: 1.5,
-                        ease: "power2.in"
-                    }
-                }
-            },
-            
-            // Animation presets for easy style switching
-            presets: {
-                current: 'slideInLeft',
-                
-                slideInLeft: {
-                    name: "Slide In Left",
-                    description: "Elements slide in from the left with fade and cascade timing",
-                    icon: "→",
-                    overrides: {
-                        // Current configuration is the default
-                    }
-                },
-                
-                fadeIn: {
-                    name: "Fade In",
-                    description: "Simple fade in effect with subtle scale",
-                    icon: "○",
-                    overrides: {
-                        all: {
-                            animateIn: {
-                                from: { opacity: 0, scale: 0.95 },
-                                to: { opacity: 1, scale: 1 },
-                                duration: 1.0,
-                                ease: "power2.out"
-                            }
-                        }
-                    }
-                },
-                
-                scaleUp: {
-                    name: "Scale Up",
-                    description: "Elements scale up from center with bounce",
-                    icon: "⚡",
-                    overrides: {
-                        all: {
-                            animateIn: {
-                                from: { opacity: 0, scale: 0.1, rotation: 0 },
-                                to: { opacity: 1, scale: 1, rotation: 0 },
-                                duration: 0.8,
-                                ease: "back.out(1.7)"
-                            }
-                        }
-                    }
-                },
-                
-                spiral: {
-                    name: "Spiral In",
-                    description: "Elements spiral in with dramatic rotation",
-                    icon: "🌀",
-                    overrides: {
-                        all: {
-                            animateIn: {
-                                from: { opacity: 0, scale: 0.3, rotation: 720 },
-                                to: { opacity: 1, scale: 1, rotation: 0 },
-                                duration: 1.5,
-                                ease: "power2.out"
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        this.animationSystem = new AnimationSystem();
         
         // Background transparency
         this.backgroundTransparency = false;
         this.currentBackgroundColor = '#0D0D0D';
         
-        // DISABLE ALL ANIMATE-OUT BY USER REQUEST
-        // This must happen after animationSystem is defined
-        setTimeout(() => {
-            this.disableAllAnimateOut();
-        }, 0);
+        // Initialize animation system with template elements (will be registered after elements are created)
+        
+        // Animation system helper methods
+        this.registerAnimationElements = this.registerAnimationElements.bind(this);
         
         // Zoom and pan state
         this.zoomLevel = 50; // Changed from 100% to 50% default
@@ -339,6 +142,70 @@ class TemplateEditor {
         setTimeout(() => this.removeMainTitleShadow(), 200);
         
         console.log('Template Editor initialized successfully');
+    }
+    
+    /**
+     * Register all template elements with the animation system
+     * This enables individual control over each element's animations
+     */
+    registerAnimationElements() {
+        console.log('🎭 Registering elements with Animation System...');
+        
+        // Register text elements
+        if (this.templateObjects.topTitle) {
+            this.animationSystem.register('topTitle', this.templateObjects.topTitle, 'text');
+        }
+        if (this.templateObjects.mainTitle) {
+            this.animationSystem.register('mainTitle', this.templateObjects.mainTitle, 'text');
+        }
+        if (this.templateObjects.subtitle1) {
+            this.animationSystem.register('subtitle1', this.templateObjects.subtitle1, 'text');
+        }
+        if (this.templateObjects.subtitle2) {
+            this.animationSystem.register('subtitle2', this.templateObjects.subtitle2, 'text');
+        }
+        
+        // Register icon elements
+        if (this.templateObjects.topIcon) {
+            this.animationSystem.register('topIcon', this.templateObjects.topIcon, 'icon');
+        }
+        if (this.templateObjects.bottomIcons && Array.isArray(this.templateObjects.bottomIcons)) {
+            this.templateObjects.bottomIcons.forEach((icon, index) => {
+                if (icon) {
+                    this.animationSystem.register(`bottomIcon${index}`, icon, 'icon');
+                }
+            });
+        }
+        
+        console.log('✅ Animation System registration complete');
+        console.log('📊 Animation System Stats:', this.animationSystem.getStats());
+    }
+    
+    /**
+     * Get animation controller for any element
+     * @param {string} elementId - Element identifier
+     * @returns {AnimationController|TextAnimator|IconAnimator}
+     */
+    getAnimator(elementId) {
+        return this.animationSystem.get(elementId);
+    }
+    
+    /**
+     * Get text animator for text elements
+     * @param {string} elementId - Text element identifier
+     * @returns {TextAnimator}
+     */
+    getTextAnimator(elementId) {
+        return this.animationSystem.getText(elementId);
+    }
+    
+    /**
+     * Get icon animator for icon elements
+     * @param {string} elementId - Icon element identifier  
+     * @returns {IconAnimator}
+     */
+    getIconAnimator(elementId) {
+        return this.animationSystem.getIcon(elementId);
     }
     
     setupCanvas() {
@@ -886,10 +753,8 @@ class TemplateEditor {
             // Recalculate layout when text content changes (affects height and visibility)
             this.recalculateLayout();
             
-            // If main title changed, update icon positions to match new width
-            if (type === 'mainTitle' && this.layerVisibility.bottomIcons) {
-                this.createBottomIconsExact();
-            }
+            // Note: Bottom icons are now repositioned automatically by recalculateLayout()
+            // No need for separate createBottomIconsExact() call here
             
             this.stage.batchDraw();
         }
@@ -1505,7 +1370,12 @@ class TemplateEditor {
         const img = new Image();
         img.onload = () => {
             const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
-            const iconY = this.bottomIconsY || 820;
+            let iconY = this.bottomIconsY || 820;
+            
+            // Use dynamic position from base position system if available
+            if (this.positionStates.base && this.positionStates.base.bottomIcons) {
+                iconY = this.positionStates.base.bottomIcons.y;
+            }
             
             const icon = new Konva.Image({
                 x: iconPositions[slotIndex],
@@ -1534,7 +1404,12 @@ class TemplateEditor {
         const img = new Image();
         img.onload = () => {
             const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
-            const iconY = this.bottomIconsY || 820;
+            let iconY = this.bottomIconsY || 820;
+            
+            // Use dynamic position from base position system if available
+            if (this.positionStates.base && this.positionStates.base.bottomIcons) {
+                iconY = this.positionStates.base.bottomIcons.y;
+            }
             
             const icon = new Konva.Image({
                 x: iconPositions[slotIndex],
@@ -1799,12 +1674,28 @@ class TemplateEditor {
             if (this.templateObjects.subtitle2) this.templateObjects.subtitle2.fill(color);
             // Update top icon color to inherit text color
             if (this.templateObjects.topIcon) {
-                this.applyColorToSVGIcon(this.templateObjects.topIcon, color);
+                // If the icon came from gallery, recreate it with new color
+                if (this.currentTopIconData) {
+                    console.log('🔄 Recreating top icon from gallery with new color:', color);
+                    this.updateTopIconFromGallery(this.currentTopIconData);
+                } else {
+                    // For other icons, apply color filter
+                    this.applyColorToSVGIcon(this.templateObjects.topIcon, color);
+                }
             }
             // Update bottom icons color to inherit text color
-            this.templateObjects.bottomIcons.forEach(icon => {
-                if (icon.fill) icon.fill(color);
-                if (icon.stroke) icon.stroke(color);
+            this.templateObjects.bottomIcons.forEach((icon, index) => {
+                if (icon) {
+                    // If the icon came from gallery, recreate it with new color
+                    if (this.currentBottomIconsData && this.currentBottomIconsData[index]) {
+                        console.log(`🔄 Recreating bottom icon ${index + 1} from gallery with new color:`, color);
+                        this.updateBottomIconFromGallery(this.currentBottomIconsData[index], index);
+                    } else {
+                        // For other icons, apply direct color changes
+                        if (icon.fill) icon.fill(color);
+                        if (icon.stroke) icon.stroke(color);
+                    }
+                }
             });
             // Ensure stage is redrawn with new colors
             this.stage.batchDraw();
@@ -2408,8 +2299,16 @@ class TemplateEditor {
         
         console.log('Creating bottom icons with proper spacing...');
         
-        // Use the calculated Y position from the layout
-        const iconY = this.bottomIconsY || 820; // Fallback to 820 if not calculated
+        // Use the dynamically calculated Y position from base position system
+        let iconY = this.bottomIconsY || 820; // Fallback value
+        
+        // If base positions are calculated, use the dynamic position
+        if (this.positionStates.base && this.positionStates.base.bottomIcons) {
+            iconY = this.positionStates.base.bottomIcons.y;
+            console.log(`🎯 Using dynamic Y position from base position system: ${iconY}`);
+        } else {
+            console.log(`⚠️ Using fallback Y position: ${iconY}`);
+        }
         
         // Get current text color for icons to inherit
         const currentTextColor = this.getCurrentTextColor();
@@ -3540,24 +3439,58 @@ class TemplateEditor {
             
             console.log('⏱️ GSAP timeline created, duration:', config.global.duration);
             
-            // Set all elements to initial positions at timeline start
-            this.timeline.call(() => {
-                console.log('🎯 Setting elements to initial positions...');
-                this.setElementsToInitialPositions();
-            }, [], config.global.phases.intro.start);
+            // DISABLED: Set all elements to initial positions (prevents opacity: 0 issue)
+            // this.timeline.call(() => {
+            //     console.log('🎯 Setting elements to initial positions...');
+            //     this.setElementsToInitialPositions();
+            // }, [], config.global.phases.intro.start);
             
-            // Create intro animations using animation system
-            console.log('🎬 Creating intro animations...');
-            this.createIntroAnimationsFromSystem();
+            // DISABLED: Create intro animations (blank timeline approach)
+            // console.log('🎬 Creating intro animations...');
+            // this.createIntroAnimationsFromSystem();
+            
+            // Add Main Title In Animation - Move from positive Y with opacity fade-in
+            if (this.templateObjects.mainTitle) {
+                console.log('🎬 Adding main title In animation...');
+                
+                // Get the main title's base position
+                const mainTitleBase = this.positionStates.base.mainTitle;
+                if (mainTitleBase) {
+                    // Set initial position: positive Y offset + opacity 0
+                    const startY = mainTitleBase.y + 100; // 100px below base position
+                    
+                    // Set initial state immediately
+                    this.templateObjects.mainTitle.y(startY);
+                    this.templateObjects.mainTitle.opacity(0);
+                    
+                    // Force redraw to show initial state
+                    this.stage.batchDraw();
+                    
+                    // Add animation to timeline: move to base position with opacity fade-in
+                    this.timeline.to(this.templateObjects.mainTitle, {
+                        y: mainTitleBase.y,      // Move to base Y position
+                        opacity: 1,              // Fade in to full opacity
+                        duration: 3,             // 3 seconds duration
+                        ease: "expo.out"         // GSAP expo.out easing
+                    }, 0.5); // Start at 0.5 seconds into timeline
+                    
+                    console.log(`✅ Main title animation added: ${startY} → ${mainTitleBase.y} over 3s with expo.out`);
+                    console.log(`🎯 Animation starts at 0.5s and runs until 3.5s in timeline`);
+                } else {
+                    console.warn('⚠️ Main title base position not found');
+                }
+            } else {
+                console.warn('⚠️ Main title element not found');
+            }
             
             // Hold middle section - elements stay at base positions
             this.timeline.to({}, { 
                 duration: config.global.phases.hold.end - config.global.phases.hold.start 
             }, config.global.phases.hold.start);
             
-            // Create exit animations using animation system
-            console.log('🚪 Creating exit animations...');
-            this.createExitAnimationsFromSystem();
+            // DISABLED: Create exit animations (blank timeline approach)
+            // console.log('🚪 Creating exit animations...');
+            // this.createExitAnimationsFromSystem();
             
             console.log(`✅ GSAP Timeline created using Animation System`);
             console.log(`🎭 Current preset: ${config.presets.current}`);
@@ -3609,8 +3542,8 @@ class TemplateEditor {
         });
         
         if (visibleElements.length > 0) {
-            // Set initial opacity to 0
-            visibleElements.forEach(el => el.opacity(0));
+            // DISABLED: Set initial opacity to 0 (prevents elements from disappearing)
+            // visibleElements.forEach(el => el.opacity(0));
             
             // Fade in over 2 seconds
             this.timeline.to(visibleElements, {
@@ -4017,6 +3950,9 @@ class TemplateEditor {
             return;
         }
         
+        // Store the icon data for future color updates
+        this.currentTopIconData = iconData;
+        
         // Remove existing top icon if it exists
         if (this.templateObjects.topIcon) {
             this.templateObjects.topIcon.destroy();
@@ -4034,6 +3970,12 @@ class TemplateEditor {
             console.warn('❌ Cannot update bottom icon - missing data or invalid slot');
             return;
         }
+        
+        // Store the icon data for future color updates
+        if (!this.currentBottomIconsData) {
+            this.currentBottomIconsData = [null, null, null, null, null, null];
+        }
+        this.currentBottomIconsData[slotIndex] = iconData;
         
         // Ensure bottom icons array exists and has enough slots
         if (!this.templateObjects.bottomIcons) {
@@ -4148,7 +4090,12 @@ class TemplateEditor {
             const img = new Image();
             img.onload = () => {
                 const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
-                const iconY = this.bottomIconsY || 820;
+                let iconY = this.bottomIconsY || 820;
+                
+                // Use dynamic position from base position system if available
+                if (this.positionStates.base && this.positionStates.base.bottomIcons) {
+                    iconY = this.positionStates.base.bottomIcons.y;
+                }
                 
                 const icon = new Konva.Image({
                     x: iconPositions[slotIndex],
