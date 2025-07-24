@@ -2102,13 +2102,15 @@ class TemplateEditor {
                     this.applyColorToSVGIcon(this.templateObjects.topIcon, color);
                 }
             }
-            // 🔥 UNIFIED: Update bottom icons color using gallery system
+            // 🔥 SMART: Update bottom icons color while preserving user selections
             this.templateObjects.bottomIcons.forEach((icon, index) => {
                 if (icon && index < this.bottomIconsConfig.count) {
-                    // Get the current icon ID for this slot
-                    const iconId = this.bottomIconsConfig.iconIds[index] || this.defaultIcons.bottom;
+                    // 🔥 FIX: Get icon ID from the icon object itself (preserves user selection)
+                    // Fallback chain: icon's stored ID → config array → default
+                    const iconId = icon.iconId || this.bottomIconsConfig.iconIds[index] || this.defaultIcons.bottom;
                     
                     console.log(`🔄 Updating bottom icon ${index + 1} (ID: ${iconId}) with new color:`, color);
+                    console.log(`📊 Source: icon.iconId=${icon.iconId}, array[${index}]=${this.bottomIconsConfig.iconIds[index]}, default=${this.defaultIcons.bottom}`);
                     
                     // Recreate icon from gallery with new color (unified approach)
                     this.recreateBottomIconWithNewColor(icon, iconId, index, color);
@@ -4064,6 +4066,10 @@ class TemplateEditor {
     applyArrayElementAnimation(elements, elementName, animConfig, phase) {
         console.log(`🎬 Applying ${phase} animation to ${elements.length} ${elementName}`);
         
+        // 🔥 FIX: Get base position for array elements (especially bottom icons)
+        const basePosition = this.positionStates.base?.[elementName];
+        console.log(`📍 Using base position for ${elementName}:`, basePosition);
+        
         elements.forEach((element, index) => {
             if (!element) return;
             
@@ -4071,13 +4077,25 @@ class TemplateEditor {
             const staggerDelay = (animConfig.stagger || 0) * index;
             const totalDelay = (animConfig.delay || 0) + staggerDelay;
             
-            // Set initial state
-            if (animConfig.from) {
-                this.setElementState(element, animConfig.from);
+            // 🔥 FIX: For bottom icons, each icon needs its individual position as base reference
+            let elementBasePosition = basePosition;
+            if (elementName === 'bottomIcons' && basePosition) {
+                // Calculate individual icon position
+                const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
+                elementBasePosition = {
+                    x: iconPositions[index],
+                    y: basePosition.y
+                };
+                console.log(`📍 Icon ${index + 1} base position:`, elementBasePosition);
             }
             
-            // Create animation properties
-            const toProps = this.processAnimationProperties(animConfig.to || {});
+            // Set initial state with proper base position reference
+            if (animConfig.from) {
+                this.setElementState(element, animConfig.from, elementBasePosition);
+            }
+            
+            // Create animation properties with proper base position reference
+            const toProps = this.processAnimationProperties(animConfig.to || {}, elementBasePosition);
             
             // Add to timeline with stagger
             this.timeline.to(element, {
@@ -4656,6 +4674,17 @@ class TemplateEditor {
             this.currentBottomIconsData = [null, null, null, null, null, null];
         }
         this.currentBottomIconsData[slotIndex] = iconData;
+        
+        // 🔥 FIX: Update the iconIds array to preserve user selection
+        // Extract icon ID from filename (e.g., "icon-023-celebration.svg" → 23)
+        if (iconData.filename) {
+            const match = iconData.filename.match(/icon-(\d+)/);
+            if (match) {
+                const iconId = parseInt(match[1]);
+                this.bottomIconsConfig.iconIds[slotIndex] = iconId;
+                console.log(`🔥 Updated iconIds[${slotIndex}] = ${iconId} from user selection`);
+            }
+        }
         
         // Ensure bottom icons array exists and has enough slots
         if (!this.templateObjects.bottomIcons) {
@@ -5651,6 +5680,9 @@ class TemplateEditor {
                         offsetY: size / 2,
                         listening: true
                     });
+                    
+                    // 🔥 STORE: Save the icon ID on the object for color updates
+                    icon.iconId = iconId;
                     
                     // Clean up blob URL
                     URL.revokeObjectURL(url);

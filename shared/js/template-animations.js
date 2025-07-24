@@ -190,20 +190,20 @@ const TemplateAnimations = {
             enabled: true,               // ENABLED - Animate bottom icons
             count: 4,                    // Number of bottom icons (dynamic)
             animations: {
-                // Intro: Subtle positive Y movement with opacity fade-in
+                // Intro: Subtle upward movement like subtitles with opacity fade-in
                 intro: {
                     from: { 
                         opacity: 0,                          // Start invisible
-                        y: "-30"                             // Start 30px above final position
+                        y: "+40"                             // Start 40px below final position (more pronounced upward movement)
                     },
                     to: { 
                         opacity: 1,                          // Fade to full opacity
                         y: "0"                               // Move to final position (relative)
                     },
-                    duration: 2.5,                           // Elegant 2.5-second animation
+                    duration: 2.0,                           // Slightly faster for subtle effect
                     ease: "expo.out",                        // Expo.out easing for smooth deceleration
-                    delay: 1.6,                              // Start after main content settles
-                    stagger: 0.15,                           // Slightly longer stagger for Y movement (150ms between icons)
+                    delay: 1.8,                              // Start after subtitles settle
+                    stagger: 0.12,                           // Subtle stagger (120ms between icons)
                     
                     // Animation behavior settings
                     maintainPosition: false,                  // Allow Y movement animation
