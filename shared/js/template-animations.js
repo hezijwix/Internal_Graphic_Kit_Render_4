@@ -190,17 +190,23 @@ const TemplateAnimations = {
             enabled: true,               // ENABLED - Animate bottom icons
             count: 4,                    // Number of bottom icons (dynamic)
             animations: {
-                // Intro: Clean opacity fade-in with subtle stagger
+                // Intro: Subtle positive Y movement with opacity fade-in
                 intro: {
-                    from: { opacity: 0 },                    // Start invisible
-                    to: { opacity: 1 },                      // Fade to full opacity
-                    duration: 3.0,                           // Subtle 3-second fade for elegant reveal
-                    ease: "power2.out",                      // Smooth easing
+                    from: { 
+                        opacity: 0,                          // Start invisible
+                        y: "-30"                             // Start 30px above final position
+                    },
+                    to: { 
+                        opacity: 1,                          // Fade to full opacity
+                        y: "0"                               // Move to final position (relative)
+                    },
+                    duration: 2.5,                           // Elegant 2.5-second animation
+                    ease: "expo.out",                        // Expo.out easing for smooth deceleration
                     delay: 1.6,                              // Start after main content settles
-                    stagger: 0.12,                           // Nice staggered reveal (120ms between icons)
+                    stagger: 0.15,                           // Slightly longer stagger for Y movement (150ms between icons)
                     
                     // Animation behavior settings
-                    maintainPosition: true,                   // Keep icons at their base positions
+                    maintainPosition: false,                  // Allow Y movement animation
                     respectVisibility: true                   // Only animate visible icons
                 },
                 

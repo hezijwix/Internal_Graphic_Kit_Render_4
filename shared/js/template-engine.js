@@ -92,7 +92,7 @@ class TemplateEditor {
         
         // 🔥 CLEAN: Bottom icons configuration - ONLY gallery IDs (removed old abstract types)
         this.bottomIconsConfig = {
-            count: 4,
+            count: 6,
             spacing: 260, // Preserved but now calculated dynamically based on main title width
             iconIds: new Array(6).fill(23)  // All slots use celebration icon (ID 23), supports up to 6 icons
         };
@@ -1277,11 +1277,23 @@ class TemplateEditor {
             this.bottomIconsConfig.iconIds.push(this.defaultIcons.bottom);
         }
         
-        // Validate that all slots have valid icon IDs (numbers)
+        // 🔥 SMART VALIDATION: Preserve user selections, only default truly empty slots
         for (let i = 0; i < 6; i++) {
-            if (!this.bottomIconsConfig.iconIds[i] || typeof this.bottomIconsConfig.iconIds[i] !== 'number') {
+            const currentValue = this.bottomIconsConfig.iconIds[i];
+            
+            // Only set default for truly empty/invalid slots
+            // Preserve all valid numeric icon IDs (user selections)
+            if (currentValue === null || 
+                currentValue === undefined || 
+                typeof currentValue !== 'number' || 
+                currentValue <= 0 || 
+                !Number.isInteger(currentValue)) {
+                
                 this.bottomIconsConfig.iconIds[i] = this.defaultIcons.bottom;
-                console.log(`🔧 Fixed: Set iconIds[${i}] to default (${this.defaultIcons.bottom})`);
+                console.log(`🔧 Set empty/invalid slot ${i} to default (${this.defaultIcons.bottom})`);
+            } else {
+                // Valid user selection - preserve it
+                console.log(`🔒 Preserving user selection in slot ${i}: ${currentValue}`);
             }
         }
         

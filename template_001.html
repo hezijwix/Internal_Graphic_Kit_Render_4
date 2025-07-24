@@ -235,8 +235,8 @@
                     <div class="form-group">
                         <label for="icon-count">Number of Icons (0-6)</label>
                         <div class="slider-container">
-                            <input type="range" id="icon-count" min="0" max="6" value="4">
-                            <span class="slider-value">4</span>
+                            <input type="range" id="icon-count" min="0" max="6" value="6">
+                            <span class="slider-value">6</span>
                         </div>
                     </div>
                     
@@ -1267,7 +1267,7 @@
                 function updateBottomIconsUI() {
                     // Get icon count from slider value directly to ensure sync
                     const iconCountSlider = document.getElementById('icon-count');
-                    const iconCount = iconCountSlider ? parseInt(iconCountSlider.value) : 4;
+                    const iconCount = iconCountSlider ? parseInt(iconCountSlider.value) : 6;
                     
                     console.log(`🔧 Updating bottom icons UI for count: ${iconCount}`);
                     
@@ -1449,19 +1449,21 @@
                         // Update slider display
                         updateSliderValue();
                         
-                        // Update editor config
-                        if (editor.bottomIconsConfig) {
-                            editor.bottomIconsConfig.count = newCount;
-                        }
-                        
-                        // Update UI
-                        updateBottomIconsUI();
-                        
-                        // Update canvas if needed
-                        if (editor.createBottomIconsExact) {
-                            editor.createBottomIconsExact();
-                            editor.recalculateLayout();
-                            editor.stage.batchDraw();
+                        // 🔥 FIX: Use smart icon count update that preserves selections
+                        if (editor.updateBottomIconCount) {
+                            editor.updateBottomIconCount(newCount);
+                        } else {
+                            console.warn('⚠️ Smart icon count update not available, falling back to old method');
+                            // Fallback to old method if new one isn't available
+                            if (editor.bottomIconsConfig) {
+                                editor.bottomIconsConfig.count = newCount;
+                            }
+                            updateBottomIconsUI();
+                            if (editor.createBottomIconsExact) {
+                                editor.createBottomIconsExact();
+                                editor.recalculateLayout();
+                                editor.stage.batchDraw();
+                            }
                         }
                     });
                     
