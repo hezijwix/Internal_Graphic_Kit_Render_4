@@ -515,16 +515,40 @@ class TemplateEditor {
         const iconCountValue = iconCountSlider?.nextElementSibling;
         
         if (iconCountSlider) {
+            // Add debouncing to prevent rapid successive calls
+            let iconCountTimeout;
+            
             iconCountSlider.addEventListener('input', () => {
-                this.bottomIconsConfig.count = parseInt(iconCountSlider.value);
+                const newCount = parseInt(iconCountSlider.value);
+                console.log(`🎛️ Icon count slider changed to: ${newCount}`);
+                
+                // Update UI immediately for responsiveness
                 if (iconCountValue) {
-                    iconCountValue.textContent = iconCountSlider.value;
+                    iconCountValue.textContent = newCount;
                 }
-                this.updateIconSlots();
-                // Recreate bottom icons with new count
-                this.createBottomIconsExact();
-                this.recalculateLayout();
-                this.stage.batchDraw();
+                
+                // Clear existing timeout
+                if (iconCountTimeout) {
+                    clearTimeout(iconCountTimeout);
+                }
+                
+                // Debounce the actual icon recreation to prevent overlapping calls
+                iconCountTimeout = setTimeout(() => {
+                    try {
+                        console.log(`⚡ Executing debounced icon count change to: ${newCount}`);
+                        this.bottomIconsConfig.count = newCount;
+                        this.updateIconSlots();
+                        
+                        // Recreate bottom icons with new count
+                        this.createBottomIconsExact();
+                        this.recalculateLayout();
+                        this.stage.batchDraw();
+                        
+                        console.log(`✅ Icon count change completed successfully`);
+                    } catch (error) {
+                        console.error('❌ Error during icon count change:', error);
+                    }
+                }, 150); // 150ms debounce
             });
         }
         
@@ -2306,11 +2330,33 @@ class TemplateEditor {
     }
     
     createBottomIconsExact() {
-        // Clear existing bottom icons
-        this.templateObjects.bottomIcons.forEach(icon => icon.destroy());
+        console.log('🔄 Starting createBottomIconsExact() - cleaning up existing icons...');
+        
+        // Ensure bottomIcons array exists before clearing
+        if (!this.templateObjects.bottomIcons) {
+            this.templateObjects.bottomIcons = [];
+        }
+        
+        // Clear existing bottom icons safely
+        if (Array.isArray(this.templateObjects.bottomIcons)) {
+            this.templateObjects.bottomIcons.forEach((icon, index) => {
+                if (icon && typeof icon.destroy === 'function') {
+                    console.log(`🗑️ Destroying existing bottom icon ${index + 1}`);
+                    icon.destroy();
+                }
+            });
+        }
+        
+        // Reset the array
         this.templateObjects.bottomIcons = [];
         
+        // Force a layer redraw to ensure destroyed icons are removed
+        if (this.contentLayer) {
+            this.contentLayer.batchDraw();
+        }
+        
         if (!this.layerVisibility.bottomIcons || this.bottomIconsConfig.count === 0) {
+            console.log('⏭️ Skipping icon creation - visibility or count is 0');
             return;
         }
         
@@ -2333,9 +2379,15 @@ class TemplateEditor {
         // Calculate dynamic positions based on main title width
         const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
         
+        console.log(`🎯 Creating ${this.bottomIconsConfig.count} bottom icons...`);
+        console.log(`📍 Icon positions:`, iconPositions);
+        console.log(`📐 Y position: ${iconY}`);
+        
         // Create icons based on configuration array
         for (let i = 0; i < this.bottomIconsConfig.count; i++) {
             const iconType = this.bottomIconsConfig.icons[i] || 'circle'; // Default to circle
+            console.log(`🔨 Creating icon ${i + 1}/${this.bottomIconsConfig.count} of type: ${iconType}`);
+            
             const icon = this.createBottomIcon(iconType, iconPositions[i], iconY, currentTextColor);
             
             if (icon) {
@@ -2347,8 +2399,17 @@ class TemplateEditor {
                 
                 this.templateObjects.bottomIcons.push(icon);
                 this.contentLayer.add(icon);
-                console.log(`✅ Bottom icon ${i + 1} (${iconType}) created and set to visible at x:${iconPositions[i]}, y:${iconY}`);
+                console.log(`✅ Bottom icon ${i + 1} (${iconType}) created and added to layer at x:${iconPositions[i]}, y:${iconY}`);
+            } else {
+                console.error(`❌ Failed to create bottom icon ${i + 1} of type: ${iconType}`);
             }
+        }
+        
+        console.log(`🏁 Finished creating bottom icons. Total created: ${this.templateObjects.bottomIcons.length}`);
+        
+        // Final layer redraw to ensure all icons are visible
+        if (this.contentLayer) {
+            this.contentLayer.batchDraw();
         }
         
         // Update GSAP timeline to include new icons (this will handle initial positions)
@@ -2798,13 +2859,39 @@ class TemplateEditor {
     
     /**
      * Set all elements to their initial positions (before animation)
+     * Only applies to elements with enabled animations
      */
     setElementsToInitialPositions() {
-        console.log('📥 Setting all elements to initial positions...');
+        console.log('📥 Setting initial positions for enabled animation elements...');
         
         Object.keys(this.positionStates.initial).forEach(elementName => {
             const initialPos = this.positionStates.initial[elementName];
             const element = this.templateObjects[elementName];
+            
+            // Check if element has enabled animations in Template Animation config
+            const animConfig = window.TemplateAnimations || {};
+            let isAnimationEnabled = false;
+            
+            // Check text elements
+            if (animConfig.text && animConfig.text[elementName]) {
+                isAnimationEnabled = animConfig.text[elementName].enabled;
+            }
+            // Check icon elements  
+            else if (animConfig.icons && animConfig.icons[elementName]) {
+                isAnimationEnabled = animConfig.icons[elementName].enabled;
+            }
+            // Check background elements
+            else if (animConfig.background && animConfig.background[elementName]) {
+                isAnimationEnabled = animConfig.background[elementName].enabled;
+            }
+            
+            // Skip setting initial positions for disabled elements
+            if (!isAnimationEnabled) {
+                console.log(`⏭️ Skipping initial position for disabled element: ${elementName}`);
+                return;
+            }
+            
+            console.log(`🎯 Setting initial position for enabled element: ${elementName}`);
             
             if (elementName === 'bottomIcons' && Array.isArray(element)) {
                 // Handle bottom icons array

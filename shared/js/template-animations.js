@@ -21,15 +21,9 @@ const TemplateAnimations = {
             hold: { start: 2, end: 8 },      // Hold phase: 2-8 seconds  
             exit: { start: 8, end: 10 }      // Exit phase: 8-10 seconds
         },
-        stagger: {
-            offsetFrames: 10,    // Frame offset between consecutive visible title elements
-            get offsetSeconds() { 
-                return this.offsetFrames / TemplateAnimations.global.timeline.fps; 
-            }
-        },
         defaults: {
             ease: "expo.out",    // Default easing for all animations
-            stagger: 0.1         // Default stagger between elements (legacy)
+            stagger: 0.1         // Default stagger between elements
         }
     },
 
@@ -41,13 +35,32 @@ const TemplateAnimations = {
             name: "Main Title",
             enabled: true,
             animations: {
+                // Primary animation: Slide in from below
                 intro: {
-                    from: { y: "+50", opacity: 0 },      // Start 50px below base position
+                    from: { y: "+50", opacity: 0 },     
                     to: { y: "0", opacity: 1 },          // End at base position
-                    duration: 3,                         // 3 seconds
-                    ease: "expo.out"                     // Exponential ease out
-                    // delay: calculated dynamically based on stagger.offsetFrames
+                    duration: 3,                         
+                    ease: "expo.out",                    
+                    delay: 0.5,                          
+                    stagger: 0                           
+                },
+                hold: {
+                    // Stays at base position during hold phase
+                    duration: 6    // 2s-8s = 6 seconds
+                },
+                exit: {
+                    from: { y: "0", opacity: 1 },
+                    to: { y: "-50", opacity: 0 },        // Exit upward
+                    duration: 1,
+                    ease: "power2.in",
+                    delay: 0
                 }
+            },
+            // Character-level animation options
+            characterAnimation: {
+                enabled: false,      // Enable individual character control
+                type: "none",        // "typewriter", "wave", "stagger"
+                spacing: 2           // Extra spacing between characters
             }
         },
 
@@ -56,12 +69,26 @@ const TemplateAnimations = {
             enabled: true,
             animations: {
                 intro: {
-                    from: { y: "+50", opacity: 0 },      // Start 50px below base position
-                    to: { y: "0", opacity: 1 },          // End at base position
-                    duration: 3,                         // 3 seconds
-                    ease: "expo.out"                     // Exponential ease out
-                    // delay: calculated dynamically based on stagger.offsetFrames
+                    from: { y: "-30", opacity: 0 },      // Start 30px above
+                    to: { y: "0", opacity: 1 },
+                    duration: 1.5,
+                    ease: "back.out(1.7)",
+                    delay: 0.2,
+                    stagger: 0
+                },
+                hold: { duration: 6.3 },
+                exit: {
+                    from: { y: "0", opacity: 1 },
+                    to: { y: "-30", opacity: 0 },
+                    duration: 0.8,
+                    ease: "power2.in",
+                    delay: 0.1
                 }
+            },
+            characterAnimation: {
+                enabled: false,
+                type: "none",
+                spacing: 1
             }
         },
 
@@ -70,12 +97,26 @@ const TemplateAnimations = {
             enabled: true,
             animations: {
                 intro: {
-                    from: { y: "+50", opacity: 0 },      // Start 50px below base position
-                    to: { y: "0", opacity: 1 },          // End at base position
-                    duration: 3,                         // 3 seconds
-                    ease: "expo.out"                     // Exponential ease out
-                    // delay: calculated dynamically based on stagger.offsetFrames
+                    from: { y: "+50", opacity: 0 },      // Subtle upward movement like main title
+                    to: { y: "0", opacity: 1 },
+                    duration: 2.5,
+                    ease: "expo.out",                    // Same easing as main title
+                    delay: 1.0,
+                    stagger: 0
+                },
+                hold: { duration: 5.5 },
+                exit: {
+                    from: { y: "0", opacity: 1 },
+                    to: { y: "-50", opacity: 0 },        // Exit upward
+                    duration: 1,
+                    ease: "power2.in",
+                    delay: 0.2
                 }
+            },
+            characterAnimation: {
+                enabled: false,
+                type: "none",
+                spacing: 1
             }
         },
 
@@ -84,12 +125,26 @@ const TemplateAnimations = {
             enabled: true,
             animations: {
                 intro: {
-                    from: { y: "+50", opacity: 0 },      // Start 50px below base position
-                    to: { y: "0", opacity: 1 },          // End at base position
-                    duration: 3,                         // 3 seconds
-                    ease: "expo.out"                     // Exponential ease out
-                    // delay: calculated dynamically based on stagger.offsetFrames
+                    from: { y: "+50", opacity: 0 },      // Subtle upward movement like main title
+                    to: { y: "0", opacity: 1 },
+                    duration: 2.2,
+                    ease: "expo.out",                    // Same easing as main title
+                    delay: 1.2,
+                    stagger: 0
+                },
+                hold: { duration: 5.3 },
+                exit: {
+                    from: { y: "0", opacity: 1 },
+                    to: { y: "-50", opacity: 0 },        // Exit upward
+                    duration: 0.8,
+                    ease: "power2.in",
+                    delay: 0.3
                 }
+            },
+            characterAnimation: {
+                enabled: false,
+                type: "none",
+                spacing: 1
             }
         }
     },
@@ -100,12 +155,68 @@ const TemplateAnimations = {
     icons: {
         topIcon: {
             name: "Top Icon",
-            enabled: false
+            enabled: true,
+            animations: {
+                intro: {
+                    from: { scaleX: 0, scaleY: 0, rotation: -180, opacity: 0 },
+                    to: { scaleX: 1, scaleY: 1, rotation: 0, opacity: 1 },
+                    duration: 2.5,
+                    ease: "back.out(2)",
+                    delay: 0.3,
+                    stagger: 0
+                },
+                hold: { 
+                    duration: 5.7,
+                    // Optional continuous animation during hold
+                    continuous: {
+                        enabled: false,
+                        type: "pulse",           // "pulse", "float", "rotate", "glow"
+                        amplitude: 1.1,          // Scale factor for pulse
+                        speed: 2                 // Animation speed
+                    }
+                },
+                exit: {
+                    from: { scaleX: 1, scaleY: 1, rotation: 0, opacity: 1 },
+                    to: { scaleX: 0, scaleY: 0, rotation: 180, opacity: 0 },
+                    duration: 1.2,
+                    ease: "power2.in",
+                    delay: 0
+                }
+            }
         },
 
         bottomIcons: {
             name: "Bottom Icons",
-            enabled: false
+            enabled: false,              // DISABLED - Keep icons static at base position
+            count: 4,                    // Number of bottom icons
+            animations: {
+                intro: {
+                    from: { y: "+30", opacity: 0, scaleX: 0.8, scaleY: 0.8, rotation: 0 },
+                    to: { y: "0", opacity: 1, scaleX: 1, scaleY: 1, rotation: 0 },
+                    duration: 1.2,
+                    ease: "back.out(1.7)",
+                    delay: 1.8,
+                    stagger: 0.08            // Faster stagger for smoother reveal
+                },
+                hold: { 
+                    duration: 4.4,          // Adjusted for new timing
+                    continuous: {
+                        enabled: false,      // Disabled floating for cleaner look
+                        type: "pulse",       // Changed to subtle pulse
+                        amplitude: 1.05,     // Very subtle scale change
+                        speed: 4,            // Slower, more elegant
+                        stagger: 0.1         // Reduced stagger
+                    }
+                },
+                exit: {
+                    from: { y: "0", opacity: 1, scaleX: 1, scaleY: 1, rotation: 0 },
+                    to: { y: "-20", opacity: 0, scaleX: 0.9, scaleY: 0.9, rotation: 0 },
+                    duration: 0.8,
+                    ease: "power2.in",
+                    delay: 0.2,
+                    stagger: 0.06            // Faster exit stagger
+                }
+            }
         }
     },
 
@@ -115,7 +226,24 @@ const TemplateAnimations = {
     background: {
         main: {
             name: "Background",
-            enabled: false
+            enabled: false,              // Usually static
+            animations: {
+                intro: {
+                    from: { opacity: 0 },
+                    to: { opacity: 1 },
+                    duration: 1,
+                    ease: "none",
+                    delay: 0
+                },
+                hold: { duration: 8 },
+                exit: {
+                    from: { opacity: 1 },
+                    to: { opacity: 0 },
+                    duration: 1,
+                    ease: "none",
+                    delay: 0
+                }
+            }
         }
     },
 
@@ -123,12 +251,68 @@ const TemplateAnimations = {
     // ANIMATION PRESETS
     // ===================================
     presets: {
-        current: "default",
+        current: "slideInFromBelow",     // Active preset
         
-        default: {
-            name: "Default",
-            description: "Main title animation only",
-            overrides: {}
+        slideInFromBelow: {
+            name: "Slide In From Below",
+            description: "Elements slide up with staggered timing",
+            // Preset can override individual element settings
+            overrides: {
+                "text.mainTitle.animations.intro.from": { y: "+100", opacity: 0 },
+                "text.mainTitle.animations.intro.ease": "expo.out",
+                "text.topTitle.animations.intro.from": { y: "-30", opacity: 0 },
+                "text.subtitle1.animations.intro.from": { x: "-50", opacity: 0 },
+                "text.subtitle2.animations.intro.from": { scaleX: 0, scaleY: 0, opacity: 0 }
+            }
+        },
+        
+        fadeInSequence: {
+            name: "Fade In Sequence", 
+            description: "Simple fade in with staggered timing",
+            overrides: {
+                "text.mainTitle.animations.intro.from": { opacity: 0 },
+                "text.mainTitle.animations.intro.to": { opacity: 1 },
+                "text.mainTitle.animations.intro.ease": "power2.out",
+                "text.topTitle.animations.intro.from": { opacity: 0 },
+                "text.topTitle.animations.intro.to": { opacity: 1 },
+                "text.subtitle1.animations.intro.from": { opacity: 0 },
+                "text.subtitle1.animations.intro.to": { opacity: 1 },
+                "text.subtitle2.animations.intro.from": { opacity: 0 },
+                "text.subtitle2.animations.intro.to": { opacity: 1 }
+            }
+        },
+        
+        dynamicEntrance: {
+            name: "Dynamic Entrance",
+            description: "Mixed animation types for dynamic feel",
+            overrides: {
+                "text.mainTitle.animations.intro.ease": "bounce.out",
+                "text.mainTitle.animations.intro.duration": 2.5,
+                "text.topTitle.animations.intro.ease": "elastic.out(1, 0.3)",
+                "text.subtitle1.animations.intro.ease": "back.out(1.7)",
+                "text.subtitle2.animations.intro.ease": "power4.out",
+                "icons.topIcon.animations.intro.ease": "elastic.out(2, 0.3)",
+                "icons.bottomIcons.animations.intro.ease": "back.out(2)"
+            }
+        },
+
+        minimal: {
+            name: "Minimal",
+            description: "Subtle animations for professional look",
+            overrides: {
+                "text.mainTitle.animations.intro.from": { y: "+20", opacity: 0 },
+                "text.mainTitle.animations.intro.duration": 1.5,
+                "text.mainTitle.animations.intro.ease": "power2.out",
+                "text.topTitle.animations.intro.from": { y: "-10", opacity: 0 },
+                "text.topTitle.animations.intro.duration": 1,
+                "text.subtitle1.animations.intro.from": { opacity: 0 },
+                "text.subtitle1.animations.intro.duration": 1,
+                "text.subtitle2.animations.intro.from": { opacity: 0 },
+                "text.subtitle2.animations.intro.duration": 1,
+                "icons.topIcon.animations.intro.from": { scaleX: 0.8, scaleY: 0.8, opacity: 0 },
+                "icons.topIcon.animations.intro.to": { scaleX: 1, scaleY: 1, opacity: 1 },
+                "icons.topIcon.animations.intro.ease": "power2.out"
+            }
         }
     },
 
@@ -219,33 +403,6 @@ const TemplateAnimations = {
                 }
             });
             return presets;
-        },
-        
-        // Function to set the stagger offset in frames
-        setStaggerOffset: function(frames) {
-            TemplateAnimations.global.stagger.offsetFrames = frames;
-            console.log(`🎛️ Stagger offset updated to ${frames} frames (${TemplateAnimations.global.stagger.offsetSeconds.toFixed(3)}s)`);
-        },
-        
-        // Function to calculate dynamic delays based on visible title elements
-        calculateDynamicDelays: function() {
-            const titleOrder = ['topTitle', 'mainTitle', 'subtitle1', 'subtitle2'];
-            const enabledTitles = titleOrder.filter(titleName => 
-                TemplateAnimations.text[titleName] && TemplateAnimations.text[titleName].enabled
-            );
-            
-            const offsetSeconds = TemplateAnimations.global.stagger.offsetSeconds;
-            const delays = {};
-            
-            console.log(`🎬 Calculating dynamic delays for ${enabledTitles.length} visible titles`);
-            console.log(`📊 Frame offset: ${TemplateAnimations.global.stagger.offsetFrames} frames = ${offsetSeconds.toFixed(3)}s`);
-            
-            enabledTitles.forEach((titleName, index) => {
-                delays[titleName] = index * offsetSeconds;
-                console.log(`   ${titleName}: ${delays[titleName].toFixed(3)}s (position ${index + 1})`);
-            });
-            
-            return delays;
         },
         
         // Function to validate animation configuration
