@@ -92,14 +92,14 @@ class TemplateEditor {
         // 🔥 NEW: Default icon configurations using REAL gallery icons
         this.defaultIcons = {
             top: 50,        // Default to star icon (icon-050-stars.svg)
-            bottom: 50      // Same default icon for ALL bottom icons (simplified)
+            bottom: 23      // Default to celebration icon (icon-023-celebration.svg)
         };
         
         // Bottom icons configuration - NOW USING GALLERY IDs
         this.bottomIconsConfig = {
             count: 4,
             spacing: 260,
-            iconIds: new Array(6).fill(this.defaultIcons.bottom)  // All slots use same default icon
+            iconIds: new Array(6).fill(23)  // All slots use celebration icon (ID 23)
         };
         
         // Top icon configuration - NOW USING GALLERY ID
@@ -149,6 +149,10 @@ class TemplateEditor {
         this.isDragging = false;
         this.lastMouseX = 0;
         this.lastMouseY = 0;
+        
+        // 🔥 NEW: Prevent overlapping gallery loading operations
+        this.isLoadingBottomIcons = false;
+        this.isLoadingTopIcon = false;
         
         this.initializeApp();
     }
@@ -255,14 +259,21 @@ class TemplateEditor {
         this.stage.add(this.contentLayer);
         this.stage.add(this.uiLayer);
         
-        // Initialize template objects
-        this.createTemplateObjects();
-        
-        // Setup interaction handlers
-        this.setupCanvasInteraction();
-        
-        // Create GSAP timeline
-        this.createGSAPTimeline();
+        // Initialize template objects and wait for all icons to load
+        this.createTemplateObjects().then(() => {
+            console.log('🎬 All template objects ready, creating GSAP timeline...');
+            
+            // Setup interaction handlers
+            this.setupCanvasInteraction();
+            
+            // Create GSAP timeline after all icons are loaded
+            this.createGSAPTimeline();
+        }).catch(error => {
+            console.error('❌ Error during template objects creation:', error);
+            // Fallback: create timeline anyway
+            this.setupCanvasInteraction();
+            this.createGSAPTimeline();
+        });
         
         console.log('Konva stage initialized: 1920x1080');
     }
@@ -565,13 +576,16 @@ class TemplateEditor {
                 iconCountTimeout = setTimeout(() => {
                     try {
                         console.log(`⚡ Executing debounced icon count change to: ${newCount}`);
+                        console.log(`📊 Current iconIds before count change: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+                        
                         this.bottomIconsConfig.count = newCount;
                         this.updateIconSlots();
                         
-                        // Recreate bottom icons with new count
-                        this.createBottomIconsExact();
+                        console.log(`📊 iconIds after updateIconSlots: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+                        
+                        // 🔥 FIXED: Only call recalculateLayout - it handles icon recreation
+                        // Remove duplicate createBottomIconsExact() call
                         this.recalculateLayout();
-                        this.stage.batchDraw();
                         
                         console.log(`✅ Icon count change completed successfully`);
                     } catch (error) {
@@ -594,6 +608,7 @@ class TemplateEditor {
                 this.bottomIconsConfig.iconIds[slotIndex] = iconId;
                 
                 console.log(`🎨 Icon slot ${slotIndex + 1} changed to type "${iconType}" (Gallery ID: ${iconId})`);
+                console.log(`📊 Updated iconIds array: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
                 
                 // Update UI
                 slot.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
@@ -607,7 +622,7 @@ class TemplateEditor {
                 clearTimeout(this.iconSelectionTimeout);
                 this.iconSelectionTimeout = setTimeout(() => {
                     this.loadBottomIconsFromGallery();
-                    this.recalculateLayout();
+                    // Note: recalculateLayout() is not needed here since loadBottomIconsFromGallery handles positioning
                 }, 100);
             }
         });
@@ -1170,9 +1185,37 @@ class TemplateEditor {
         }, 100);
     }
     
+    /**
+     * Validate and maintain iconIds array integrity
+     */
+    validateIconIdsArray() {
+        // Ensure iconIds array always has 6 elements
+        if (!Array.isArray(this.bottomIconsConfig.iconIds)) {
+            console.warn('⚠️ iconIds is not an array, reinitializing...');
+            this.bottomIconsConfig.iconIds = new Array(6).fill(this.defaultIcons.bottom);
+        }
+        
+        // Ensure array has exactly 6 elements
+        while (this.bottomIconsConfig.iconIds.length < 6) {
+            this.bottomIconsConfig.iconIds.push(this.defaultIcons.bottom);
+        }
+        
+        // Replace any null/undefined values with default
+        for (let i = 0; i < 6; i++) {
+            if (!this.bottomIconsConfig.iconIds[i]) {
+                this.bottomIconsConfig.iconIds[i] = this.defaultIcons.bottom;
+            }
+        }
+        
+        console.log(`✅ iconIds array validated: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+    }
+    
     updateIconSlots() {
         const iconSlotsContainer = document.querySelector('.icon-slots');
         if (!iconSlotsContainer) return;
+        
+        // Validate iconIds array before creating slots
+        this.validateIconIdsArray();
         
         // Clear existing slots
         iconSlotsContainer.innerHTML = '';
@@ -1191,7 +1234,7 @@ class TemplateEditor {
         const currentIconId = this.bottomIconsConfig.iconIds[slotIndex] || this.defaultIcons.bottom;
         
         // Map icon ID back to abstract type for UI display (reverse mapping)
-        let currentIconType = 'star'; // Default fallback
+        let currentIconType = 'heart'; // Default fallback to celebration icon
         for (const [type, id] of Object.entries(this.iconMapping)) {
             if (id === currentIconId) {
                 currentIconType = type;
@@ -1199,7 +1242,10 @@ class TemplateEditor {
             }
         }
         
-        console.log(`🎨 Creating icon slot ${slotIndex + 1} with icon ID ${currentIconId} (type: ${currentIconType})`);
+        console.log(`🔧 Creating icon slot ${slotIndex + 1}:`);
+        console.log(`   📊 Current iconId: ${currentIconId}`);
+        console.log(`   📊 Mapped to type: ${currentIconType}`);
+        console.log(`   📊 Full iconIds array: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
         
         const slot = document.createElement('div');
         slot.className = 'icon-slot active';
@@ -2227,7 +2273,7 @@ class TemplateEditor {
         timeDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}:${String(Math.floor(seconds)).padStart(2, '0')}:${String(frames).padStart(2, '0')}`;
     }
     
-    createTemplateObjects() {
+    async createTemplateObjects() {
         console.log('Creating template objects to match Figma design...');
         
         // Create background (black)
@@ -2368,11 +2414,18 @@ class TemplateEditor {
         // 🔥 NEW: Load icons using unified gallery system
         console.log('🎨 Loading icons using unified gallery system...');
         
-        // Load top icon from gallery
-        this.loadTopIconFromGallery();
-        
-        // Load bottom icons from gallery  
-        this.loadBottomIconsFromGallery();
+        try {
+            // Load both top and bottom icons concurrently and wait for completion
+            console.log('⏳ Waiting for all icons to load...');
+            await Promise.all([
+                this.loadTopIconFromGallery(false), // Don't update timeline on initial load
+                this.loadBottomIconsFromGallery(false) // Don't update timeline on initial load
+            ]);
+            console.log('✅ All icons loaded successfully!');
+        } catch (error) {
+            console.error('❌ Error loading icons:', error);
+            // Continue anyway - timeline will work with whatever icons are available
+        }
         
         // Skip setting initial hidden positions - let icons stay visible
         // this.setInitialPositions(); // COMMENTED OUT to prevent hiding icons
@@ -5395,7 +5448,7 @@ class TemplateEditor {
     /**
      * UNIFIED: Load top icon using gallery system
      */
-    async loadTopIconFromGallery() {
+    async loadTopIconFromGallery(updateTimeline = true) {
         console.log('🔝 Loading top icon from gallery...');
         
         try {
@@ -5418,7 +5471,11 @@ class TemplateEditor {
             this.templateObjects.topIcon = icon;
             this.contentLayer.add(icon);
             this.stage.batchDraw();
-            this.updateGSAPTimeline();
+            
+            // Only update timeline if requested (not on initial load)
+            if (updateTimeline) {
+                this.updateGSAPTimeline();
+            }
             
             console.log('✅ Top icon loaded from gallery successfully');
         } catch (error) {
@@ -5429,7 +5486,14 @@ class TemplateEditor {
     /**
      * UNIFIED: Load all bottom icons using gallery system  
      */
-    async loadBottomIconsFromGallery() {
+    async loadBottomIconsFromGallery(updateTimeline = true) {
+        // 🔥 PREVENT DUPLICATION: Check if already loading
+        if (this.isLoadingBottomIcons) {
+            console.log('🚫 Bottom icons already loading, skipping duplicate call');
+            return;
+        }
+        
+        this.isLoadingBottomIcons = true;
         console.log('🔽 Loading bottom icons from gallery...');
         console.log(`📊 Debug: bottomIconsConfig.count = ${this.bottomIconsConfig.count}`);
         console.log(`📊 Debug: bottomIconsConfig.iconIds = [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
@@ -5493,11 +5557,18 @@ class TemplateEditor {
             });
             
             this.stage.batchDraw();
-            this.updateGSAPTimeline();
+            
+            // Only update timeline if requested (not on initial load)
+            if (updateTimeline) {
+                this.updateGSAPTimeline();
+            }
             
             console.log(`✅ All ${icons.length} bottom icons loaded from gallery successfully`);
         } catch (error) {
             console.error('❌ Failed to load bottom icons from gallery:', error);
+        } finally {
+            // 🔥 ALWAYS reset loading flag
+            this.isLoadingBottomIcons = false;
         }
     }
 }
