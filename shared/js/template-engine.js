@@ -164,6 +164,9 @@ class TemplateEditor {
         // 🔥 CLEAN: Prevent overlapping gallery loading operations
         this.isLoadingBottomIcons = false;
         this.isLoadingTopIcon = false;
+        
+        // Initialize the application
+        this.initializeApp();
     }
     
     /**
@@ -216,9 +219,6 @@ class TemplateEditor {
         } catch (error) {
             console.error(`❌ Failed to recreate bottom icon ${index + 1}:`, error);
         }
-    }
-    
-    initializeApp() {
     }
     
     initializeApp() {
