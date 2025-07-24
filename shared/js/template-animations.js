@@ -187,34 +187,48 @@ const TemplateAnimations = {
 
         bottomIcons: {
             name: "Bottom Icons",
-            enabled: false,              // DISABLED - Keep icons static at base position
-            count: 4,                    // Number of bottom icons
+            enabled: true,               // ENABLED - Animate bottom icons
+            count: 4,                    // Number of bottom icons (dynamic)
             animations: {
+                // Intro: Clean opacity fade-in with subtle stagger
                 intro: {
-                    from: { y: "+30", opacity: 0, scaleX: 0.8, scaleY: 0.8, rotation: 0 },
-                    to: { y: "0", opacity: 1, scaleX: 1, scaleY: 1, rotation: 0 },
-                    duration: 1.2,
-                    ease: "back.out(1.7)",
-                    delay: 1.8,
-                    stagger: 0.08            // Faster stagger for smoother reveal
+                    from: { opacity: 0 },                    // Start invisible
+                    to: { opacity: 1 },                      // Fade to full opacity
+                    duration: 3.0,                           // Subtle 3-second fade for elegant reveal
+                    ease: "power2.out",                      // Smooth easing
+                    delay: 1.6,                              // Start after main content settles
+                    stagger: 0.12,                           // Nice staggered reveal (120ms between icons)
+                    
+                    // Animation behavior settings
+                    maintainPosition: true,                   // Keep icons at their base positions
+                    respectVisibility: true                   // Only animate visible icons
                 },
+                
+                // Hold: Static during main content display
                 hold: { 
-                    duration: 4.4,          // Adjusted for new timing
+                    duration: 4.8,                           // Hold from 2s to 8s (6.8s total, accounting for intro delay)
+                    
+                    // Optional continuous animation during hold (disabled for clean look)
                     continuous: {
-                        enabled: false,      // Disabled floating for cleaner look
-                        type: "pulse",       // Changed to subtle pulse
-                        amplitude: 1.05,     // Very subtle scale change
-                        speed: 4,            // Slower, more elegant
-                        stagger: 0.1         // Reduced stagger
+                        enabled: false,                       // Clean static look during hold
+                        type: "pulse",                        // Subtle pulse if enabled
+                        amplitude: 1.02,                      // Very subtle scale (2%)
+                        speed: 3,                             // Slow, elegant timing
+                        stagger: 0.15                         // Gentle stagger offset
                     }
                 },
+                
+                // Exit: Fade out with stagger
                 exit: {
-                    from: { y: "0", opacity: 1, scaleX: 1, scaleY: 1, rotation: 0 },
-                    to: { y: "-20", opacity: 0, scaleX: 0.9, scaleY: 0.9, rotation: 0 },
-                    duration: 0.8,
-                    ease: "power2.in",
-                    delay: 0.2,
-                    stagger: 0.06            // Faster exit stagger
+                    from: { opacity: 1 },                    // Start at full opacity
+                    to: { opacity: 0 },                      // Fade to invisible
+                    duration: 0.6,                           // Quick fade out
+                    ease: "power2.in",                       // Accelerating fade
+                    delay: 0.1,                              // Slight delay after exit phase starts
+                    stagger: 0.08,                           // Faster exit stagger (80ms between icons)
+                    
+                    // Exit behavior settings
+                    maintainPosition: true                    // Keep position during fade
                 }
             }
         }

@@ -56,7 +56,10 @@ class TemplateEditor {
             bottom: [null, null, null, null, null, null] // Support up to 6 bottom icons
         };
         
-
+        // Add async operation tracking to prevent race conditions
+        this.pendingIconOperations = new Set();
+        this.iconCreationSequence = 0; // Sequence number for icon operations
+        this.iconSelectionTimeout = null; // Debouncing timeout for icon selection
         
         // GSAP Timeline
         this.timeline = null;
@@ -99,7 +102,6 @@ class TemplateEditor {
         // Remove shadow from main title if it exists
         setTimeout(() => this.removeMainTitleShadow(), 200);
         
-        console.log('Template Editor initialized successfully');
     }
     
     setupCanvas() {
@@ -126,13 +128,10 @@ class TemplateEditor {
         // Setup interaction handlers
         this.setupCanvasInteraction();
         
-        // DISABLED: Animation system conflicts with blank timeline approach
-        // this.animationManager = new AnimationManager(this);
         
         // Create blank GSAP timeline
         this.createGSAPTimeline();
         
-        console.log('Konva stage initialized: 1920x1080');
     }
     
     setupEventListeners() {
@@ -410,16 +409,40 @@ class TemplateEditor {
         const iconCountValue = iconCountSlider?.nextElementSibling;
         
         if (iconCountSlider) {
+            // Add debouncing to prevent rapid successive calls
+            let iconCountTimeout;
+            
             iconCountSlider.addEventListener('input', () => {
-                this.bottomIconsConfig.count = parseInt(iconCountSlider.value);
+                const newCount = parseInt(iconCountSlider.value);
+                console.log(`🎛️ Icon count slider changed to: ${newCount}`);
+                
+                // Update UI immediately for responsiveness
                 if (iconCountValue) {
-                    iconCountValue.textContent = iconCountSlider.value;
+                    iconCountValue.textContent = newCount;
                 }
-                this.updateIconSlots();
-                // Recreate bottom icons with new count
-                this.createBottomIconsExact();
-                this.recalculateLayout();
-                this.stage.batchDraw();
+                
+                // Clear existing timeout
+                if (iconCountTimeout) {
+                    clearTimeout(iconCountTimeout);
+                }
+                
+                // Debounce the actual icon recreation to prevent overlapping calls
+                iconCountTimeout = setTimeout(() => {
+                    try {
+                        console.log(`⚡ Executing debounced icon count change to: ${newCount}`);
+                        this.bottomIconsConfig.count = newCount;
+                        this.updateIconSlots();
+                        
+                        // Recreate bottom icons with new count
+                        this.createBottomIconsExact();
+                        this.recalculateLayout();
+                        this.stage.batchDraw();
+                        
+                        console.log(`✅ Icon count change completed successfully`);
+                    } catch (error) {
+                        console.error('❌ Error during icon count change:', error);
+                    }
+                }, 150); // 150ms debounce
             });
         }
         
@@ -442,10 +465,13 @@ class TemplateEditor {
                 const currentIcon = slot.querySelector('.current-icon');
                 currentIcon.innerHTML = button.innerHTML;
                 
-                // Recreate bottom icons with new configuration
-                this.createBottomIconsExact();
-                this.recalculateLayout();
-                this.stage.batchDraw();
+                // Recreate bottom icons with new configuration (add small delay to prevent rapid calls)
+                clearTimeout(this.iconSelectionTimeout);
+                this.iconSelectionTimeout = setTimeout(() => {
+                    this.createBottomIconsExact();
+                    this.recalculateLayout();
+                    this.stage.batchDraw();
+                }, 100);
             }
         });
         
@@ -509,7 +535,6 @@ class TemplateEditor {
             
             // Convert percentage to frame and seek
             const targetFrame = Math.floor((percentage / 100) * this.totalFrames);
-            // DISABLED: this.seekToFrame(targetFrame);
         });
         
         document.addEventListener('mouseup', () => {
@@ -526,7 +551,6 @@ class TemplateEditor {
             
             // Convert percentage to frame and seek
             const targetFrame = Math.floor((percentage / 100) * this.totalFrames);
-            // DISABLED: this.seekToFrame(targetFrame);
         });
     }
     
@@ -541,7 +565,6 @@ class TemplateEditor {
         const colorType = colorGroup.querySelector('label').textContent;
         
         this.updateColor(colorType, color);
-        console.log(`Selected ${colorType}: ${color}`);
     }
     
     selectIcon(iconPreset) {
@@ -549,7 +572,6 @@ class TemplateEditor {
         iconPreset.classList.add('active');
         
         this.renderDefaultTemplate();
-        console.log('Icon selected');
     }
     
     selectAnimation(presetCard) {
@@ -557,7 +579,6 @@ class TemplateEditor {
         presetCard.classList.add('active');
         
         const animationName = presetCard.querySelector('.preset-name').textContent;
-        console.log(`Selected animation: ${animationName}`);
     }
     
     selectLayer(layerItem) {
@@ -565,7 +586,6 @@ class TemplateEditor {
         layerItem.classList.add('active');
         
         const layerName = layerItem.querySelector('.layer-name').textContent;
-        console.log(`Selected layer: ${layerName}`);
     }
     
     toggleLayerVisibility(layerItem) {
@@ -600,7 +620,6 @@ class TemplateEditor {
             this.stage.batchDraw();
         }
         
-        console.log(`Layer ${layerType} visibility toggled: ${!isVisible}`);
     }
     
     toggleLayerLock(layerItem) {
@@ -610,7 +629,6 @@ class TemplateEditor {
         lockBtn.setAttribute('aria-pressed', isLocked);
         lockBtn.style.opacity = isLocked ? '1' : '0.5';
         
-        console.log('Layer lock toggled');
     }
     
     // Content Updates
@@ -626,7 +644,6 @@ class TemplateEditor {
                 textObject.fontSize(dynamicFontSize);
                 // Remove shadow from main title
                 this.removeMainTitleShadow();
-                console.log(`Main title font size updated to: ${dynamicFontSize}px for "${processedText.replace(/\n/g, ' ')}" (${processedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim().length} chars)`);
             }
             
             textObject.text(processedText);
@@ -640,7 +657,6 @@ class TemplateEditor {
             this.layerVisibility[type] = hasContent;
             textObject.visible(hasContent);
             
-            console.log(`${type} visibility auto-set to: ${hasContent} (content: "${processedText.trim()}")`);
             
             // Recalculate layout when text content changes (affects height and visibility)
             this.recalculateLayout();
@@ -655,7 +671,6 @@ class TemplateEditor {
         
         this.updateTemplateProperties();
         
-        console.log(`Updated ${type} text: ${value}`);
     }
     
     processTextForWidth(type, text) {
@@ -908,7 +923,6 @@ class TemplateEditor {
         this.templateObjects.topTitle.offsetX(745); // Center within 1490px width
         this.templateObjects.topTitle.offsetY(this.templateObjects.topTitle.height() / 2);
         this.contentLayer.add(this.templateObjects.topTitle);
-        console.log(`Top title created at Y=${this.templateObjects.topTitle.y()}`);
         currentY += topTitleHeight + elementGap;
         
         // Create main title (dynamic font size, extra bold, uppercase, 2 lines with shadow)
@@ -931,12 +945,10 @@ class TemplateEditor {
             listening: true
         });
         
-        console.log(`Main title created with dynamic font size: ${dynamicFontSize}px for "${mainTitleText.replace(/\n/g, ' ')}" (${mainTitleText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim().length} chars)`);
         // Center the text horizontally and vertically (using fixed width centering)
         this.templateObjects.mainTitle.offsetX(745); // Center within 1490px width
         this.templateObjects.mainTitle.offsetY(this.templateObjects.mainTitle.height() / 2);
         this.contentLayer.add(this.templateObjects.mainTitle);
-        console.log(`Main title created at Y=${this.templateObjects.mainTitle.y()}`);
         currentY += mainTitleHeight + elementGap;
         
         // Create subtitle 1 (75px, bold)
@@ -957,7 +969,6 @@ class TemplateEditor {
         this.templateObjects.subtitle1.offsetX(745); // Center within 1490px width
         this.templateObjects.subtitle1.offsetY(this.templateObjects.subtitle1.height() / 2);
         this.contentLayer.add(this.templateObjects.subtitle1);
-        console.log(`Subtitle 1 created at Y=${this.templateObjects.subtitle1.y()}`);
         currentY += subtitle1Height + elementGap;
         
         // Create subtitle 2 (40px, regular)
@@ -978,7 +989,6 @@ class TemplateEditor {
         this.templateObjects.subtitle2.offsetX(745); // Center within 1490px width
         this.templateObjects.subtitle2.offsetY(this.templateObjects.subtitle2.height() / 2);
         this.contentLayer.add(this.templateObjects.subtitle2);
-        console.log(`Subtitle 2 created at Y=${this.templateObjects.subtitle2.y()}`);
         currentY += subtitle2Height + elementGap;
         
         // Store the bottom icons Y position for the createBottomIconsExact method
@@ -987,7 +997,6 @@ class TemplateEditor {
         // Create bottom icons (4 icons spaced 260px apart)
         this.createBottomIconsExact();
         
-        // DISABLED: Set initial animation positions (everything starts hidden)
         // this.setInitialPositions();
         
         // Initialize text-based visibility
@@ -998,7 +1007,6 @@ class TemplateEditor {
         
         // Initial render
         this.stage.batchDraw();
-        console.log('Template objects creation complete - matches Figma design');
     }
     
     updateIconSlots() {
@@ -1014,7 +1022,6 @@ class TemplateEditor {
             iconSlotsContainer.appendChild(iconSlot);
         }
         
-        console.log(`Created ${this.bottomIconsConfig.count} icon configuration slots`);
     }
     
     createIconSlot(slotIndex) {
@@ -1105,7 +1112,6 @@ class TemplateEditor {
             this.updateTopIconWithPreset(iconType);
         }
         
-        console.log(`Top icon updated to: ${iconType}`);
     }
     
     updateTopIconWithUpload(iconData) {
@@ -1423,7 +1429,6 @@ class TemplateEditor {
         
         this.updateTemplateProperties();
         
-        console.log(`Updated font ${property}: ${value}`);
     }
 
     removeMainTitleShadow() {
@@ -1432,7 +1437,6 @@ class TemplateEditor {
             this.templateObjects.mainTitle.shadowColor(null);
             this.templateObjects.mainTitle.shadowBlur(0);
             this.templateObjects.mainTitle.shadowOffset({ x: 0, y: 0 });
-            console.log('Main title shadow removed');
         }
     }
     
@@ -1476,7 +1480,6 @@ class TemplateEditor {
         
         this.updateTemplateProperties();
         
-        console.log(`Updated ${type}: ${color}`);
     }
     
     setBackgroundTransparency(isTransparent) {
@@ -1513,7 +1516,6 @@ class TemplateEditor {
             this.stage.batchDraw();
         }
         
-        console.log(`Background transparency: ${isTransparent ? 'enabled' : 'disabled'}`);
     }
     
     refreshTimelinePosition() {
@@ -1640,7 +1642,6 @@ class TemplateEditor {
             
             // For now, select the closest option but we could also show custom text
             zoomSelect.value = closest.toString();
-            console.log(`Custom zoom ${this.zoomLevel}% - selected closest option ${closest}%`);
         }
         
         // Update button states
@@ -1663,7 +1664,6 @@ class TemplateEditor {
         }
         
         this.updateCanvasTransform();
-        console.log(`Zoom updated to: ${this.zoomLevel}%`);
     }
     
     initializeZoom() {
@@ -1695,18 +1695,15 @@ class TemplateEditor {
         }
         
         const containerRect = container.getBoundingClientRect();
-        console.log('Container dimensions:', containerRect.width, 'x', containerRect.height);
         
         // Account for padding and borders
         const availableWidth = containerRect.width - 40; // 20px padding on each side
         const availableHeight = containerRect.height - 40;
-        console.log('Available space:', availableWidth, 'x', availableHeight);
         
         // Calculate scale to fit canvas in container
         const scaleX = availableWidth / 1920;
         const scaleY = availableHeight / 1080;
         const scale = Math.min(scaleX, scaleY);
-        console.log('Scale calculations - X:', scaleX, 'Y:', scaleY, 'Final:', scale);
         
         // Convert to percentage and ensure it's within bounds
         const fitZoom = Math.max(this.minZoom, Math.min(this.maxZoom, Math.round(scale * 100)));
@@ -1715,9 +1712,7 @@ class TemplateEditor {
         this.panX = 0;
         this.panY = 0;
         
-        console.log(`Setting zoom from ${this.zoomLevel}% to fit zoom: ${fitZoom}%`);
         this.setZoom(fitZoom);
-        console.log(`Fit to screen complete: ${fitZoom}%`);
     }
     
     updateCanvasTransform() {
@@ -1769,7 +1764,6 @@ class TemplateEditor {
             this.stopGSAPPlayback();
         }
         
-        console.log(`GSAP Playback ${this.isPlaying ? 'started' : 'stopped'}`);
     }
     
     startGSAPPlayback() {
@@ -1825,29 +1819,24 @@ class TemplateEditor {
                 pauseIcons.forEach(icon => icon.classList.add('hidden'));
                 
                 this.stopGSAPPlayback();
-                console.log('GSAP Animation completed');
             }
         }, 1000 / this.fps);
     }
     
     previousFrame() {
         this.currentFrame = Math.max(0, this.currentFrame - 1);
-        // DISABLED: this.seekToFrame(this.currentFrame);
     }
     
     nextFrame() {
         this.currentFrame = Math.min(this.totalFrames - 1, this.currentFrame + 1);
-        // DISABLED: this.seekToFrame(this.currentFrame);
     }
     
     goToBeginning() {
         this.currentFrame = 0;
-        // DISABLED: this.seekToFrame(this.currentFrame);
     }
     
     goToEnd() {
         this.currentFrame = this.totalFrames - 1;
-        // DISABLED: this.seekToFrame(this.currentFrame);
     }
     
     seekToFrame(frameNumber) {
@@ -1888,7 +1877,6 @@ class TemplateEditor {
     }
     
     createTemplateObjects() {
-        console.log('Creating template objects to match Figma design...');
         
         // Create background (black)
         this.templateObjects.background = new Konva.Rect({
@@ -1899,7 +1887,6 @@ class TemplateEditor {
             fill: '#000000'
         });
         this.backgroundLayer.add(this.templateObjects.background);
-        console.log('Background created');
         
         // Calculate total height and center the design vertically
         const canvasHeight = 1080;
@@ -1919,12 +1906,10 @@ class TemplateEditor {
         // Start Y position to center the entire design
         let currentY = (canvasHeight - totalHeight) / 2;
         
-        console.log(`Centering design: total height ${totalHeight}px, starting at Y=${currentY}`);
         
         // Create top icon using configurable system
         if (this.layerVisibility.topIcon) {
             this.createTopIconFromConfig(currentY + (topIconHeight / 2));
-            console.log(`Top icon created at Y=${this.templateObjects.topIcon.y()}`);
             currentY += topIconHeight + elementGap;
         }
         
@@ -1946,7 +1931,6 @@ class TemplateEditor {
         this.templateObjects.topTitle.offsetX(745); // Center within 1490px width
         this.templateObjects.topTitle.offsetY(this.templateObjects.topTitle.height() / 2);
         this.contentLayer.add(this.templateObjects.topTitle);
-        console.log(`Top title created at Y=${this.templateObjects.topTitle.y()}`);
         currentY += topTitleHeight + elementGap;
         
         // Create main title (dynamic font size, extra bold, uppercase, 2 lines with shadow)
@@ -1969,12 +1953,10 @@ class TemplateEditor {
             listening: true
         });
         
-        console.log(`Main title created with dynamic font size: ${dynamicFontSize}px for "${defaultMainTitleText.replace(/\n/g, ' ')}" (${defaultMainTitleText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim().length} chars)`);
         // Center the text horizontally and vertically (using fixed width centering)
         this.templateObjects.mainTitle.offsetX(745); // Center within 1490px width
         this.templateObjects.mainTitle.offsetY(this.templateObjects.mainTitle.height() / 2);
         this.contentLayer.add(this.templateObjects.mainTitle);
-        console.log(`Main title created at Y=${this.templateObjects.mainTitle.y()}`);
         currentY += mainTitleHeight + elementGap;
         
         // Create subtitle 1 (75px, bold)
@@ -1995,7 +1977,6 @@ class TemplateEditor {
         this.templateObjects.subtitle1.offsetX(745); // Center within 1490px width
         this.templateObjects.subtitle1.offsetY(this.templateObjects.subtitle1.height() / 2);
         this.contentLayer.add(this.templateObjects.subtitle1);
-        console.log(`Subtitle 1 created at Y=${this.templateObjects.subtitle1.y()}`);
         currentY += subtitle1Height + elementGap;
         
         // Create subtitle 2 (40px, regular)
@@ -2016,7 +1997,6 @@ class TemplateEditor {
         this.templateObjects.subtitle2.offsetX(745); // Center within 1490px width
         this.templateObjects.subtitle2.offsetY(this.templateObjects.subtitle2.height() / 2);
         this.contentLayer.add(this.templateObjects.subtitle2);
-        console.log(`Subtitle 2 created at Y=${this.templateObjects.subtitle2.y()}`);
         currentY += subtitle2Height + elementGap;
         
         // Store the bottom icons Y position for the createBottomIconsExact method
@@ -2025,7 +2005,6 @@ class TemplateEditor {
         // Create bottom icons (4 icons spaced 260px apart)
         this.createBottomIconsExact();
         
-        // DISABLED: Set initial animation positions (everything starts hidden)
         // this.setInitialPositions();
         
         // Initialize text-based visibility
@@ -2036,19 +2015,41 @@ class TemplateEditor {
         
         // Initial render
         this.stage.batchDraw();
-        console.log('Template objects creation complete - matches Figma design');
     }
     
     createBottomIconsExact() {
-        // Clear existing bottom icons
-        this.templateObjects.bottomIcons.forEach(icon => icon.destroy());
+        console.log('🔄 Starting createBottomIconsExact() - cleaning up existing icons...');
+        
+        // Cancel any pending async icon operations to prevent race conditions
+        console.log(`🚫 Cancelling ${this.pendingIconOperations.size} pending icon operations`);
+        this.pendingIconOperations.clear();
+        this.iconCreationSequence++; // Increment sequence to invalidate old operations
+        
+        // Clear existing bottom icons safely
+        if (Array.isArray(this.templateObjects.bottomIcons)) {
+            this.templateObjects.bottomIcons.forEach((icon, index) => {
+                if (icon && typeof icon.destroy === 'function') {
+                    console.log(`🗑️ Destroying existing bottom icon ${index + 1}`);
+                    try {
+                        icon.destroy();
+                    } catch (error) {
+                        console.warn(`⚠️ Error destroying icon ${index + 1}:`, error);
+                    }
+                }
+            });
+        }
         this.templateObjects.bottomIcons = [];
         
+        // Force a layer redraw to ensure destroyed icons are removed
+        if (this.contentLayer) {
+            this.contentLayer.batchDraw();
+        }
+        
         if (!this.layerVisibility.bottomIcons || this.bottomIconsConfig.count === 0) {
+            console.log('⏭️ Skipping icon creation - visibility or count is 0');
             return;
         }
         
-        console.log('Creating bottom icons with proper spacing...');
         
         // Use the calculated Y position from the layout
         const iconY = this.bottomIconsY || 820; // Fallback to 820 if not calculated
@@ -2067,7 +2068,6 @@ class TemplateEditor {
             if (icon) {
                 this.templateObjects.bottomIcons.push(icon);
                 this.contentLayer.add(icon);
-                console.log(`Bottom icon ${i + 1} (${iconType}) created at x:${iconPositions[i]}, y:${iconY}`);
             }
         }
         
@@ -2086,7 +2086,6 @@ class TemplateEditor {
         const leftEdge = centerX - (longestLineWidth / 2);
         const rightEdge = centerX + (longestLineWidth / 2);
         
-        console.log(`Distributing ${iconCount} icons across longest line width: ${longestLineWidth}px (${leftEdge} to ${rightEdge})`);
         
         if (iconCount === 1) {
             // Single icon at center
@@ -2220,7 +2219,6 @@ class TemplateEditor {
             icon.opacity(1);
         });
         
-        console.log('All objects set to visible state - no animations');
     }
     
     initializeTextVisibility() {
@@ -2234,28 +2232,24 @@ class TemplateEditor {
             const hasContent = topTitleInput.value && topTitleInput.value.trim().length > 0;
             this.layerVisibility.topTitle = hasContent;
             this.templateObjects.topTitle.visible(hasContent);
-            console.log(`Top title initial visibility: ${hasContent}`);
         }
         
         if (mainTitleInput && this.templateObjects.mainTitle) {
             const hasContent = mainTitleInput.value && mainTitleInput.value.trim().length > 0;
             this.layerVisibility.mainTitle = hasContent;
             this.templateObjects.mainTitle.visible(hasContent);
-            console.log(`Main title initial visibility: ${hasContent}`);
         }
         
         if (subtitle1Input && this.templateObjects.subtitle1) {
             const hasContent = subtitle1Input.value && subtitle1Input.value.trim().length > 0;
             this.layerVisibility.subtitle1 = hasContent;
             this.templateObjects.subtitle1.visible(hasContent);
-            console.log(`Subtitle 1 initial visibility: ${hasContent}`);
         }
         
         if (subtitle2Input && this.templateObjects.subtitle2) {
             const hasContent = subtitle2Input.value && subtitle2Input.value.trim().length > 0;
             this.layerVisibility.subtitle2 = hasContent;
             this.templateObjects.subtitle2.visible(hasContent);
-            console.log(`Subtitle 2 initial visibility: ${hasContent}`);
         }
     }
     
@@ -2285,7 +2279,6 @@ class TemplateEditor {
     }
     
     recalculateLayout() {
-        console.log('Recalculating layout with current visibility settings...');
         
         const canvasHeight = 1080;
         const elementGap = 26;
@@ -2300,12 +2293,6 @@ class TemplateEditor {
             bottomIcons: 57
         };
         
-        console.log('Dynamic heights:', {
-            topTitle: elementHeights.topTitle,
-            mainTitle: elementHeights.mainTitle,
-            subtitle1: elementHeights.subtitle1,
-            subtitle2: elementHeights.subtitle2
-        });
         
         // Get list of visible elements and their heights
         const visibleElements = [];
@@ -2348,7 +2335,6 @@ class TemplateEditor {
         // Calculate starting Y position to center the design
         let currentY = (canvasHeight - totalHeight) / 2;
         
-        console.log(`Visible elements: ${visibleElements.length}, Total height: ${totalHeight}px, Starting Y: ${currentY}`);
         
         // Position each visible element
         visibleElements.forEach((element, index) => {
@@ -2360,7 +2346,6 @@ class TemplateEditor {
                 element.objects.forEach(icon => {
                     icon.y(yPosition);
                 });
-                console.log(`${element.name} repositioned to Y=${yPosition}`);
             } else {
                 // Update single object Y position
                 element.object.y(yPosition);
@@ -2370,14 +2355,12 @@ class TemplateEditor {
                     element.object.offsetY(element.object.height() / 2);
                 }
                 
-                console.log(`${element.name} repositioned to Y=${yPosition}`);
             }
             
             // Move to next position
             currentY += element.height + (index < visibleElements.length - 1 ? elementGap : 0);
         });
         
-        console.log('Layout recalculation complete');
     }
     
     createGSAPTimeline() {
@@ -2413,7 +2396,6 @@ class TemplateEditor {
         // Create empty timeline placeholders for timeline functionality
         this.timeline.to({}, { duration: this.animationDuration }, 0);
         
-        console.log('Blank GSAP Timeline created - no animations, duration:', this.animationDuration, 'seconds');
     }
     
     updateGSAPTimeline() {
@@ -2500,7 +2482,6 @@ class TemplateEditor {
             this.selectLayer(document.querySelector('.layer-item[data-layer="bottom-icons"]'));
         }
         
-        console.log('Canvas object selected:', object.getClassName());
     }
     
     clearSelection() {
@@ -2543,7 +2524,6 @@ class TemplateEditor {
         // Redraw stage
         this.stage.batchDraw();
         
-        console.log('Template properties updated');
     }
     
     easeInOut(t) {
@@ -2575,7 +2555,6 @@ class TemplateEditor {
             return;
         }
         
-        console.log(`Processing icon upload: ${file.name} for ${targetType}${slotIndex !== null ? ` slot ${slotIndex}` : ''}`);
         
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -2711,11 +2690,9 @@ class TemplateEditor {
             saveStatus.textContent = 'Auto-saved';
         }, 1000);
         
-        console.log('Project saved', projectData);
     }
     
     saveProjectName(name) {
-        console.log(`Project name updated: ${name}`);
         this.saveProject();
     }
     
@@ -3049,7 +3026,6 @@ class TemplateEditor {
             // Update slider display
             document.querySelector('.slider-value').textContent = projectData.fontSize + 'px' || '72px';
             
-            console.log('Project loaded', projectData);
         }
     }
     
@@ -3090,7 +3066,6 @@ class TemplateEditor {
             fontSize = 120;
         }
         
-        console.log(`Character count: ${charCount} → Font size: ${fontSize}px`);
         
         return fontSize;
     }
@@ -3098,7 +3073,6 @@ class TemplateEditor {
 
 // Initialize the application when DOM is loaded with proper font loading
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('DOM loaded, initializing fonts with kerning support...');
     
     try {
         // Load fonts with specific weights and enable kerning
@@ -3115,7 +3089,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.fonts.check('700 75px "Wix Madefor Display"'),
             document.fonts.check('400 40px "Wix Madefor Display"')
         ];
-        console.log('Font loading status:', fontChecks);
         
         // Enhanced pre-rendering with kerning support
         const tempCanvas = document.createElement('canvas');
@@ -3144,7 +3117,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await new Promise(resolve => setTimeout(resolve, 300));
         tempCanvas.remove();
         
-        console.log('Fonts with kerning loaded and pre-rendered successfully');
         
         const editor = new TemplateEditor();
         editor.loadProject();

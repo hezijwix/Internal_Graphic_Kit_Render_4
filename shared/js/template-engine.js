@@ -4,18 +4,27 @@ Konva._fixTextRendering = true;
 // Template Editor - Main Application
 class TemplateEditor {
     constructor() {
+        // Initialize Konva stage and layers
+        this.stage = null;
+        this.backgroundLayer = null;
+        this.contentLayer = null;
+        this.uiLayer = null;
+        
+        // Zoom and pan controls
+        this.zoomLevel = 50; // Start at 50% zoom for better overview
+        this.panX = 0;
+        this.panY = 0;
+        this.isPanning = false;
+        this.lastPointerPosition = null;
+        
+        // Animation state
         this.isPlaying = false;
         this.currentFrame = 0;
         this.totalFrames = 300;
         this.fps = 30;
         this.duration = 10; // seconds
         this.playhead = null;
-        
-        // Konva stage and layers
-        this.stage = null;
-        this.backgroundLayer = null;
-        this.contentLayer = null;
-        this.uiLayer = null;
+        this.playbackInterval = null;
         
         // Template objects - New structure matching Figma design
         this.templateObjects = {
@@ -69,16 +78,33 @@ class TemplateEditor {
         // Ensure visibility is locked for icons
         console.log('🔒 Layer visibility initialized with icons FORCED visible');
         
-        // Bottom icons configuration - unified circle icons
+        // 🔥 NEW: UNIFIED ICON SYSTEM - Maps abstract types to actual gallery icons
+        this.iconMapping = {
+            // Abstract type -> Gallery icon ID mapping
+            'star': 50,      // icon-050-stars.svg (first star icon)
+            'circle': 62,    // icon-062-misc.svg (Union.svg - circular shape)
+            'arrow': 1,      // icon-001-arrow.svg (first arrow icon)
+            'heart': 23,     // icon-023-celebration.svg (celebration icon)
+            'diamond': 51,   // icon-051-stars.svg (diamond-like star)
+            'triangle': 2    // icon-002-arrow.svg (triangular arrow)
+        };
+        
+        // 🔥 NEW: Default icon configurations using REAL gallery icons
+        this.defaultIcons = {
+            top: 50,        // Default to star icon (icon-050-stars.svg)
+            bottom: 50      // Same default icon for ALL bottom icons (simplified)
+        };
+        
+        // Bottom icons configuration - NOW USING GALLERY IDs
         this.bottomIconsConfig = {
             count: 4,
             spacing: 260,
-            icons: ['circle', 'circle', 'circle', 'circle', 'circle', 'circle'] // Support up to 6 icons
+            iconIds: new Array(6).fill(this.defaultIcons.bottom)  // All slots use same default icon
         };
         
-        // Top icon configuration
+        // Top icon configuration - NOW USING GALLERY ID
         this.topIconConfig = {
-            type: 'circle' // Default circle for top icon
+            iconId: this.defaultIcons.top  // Store gallery icon ID, not type
         };
         
         // Icon storage and management
@@ -91,7 +117,10 @@ class TemplateEditor {
         this.currentTopIconData = null;
         this.currentBottomIconsData = [null, null, null, null, null, null]; // Store bottom icon data for color updates
         
-
+        // Add async operation tracking to prevent race conditions
+        this.pendingIconOperations = new Set();
+        this.iconCreationSequence = 0; // Sequence number for icon operations
+        this.iconSelectionTimeout = null; // Debouncing timeout for icon selection
         
         // GSAP Timeline
         this.timeline = null;
@@ -560,8 +589,11 @@ class TemplateEditor {
                 const slotIndex = parseInt(slot.dataset.slot);
                 const iconType = button.dataset.icon;
                 
-                // Update icon type in configuration
-                this.bottomIconsConfig.icons[slotIndex] = iconType;
+                // 🔥 UPDATED: Convert abstract icon type to gallery ID using new mapping system
+                const iconId = this.mapIconTypeToId(iconType);
+                this.bottomIconsConfig.iconIds[slotIndex] = iconId;
+                
+                console.log(`🎨 Icon slot ${slotIndex + 1} changed to type "${iconType}" (Gallery ID: ${iconId})`);
                 
                 // Update UI
                 slot.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
@@ -571,10 +603,12 @@ class TemplateEditor {
                 const currentIcon = slot.querySelector('.current-icon');
                 currentIcon.innerHTML = button.innerHTML;
                 
-                // Recreate bottom icons with new configuration
-                this.createBottomIconsExact();
-                this.recalculateLayout();
-                this.stage.batchDraw();
+                // 🔥 UPDATED: Use unified gallery system for recreation
+                clearTimeout(this.iconSelectionTimeout);
+                this.iconSelectionTimeout = setTimeout(() => {
+                    this.loadBottomIconsFromGallery();
+                    this.recalculateLayout();
+                }, 100);
             }
         });
         
@@ -1104,8 +1138,17 @@ class TemplateEditor {
         // Store the bottom icons Y position for the createBottomIconsExact method
         this.bottomIconsY = currentY + (bottomIconHeight / 2);
         
-        // Create bottom icons (4 icons spaced 260px apart)
-        this.createBottomIconsExact();
+        // Calculate base positions for animation system BEFORE creating icons
+        this.calculateBasePositions();
+        
+        // 🔥 NEW: Load icons using unified gallery system
+        console.log('🎨 Loading icons using unified gallery system...');
+        
+        // Load top icon from gallery
+        this.loadTopIconFromGallery();
+        
+        // Load bottom icons from gallery  
+        this.loadBottomIconsFromGallery();
         
         // Skip setting initial hidden positions - let icons stay visible
         // this.setInitialPositions(); // COMMENTED OUT to prevent hiding icons
@@ -1144,8 +1187,19 @@ class TemplateEditor {
     }
     
     createIconSlot(slotIndex) {
-        const iconConfig = this.bottomIconsConfig.icons[slotIndex];
-        const currentIconType = iconConfig ? iconConfig.type : 'circle';
+        // 🔥 UPDATED: Get current icon ID from new unified system
+        const currentIconId = this.bottomIconsConfig.iconIds[slotIndex] || this.defaultIcons.bottom;
+        
+        // Map icon ID back to abstract type for UI display (reverse mapping)
+        let currentIconType = 'star'; // Default fallback
+        for (const [type, id] of Object.entries(this.iconMapping)) {
+            if (id === currentIconId) {
+                currentIconType = type;
+                break;
+            }
+        }
+        
+        console.log(`🎨 Creating icon slot ${slotIndex + 1} with icon ID ${currentIconId} (type: ${currentIconType})`);
         
         const slot = document.createElement('div');
         slot.className = 'icon-slot active';
@@ -1180,6 +1234,11 @@ class TemplateEditor {
                         ${this.getIconSVG('triangle', '16')}
                     </button>
                 </div>
+            </div>
+            <div class="upload-section">
+                <button class="upload-icon-btn" data-slot="${slotIndex}">
+                    📁 Upload Icon
+                </button>
             </div>
         `;
         
@@ -2303,11 +2362,17 @@ class TemplateEditor {
         // Store the bottom icons Y position for the createBottomIconsExact method
         this.bottomIconsY = currentY + (bottomIconHeight / 2);
         
-        // Create bottom icons (4 icons spaced 260px apart)
-        this.createBottomIconsExact();
-        
-        // Calculate base positions for animation system
+        // Calculate base positions for animation system BEFORE creating icons
         this.calculateBasePositions();
+        
+        // 🔥 NEW: Load icons using unified gallery system
+        console.log('🎨 Loading icons using unified gallery system...');
+        
+        // Load top icon from gallery
+        this.loadTopIconFromGallery();
+        
+        // Load bottom icons from gallery  
+        this.loadBottomIconsFromGallery();
         
         // Skip setting initial hidden positions - let icons stay visible
         // this.setInitialPositions(); // COMMENTED OUT to prevent hiding icons
@@ -2330,90 +2395,21 @@ class TemplateEditor {
     }
     
     createBottomIconsExact() {
-        console.log('🔄 Starting createBottomIconsExact() - cleaning up existing icons...');
+        console.log('🔄 Starting createBottomIconsExact() - using UNIFIED GALLERY SYSTEM...');
         
-        // Ensure bottomIcons array exists before clearing
-        if (!this.templateObjects.bottomIcons) {
-            this.templateObjects.bottomIcons = [];
-        }
-        
-        // Clear existing bottom icons safely
-        if (Array.isArray(this.templateObjects.bottomIcons)) {
-            this.templateObjects.bottomIcons.forEach((icon, index) => {
-                if (icon && typeof icon.destroy === 'function') {
-                    console.log(`🗑️ Destroying existing bottom icon ${index + 1}`);
-                    icon.destroy();
-                }
-            });
-        }
-        
-        // Reset the array
-        this.templateObjects.bottomIcons = [];
-        
-        // Force a layer redraw to ensure destroyed icons are removed
-        if (this.contentLayer) {
-            this.contentLayer.batchDraw();
-        }
-        
+        // Cancel any pending async icon operations to prevent race conditions
+        console.log(`🚫 Cancelling ${this.pendingIconOperations.size} pending icon operations`);
+        this.pendingIconOperations.clear();
+        this.iconCreationSequence++; // Increment sequence to invalidate old operations
+
         if (!this.layerVisibility.bottomIcons || this.bottomIconsConfig.count === 0) {
             console.log('⏭️ Skipping icon creation - visibility or count is 0');
             return;
         }
-        
-        console.log('Creating bottom icons with proper spacing...');
-        
-        // Use the dynamically calculated Y position from base position system
-        let iconY = this.bottomIconsY || 820; // Fallback value
-        
-        // If base positions are calculated, use the dynamic position
-        if (this.positionStates.base && this.positionStates.base.bottomIcons) {
-            iconY = this.positionStates.base.bottomIcons.y;
-            console.log(`🎯 Using dynamic Y position from base position system: ${iconY}`);
-        } else {
-            console.log(`⚠️ Using fallback Y position: ${iconY}`);
-        }
-        
-        // Get current text color for icons to inherit
-        const currentTextColor = this.getCurrentTextColor();
-        
-        // Calculate dynamic positions based on main title width
-        const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
-        
-        console.log(`🎯 Creating ${this.bottomIconsConfig.count} bottom icons...`);
-        console.log(`📍 Icon positions:`, iconPositions);
-        console.log(`📐 Y position: ${iconY}`);
-        
-        // Create icons based on configuration array
-        for (let i = 0; i < this.bottomIconsConfig.count; i++) {
-            const iconType = this.bottomIconsConfig.icons[i] || 'circle'; // Default to circle
-            console.log(`🔨 Creating icon ${i + 1}/${this.bottomIconsConfig.count} of type: ${iconType}`);
-            
-            const icon = this.createBottomIcon(iconType, iconPositions[i], iconY, currentTextColor);
-            
-            if (icon) {
-                // Ensure icon is visible by default
-                icon.opacity(1);
-                icon.visible(true);
-                icon.scaleX(1);
-                icon.scaleY(1);
-                
-                this.templateObjects.bottomIcons.push(icon);
-                this.contentLayer.add(icon);
-                console.log(`✅ Bottom icon ${i + 1} (${iconType}) created and added to layer at x:${iconPositions[i]}, y:${iconY}`);
-            } else {
-                console.error(`❌ Failed to create bottom icon ${i + 1} of type: ${iconType}`);
-            }
-        }
-        
-        console.log(`🏁 Finished creating bottom icons. Total created: ${this.templateObjects.bottomIcons.length}`);
-        
-        // Final layer redraw to ensure all icons are visible
-        if (this.contentLayer) {
-            this.contentLayer.batchDraw();
-        }
-        
-        // Update GSAP timeline to include new icons (this will handle initial positions)
-        this.updateGSAPTimeline();
+
+        // 🔥 NEW: Use unified gallery system instead of hardcoded shapes
+        console.log('🎨 Using unified gallery system for bottom icons...');
+        this.loadBottomIconsFromGallery();
     }
     
     calculateIconPositions(iconCount) {
@@ -3513,9 +3509,10 @@ class TemplateEditor {
         // Apply base positions to actual elements
         this.setElementsToBasePositions();
         
-        // Update bottom icons positioning
-        if (this.layerVisibility.bottomIcons && this.templateObjects.bottomIcons.length > 0) {
-            this.createBottomIconsExact();
+        // 🔥 UPDATED: Use unified gallery system for bottom icons
+        if (this.layerVisibility.bottomIcons && this.bottomIconsConfig.count > 0) {
+            console.log('🎨 Recreating bottom icons using unified gallery system...');
+            this.loadBottomIconsFromGallery();
         }
         
         console.log('Layout recalculation complete with base position system');
@@ -4337,6 +4334,12 @@ class TemplateEditor {
             return;
         }
         
+        // Validate slot index against current configuration
+        if (slotIndex >= this.bottomIconsConfig.count) {
+            console.warn(`❌ Cannot update bottom icon - slot ${slotIndex + 1} exceeds current count ${this.bottomIconsConfig.count}`);
+            return;
+        }
+        
         // Store the icon data for future color updates
         if (!this.currentBottomIconsData) {
             this.currentBottomIconsData = [null, null, null, null, null, null];
@@ -4353,10 +4356,25 @@ class TemplateEditor {
             this.templateObjects.bottomIcons.push(null);
         }
         
-        // Remove existing icon at this slot
+        // Cancel any pending operations for this slot
+        const oldOperations = Array.from(this.pendingIconOperations).filter(op => op.startsWith(`${slotIndex}-`));
+        oldOperations.forEach(op => this.pendingIconOperations.delete(op));
+        console.log(`🚫 Cancelled ${oldOperations.length} pending operations for slot ${slotIndex + 1}`);
+        
+        // Remove existing icon at this slot with better cleanup
         if (this.templateObjects.bottomIcons[slotIndex]) {
-            this.templateObjects.bottomIcons[slotIndex].destroy();
+            try {
+                this.templateObjects.bottomIcons[slotIndex].destroy();
+                console.log(`🗑️ Destroyed existing icon at slot ${slotIndex + 1}`);
+            } catch (error) {
+                console.warn(`⚠️ Error destroying icon at slot ${slotIndex + 1}:`, error);
+            }
             this.templateObjects.bottomIcons[slotIndex] = null;
+        }
+        
+        // Force a redraw to clear the old icon visually
+        if (this.contentLayer) {
+            this.contentLayer.batchDraw();
         }
         
         // Create new icon from SVG file
@@ -4439,11 +4457,31 @@ class TemplateEditor {
     }
     
     async createSVGBottomIconFromGallery(iconData, slotIndex) {
+        // Create operation tracking ID
+        const currentSequence = this.iconCreationSequence;
+        const operationId = `${slotIndex}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        this.pendingIconOperations.add(operationId);
+        
+        console.log(`🔧 Starting bottom icon creation for slot ${slotIndex + 1}, operation: ${operationId}`);
+        
         try {
+            // Initial bounds check
+            if (slotIndex >= this.bottomIconsConfig.count) {
+                console.log(`🚫 Aborting icon creation - slot ${slotIndex + 1} out of bounds (max: ${this.bottomIconsConfig.count})`);
+                this.pendingIconOperations.delete(operationId);
+                return;
+            }
+            
             // Load SVG content
             const response = await fetch(iconData.fullPath);
             if (!response.ok) {
                 throw new Error(`Failed to load icon: ${response.status}`);
+            }
+            
+            // Check if operation is still valid after async operation
+            if (!this.pendingIconOperations.has(operationId) || this.iconCreationSequence !== currentSequence) {
+                console.log(`🚫 Aborting icon creation - operation ${operationId} was cancelled`);
+                return;
             }
             
             const svgContent = await response.text();
@@ -4461,12 +4499,35 @@ class TemplateEditor {
             // Create image element and load
             const img = new Image();
             img.onload = () => {
+                // Final validation before creating the icon
+                if (!this.pendingIconOperations.has(operationId) || this.iconCreationSequence !== currentSequence) {
+                    console.log(`🚫 Aborting icon creation in onload - operation ${operationId} was cancelled`);
+                    URL.revokeObjectURL(url);
+                    return;
+                }
+                
+                // Double-check bounds in case config changed during async operation
+                if (slotIndex >= this.bottomIconsConfig.count) {
+                    console.log(`🚫 Aborting icon creation in onload - slot ${slotIndex + 1} out of bounds`);
+                    URL.revokeObjectURL(url);
+                    this.pendingIconOperations.delete(operationId);
+                    return;
+                }
+                
                 const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
                 let iconY = this.bottomIconsY || 820;
                 
                 // Use dynamic position from base position system if available
                 if (this.positionStates.base && this.positionStates.base.bottomIcons) {
                     iconY = this.positionStates.base.bottomIcons.y;
+                }
+                
+                // Ensure we have valid positions
+                if (!iconPositions || slotIndex >= iconPositions.length) {
+                    console.error(`❌ Invalid icon positions for slot ${slotIndex + 1}`);
+                    URL.revokeObjectURL(url);
+                    this.pendingIconOperations.delete(operationId);
+                    return;
                 }
                 
                 const icon = new Konva.Image({
@@ -4480,26 +4541,37 @@ class TemplateEditor {
                     listening: true
                 });
                 
+                // Ensure the slot still exists in the array
+                if (!this.templateObjects.bottomIcons || slotIndex >= this.templateObjects.bottomIcons.length) {
+                    console.error(`❌ Bottom icons array invalid for slot ${slotIndex + 1}`);
+                    URL.revokeObjectURL(url);
+                    this.pendingIconOperations.delete(operationId);
+                    return;
+                }
+                
                 this.templateObjects.bottomIcons[slotIndex] = icon;
                 this.contentLayer.add(icon);
                 this.stage.batchDraw();
                 this.updateGSAPTimeline();
                 
-                // Clean up blob URL
+                // Clean up blob URL and operation tracking
                 URL.revokeObjectURL(url);
+                this.pendingIconOperations.delete(operationId);
                 
-                console.log(`✅ Bottom icon ${slotIndex + 1} updated with ${iconData.originalName}`);
+                console.log(`✅ Bottom icon ${slotIndex + 1} updated with ${iconData.originalName} (operation: ${operationId})`);
             };
             
             img.onerror = () => {
-                console.error(`❌ Failed to load bottom icon image: ${iconData.originalName}`);
+                console.error(`❌ Failed to load bottom icon image: ${iconData.originalName} (operation: ${operationId})`);
                 URL.revokeObjectURL(url);
+                this.pendingIconOperations.delete(operationId);
             };
             
             img.src = url;
             
         } catch (error) {
             console.error(`❌ Failed to create bottom icon ${slotIndex + 1} from gallery:`, error);
+            this.pendingIconOperations.delete(operationId);
         }
     }
     
@@ -5061,6 +5133,34 @@ class TemplateEditor {
                 console.log('Auto-save listeners setup complete');
             }
 
+            // 🔥 UPDATED: Load Project Manager's default icon config with new unified system
+            if (project.config.icons) {
+                console.log('🔧 Loading Project Manager default icons config:', project.config.icons);
+                
+                // Apply top icon from Project Manager config
+                if (typeof project.config.icons.top === 'number') {
+                    this.topIconConfig.iconId = project.config.icons.top;
+                    console.log(`✅ Top icon ID set to: ${project.config.icons.top}`);
+                }
+                
+                // Apply bottom icons from Project Manager config  
+                if (typeof project.config.icons.bottom === 'number') {
+                    // Single default icon for all bottom icons
+                    this.bottomIconsConfig.iconIds.fill(project.config.icons.bottom);
+                    console.log(`✅ Bottom icons ID set to: ${project.config.icons.bottom} for all slots`);
+                    
+                    // Force recreation of icons with new IDs using unified gallery system
+                    if (this.templateObjects) {
+                        console.log('🔄 Recreating icons with Project Manager defaults...');
+                        setTimeout(() => {
+                            this.loadTopIconFromGallery();
+                            this.loadBottomIconsFromGallery(); 
+                            console.log('✅ Icons recreated with Project Manager defaults');
+                        }, 300);
+                    }
+                }
+            }
+
         } catch (error) {
             console.error('❌ Failed to load project data:', error);
         }
@@ -5142,6 +5242,263 @@ class TemplateEditor {
         }
         
         console.log('Layer visibility settings:', this.layerVisibility);
+    }
+    
+    // ================================
+    // 🔥 NEW: UNIFIED ICON SYSTEM METHODS
+    // ================================
+    
+    /**
+     * Convert abstract icon type to gallery icon ID
+     * @param {string} iconType - Abstract type like 'star', 'circle', 'arrow'
+     * @returns {number} Gallery icon ID
+     */
+    mapIconTypeToId(iconType) {
+        return this.iconMapping[iconType] || this.iconMapping['circle']; // Default to circle if not found
+    }
+    
+    /**
+     * Get gallery icon data by ID
+     * @param {number} iconId - Gallery icon ID
+     * @returns {object} Icon data with fullPath, originalName, etc.
+     */
+    async getGalleryIconData(iconId) {
+        try {
+            // Load icon registry if not already loaded
+            if (!this.iconRegistry) {
+                const response = await fetch('templates/template_001/assets/icons/icon-registry.json');
+                this.iconRegistry = await response.json();
+            }
+            
+            const iconData = this.iconRegistry.icons[iconId.toString()];
+            if (!iconData) {
+                console.warn(`🚫 Icon ID ${iconId} not found in registry`);
+                return null;
+            }
+            
+            return {
+                id: iconId,
+                fullPath: `templates/template_001/assets/icons/${iconData.newName}`,
+                originalName: iconData.originalName,
+                category: iconData.category,
+                newName: iconData.newName
+            };
+        } catch (error) {
+            console.error('❌ Failed to load icon registry:', error);
+            return null;
+        }
+    }
+    
+    /**
+     * UNIFIED: Create icon from gallery (works for both top and bottom icons)
+     * @param {number} iconId - Gallery icon ID
+     * @param {number} x - X position
+     * @param {number} y - Y position  
+     * @param {number} size - Icon size (width/height)
+     * @returns {Promise<Konva.Image>} Promise resolving to Konva icon object
+     */
+    async createIconFromGallery(iconId, x, y, size) {
+        console.log(`🎨 Creating icon from gallery: ID ${iconId} at (${x}, ${y}) size ${size}`);
+        console.log(`📊 Debug info: iconRegistry exists = ${!!this.iconRegistry}`);
+        
+        try {
+            // Get icon data from gallery
+            const iconData = await this.getGalleryIconData(iconId);
+            if (!iconData) {
+                console.warn(`⚠️ Could not find icon ${iconId}, using fallback`);
+                console.log(`🔍 Debug: Registry keys = ${this.iconRegistry ? Object.keys(this.iconRegistry.icons).slice(0, 10) : 'null'}`);
+                return this.createFallbackIcon(x, y, size);
+            }
+            
+            console.log(`📄 Loading icon: ${iconData.originalName} from ${iconData.fullPath}`);
+            
+            // Load SVG content
+            const response = await fetch(iconData.fullPath);
+            if (!response.ok) {
+                console.error(`❌ Fetch failed: ${response.status} for ${iconData.fullPath}`);
+                throw new Error(`Failed to load icon: ${response.status}`);
+            }
+            
+            const svgContent = await response.text();
+            console.log(`📄 SVG content loaded, length: ${svgContent.length}`);
+            
+            // Get current text color for colorizing
+            const currentTextColor = this.getCurrentTextColor();
+            console.log(`🎨 Using text color: ${currentTextColor}`);
+            
+            // Colorize SVG content
+            const colorizedSVG = this.colorizeReferenceSVG(svgContent, currentTextColor);
+            
+            // Create blob URL for the colorized SVG
+            const blob = new Blob([colorizedSVG], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            // Return promise that resolves to Konva.Image
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    const icon = new Konva.Image({
+                        x: x,
+                        y: y,
+                        image: img,
+                        width: size,
+                        height: size,
+                        offsetX: size / 2,
+                        offsetY: size / 2,
+                        listening: true
+                    });
+                    
+                    // Clean up blob URL
+                    URL.revokeObjectURL(url);
+                    
+                    console.log(`✅ Icon created successfully: ${iconData.originalName} (ID: ${iconId})`);
+                    resolve(icon);
+                };
+                
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    console.error(`❌ Image load failed for: ${iconData.originalName}`);
+                    reject(new Error(`Failed to load icon image: ${iconData.originalName}`));
+                };
+                
+                img.src = url;
+            });
+            
+        } catch (error) {
+            console.error(`❌ Failed to create icon from gallery (ID: ${iconId}):`, error);
+            console.log(`🔄 Using fallback icon instead`);
+            return this.createFallbackIcon(x, y, size);
+        }
+    }
+    
+    /**
+     * Create fallback icon when gallery loading fails
+     * @param {number} x - X position
+     * @param {number} y - Y position
+     * @param {number} size - Icon size
+     * @returns {Konva.Circle} Fallback circle icon
+     */
+    createFallbackIcon(x, y, size) {
+        console.log(`🔄 Creating fallback icon at (${x}, ${y})`);
+        const currentTextColor = this.getCurrentTextColor();
+        
+        return new Konva.Circle({
+            x: x,
+            y: y,
+            radius: size / 2,
+            stroke: currentTextColor,
+            strokeWidth: 2,
+            listening: true
+        });
+    }
+    
+    /**
+     * UNIFIED: Load top icon using gallery system
+     */
+    async loadTopIconFromGallery() {
+        console.log('🔝 Loading top icon from gallery...');
+        
+        try {
+            // Remove existing top icon
+            if (this.templateObjects.topIcon) {
+                this.templateObjects.topIcon.destroy();
+                this.templateObjects.topIcon = null;
+            }
+            
+            // Get position from base position system or use default
+            let iconY = 200;
+            if (this.positionStates.base && this.positionStates.base.topIcon) {
+                iconY = this.positionStates.base.topIcon.y;
+            }
+            
+            // Create icon from gallery
+            const icon = await this.createIconFromGallery(this.topIconConfig.iconId, 960, iconY, 56);
+            
+            // Add to template objects and layer
+            this.templateObjects.topIcon = icon;
+            this.contentLayer.add(icon);
+            this.stage.batchDraw();
+            this.updateGSAPTimeline();
+            
+            console.log('✅ Top icon loaded from gallery successfully');
+        } catch (error) {
+            console.error('❌ Failed to load top icon from gallery:', error);
+        }
+    }
+    
+    /**
+     * UNIFIED: Load all bottom icons using gallery system  
+     */
+    async loadBottomIconsFromGallery() {
+        console.log('🔽 Loading bottom icons from gallery...');
+        console.log(`📊 Debug: bottomIconsConfig.count = ${this.bottomIconsConfig.count}`);
+        console.log(`📊 Debug: bottomIconsConfig.iconIds = [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+        console.log(`📊 Debug: defaultIcons.bottom = ${this.defaultIcons.bottom}`);
+        console.log(`📊 Debug: iconRegistry exists = ${!!this.iconRegistry}`);
+        
+        try {
+            // Clear existing bottom icons
+            if (Array.isArray(this.templateObjects.bottomIcons)) {
+                console.log(`🗑️ Clearing ${this.templateObjects.bottomIcons.length} existing bottom icons...`);
+                this.templateObjects.bottomIcons.forEach((icon, index) => {
+                    if (icon && typeof icon.destroy === 'function') {
+                        console.log(`🗑️ Destroying existing bottom icon ${index + 1}`);
+                        icon.destroy();
+                    }
+                });
+            }
+            this.templateObjects.bottomIcons = [];
+            
+            // Get position from base position system or use fallback
+            let iconY = this.bottomIconsY || 820;
+            if (this.positionStates.base && this.positionStates.base.bottomIcons) {
+                iconY = this.positionStates.base.bottomIcons.y;
+                console.log(`📍 Using base position Y: ${iconY}`);
+            } else {
+                console.log(`📍 Using fallback Y: ${iconY}`);
+            }
+            
+            // Calculate icon positions
+            const iconPositions = this.calculateIconPositions(this.bottomIconsConfig.count);
+            console.log(`📍 Icon positions calculated: [${iconPositions}]`);
+            
+            // Create each bottom icon from gallery
+            const iconPromises = [];
+            for (let i = 0; i < this.bottomIconsConfig.count; i++) {
+                const iconId = this.bottomIconsConfig.iconIds[i] || this.defaultIcons.bottom;
+                const x = iconPositions[i];
+                
+                console.log(`🔨 Creating bottom icon ${i + 1}/${this.bottomIconsConfig.count} (ID: ${iconId}) at x: ${x}`);
+                
+                const iconPromise = this.createIconFromGallery(iconId, x, iconY, 40);
+                iconPromises.push(iconPromise);
+            }
+            
+            console.log(`⏳ Waiting for ${iconPromises.length} icon promises to resolve...`);
+            
+            // Wait for all icons to be created
+            const icons = await Promise.all(iconPromises);
+            
+            console.log(`📦 Received ${icons.length} icons from gallery`);
+            
+            // Add all icons to template objects and layer
+            icons.forEach((icon, index) => {
+                if (icon) {
+                    this.templateObjects.bottomIcons.push(icon);
+                    this.contentLayer.add(icon);
+                    console.log(`✅ Bottom icon ${index + 1} added to layer`);
+                } else {
+                    console.warn(`⚠️ Bottom icon ${index + 1} is null/undefined`);
+                }
+            });
+            
+            this.stage.batchDraw();
+            this.updateGSAPTimeline();
+            
+            console.log(`✅ All ${icons.length} bottom icons loaded from gallery successfully`);
+        } catch (error) {
+            console.error('❌ Failed to load bottom icons from gallery:', error);
+        }
     }
 }
 

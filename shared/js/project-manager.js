@@ -64,8 +64,8 @@ class ProjectManager {
                     background: '#0D0D0D'
                 },
                 icons: {
-                    top: 'circle',
-                    bottom: ['star', 'circle', 'arrow', 'arrow']
+                    top: 50,            // Gallery icon ID for top icon  
+                    bottom: 50          // Single default gallery icon ID for ALL bottom icons
                 },
                 visibility: {
                     topIcon: true,

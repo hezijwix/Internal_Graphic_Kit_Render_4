@@ -15,12 +15,6 @@
     font-kerning: normal;
 }
 
-/* Specific settings for Wix Madefor Display */
-.wix-font {
-    font-family: "Wix Madefor Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-kerning: normal;
-    text-rendering: optimizeLegibility;
-}
 
 /* CSS Custom Properties */
 :root {
@@ -309,7 +303,7 @@ button:focus {
 }
 
 .export-option:hover {
-    background-color: var(--bg-hover);
+    background-color: var(--hover-bg);
 }
 
 .export-option:first-child {
@@ -418,11 +412,6 @@ button:focus {
     font-size: var(--font-size-base);
 }
 
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-md);
-}
 
 .slider-container {
     display: flex;
@@ -585,13 +574,6 @@ button:focus {
     letter-spacing: 0.5px;
 }
 
-/* Form Hints */
-.form-hint {
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
-    margin-top: var(--spacing-xs);
-    display: block;
-}
 
 /* Icons Configuration */
 .icons-configuration {
@@ -603,157 +585,7 @@ button:focus {
     color: var(--text-secondary);
 }
 
-.icon-slots {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
 
-.icon-slot {
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-md);
-    background-color: var(--bg-secondary);
-    opacity: 0.5;
-    transition: all 0.2s ease;
-}
-
-.icon-slot.active {
-    opacity: 1;
-    border-color: var(--border-light);
-}
-
-.slot-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--spacing-sm);
-}
-
-.slot-number {
-    background-color: var(--accent-blue);
-    color: var(--text-primary);
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
-}
-
-.remove-icon {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 16px;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-}
-
-.remove-icon:hover {
-    background-color: var(--border-color);
-    color: var(--text-secondary);
-}
-
-.icon-picker {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
-
-.current-icon {
-    width: 40px;
-    height: 40px;
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--border-radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-primary);
-}
-
-.icon-options {
-    display: flex;
-    gap: var(--spacing-xs);
-    flex-wrap: wrap;
-}
-
-.icon-option {
-    width: 28px;
-    height: 28px;
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    padding: 0;
-}
-
-.icon-option:hover {
-    border-color: var(--border-light);
-    background-color: var(--hover-bg);
-    color: var(--text-primary);
-}
-
-.icon-option.active {
-    border-color: var(--accent-blue);
-    background-color: var(--accent-blue);
-    color: var(--text-primary);
-}
-
-/* Icon Grid */
-.icon-presets h4 {
-    margin-bottom: var(--spacing-sm);
-    color: var(--text-secondary);
-}
-
-.icon-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--spacing-sm);
-}
-
-.icon-preset {
-    width: 48px;
-    height: 48px;
-    background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--border-radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.icon-preset:hover {
-    border-color: var(--text-secondary);
-    color: var(--text-primary);
-}
-
-.icon-preset.active {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    color: white;
-}
-
-.icon-preset img {
-    max-width: 24px;
-    max-height: 24px;
-    object-fit: contain;
-}
 
 
 
@@ -765,33 +597,6 @@ button:focus {
     margin-bottom: 8px;
 }
 
-.upload-slot-icon {
-    width: 20px;
-    height: 20px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-light);
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-}
-
-.upload-slot-icon:hover {
-    background: var(--hover-bg);
-    border-color: var(--text-secondary);
-}
-
-.slot-color-control {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px solid var(--border-light);
-}
 
 /* Animation Presets */
 .animation-presets {
@@ -1280,7 +1085,7 @@ button:focus {
 }
 
 .export-modal-close:hover {
-    background: var(--bg-hover);
+    background: var(--hover-bg);
     color: var(--text-primary);
 }
 
@@ -1438,7 +1243,7 @@ button:focus {
 }
 
 .export-cancel-btn:hover {
-    background: var(--bg-hover);
+    background: var(--hover-bg);
     color: var(--text-primary);
 }
 
