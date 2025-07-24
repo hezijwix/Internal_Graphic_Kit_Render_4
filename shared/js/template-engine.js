@@ -133,6 +133,10 @@ class TemplateEditor {
         this.iconCreationSequence = 0; // Sequence number for icon operations
         this.iconSelectionTimeout = null; // Debouncing timeout for icon selection
         
+        // 🔥 SMART UPDATE: Operation locks to prevent conflicts
+        this.isUpdatingIconCount = false;
+        this.isUpdatingSingleIcon = false;
+        
         // GSAP Timeline
         this.timeline = null;
         this.animationDuration = 10; // seconds
@@ -642,23 +646,8 @@ class TemplateEditor {
                         console.log(`⚡ Executing debounced icon count change to: ${newCount}`);
                         console.log(`📊 Current iconIds before count change: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
                         
-                        // 🔥 UNIFIED: Preserve existing icon IDs when changing count
-                        const oldCount = this.bottomIconsConfig.count;
-                        this.bottomIconsConfig.count = newCount;
-                        
-                        // If increasing count, fill new slots with default icon
-                        if (newCount > oldCount) {
-                            for (let i = oldCount; i < newCount; i++) {
-                                if (!this.bottomIconsConfig.iconIds[i]) {
-                                    this.bottomIconsConfig.iconIds[i] = this.defaultIcons.bottom;
-                                }
-                            }
-                        }
-                        
-                        console.log(`📊 iconIds after count adjustment: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
-                        
-                        // 🔥 UNIFIED: Recreate bottom icons using gallery system
-                        this.loadBottomIconsFromGallery();
+                        // 🔥 FIXED: Use incremental update instead of complete recreation
+                        this.updateBottomIconCount(newCount);
                         
                         console.log(`✅ Icon count change completed successfully`);
                     } catch (error) {
@@ -678,24 +667,29 @@ class TemplateEditor {
                 
                 // 🔥 UNIFIED: Convert abstract icon type to gallery ID using mapping system
                 const iconId = this.iconTypeToIdMapping[iconType] || this.defaultIcons.bottom;
-                this.bottomIconsConfig.iconIds[slotIndex] = iconId;
+                const oldIconId = this.bottomIconsConfig.iconIds[slotIndex];
                 
-                console.log(`🎨 Icon slot ${slotIndex + 1} changed to type "${iconType}" (Gallery ID: ${iconId})`);
-                console.log(`📊 Updated iconIds array: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
-                
-                // Update UI
-                slot.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
-                button.classList.add('active');
-                
-                // Update current icon display
-                const currentIcon = slot.querySelector('.current-icon');
-                currentIcon.innerHTML = button.innerHTML;
-                
-                // 🔥 UNIFIED: Use gallery system for recreation with debouncing
-                clearTimeout(this.iconSelectionTimeout);
-                this.iconSelectionTimeout = setTimeout(() => {
-                    this.loadBottomIconsFromGallery();
-                }, 100);
+                // Only update if the icon actually changed
+                if (oldIconId !== iconId) {
+                    this.bottomIconsConfig.iconIds[slotIndex] = iconId;
+                    
+                    console.log(`🎨 Icon slot ${slotIndex + 1} changed from ID ${oldIconId} to "${iconType}" (Gallery ID: ${iconId})`);
+                    console.log(`📊 Updated iconIds array: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+                    
+                    // Update UI
+                    slot.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Update current icon display
+                    const currentIcon = slot.querySelector('.current-icon');
+                    currentIcon.innerHTML = button.innerHTML;
+                    
+                    // 🔥 FIXED: Update only the specific icon that changed
+                    clearTimeout(this.iconSelectionTimeout);
+                    this.iconSelectionTimeout = setTimeout(() => {
+                        this.updateSingleBottomIcon(slotIndex, iconId);
+                    }, 100);
+                }
             }
         });
         
@@ -1270,17 +1264,19 @@ class TemplateEditor {
             this.bottomIconsConfig.iconIds.push(this.defaultIcons.bottom);
         }
         
-        // Replace any null/undefined values with default
+        // Validate that all slots have valid icon IDs (numbers)
         for (let i = 0; i < 6; i++) {
-            if (!this.bottomIconsConfig.iconIds[i]) {
+            if (!this.bottomIconsConfig.iconIds[i] || typeof this.bottomIconsConfig.iconIds[i] !== 'number') {
                 this.bottomIconsConfig.iconIds[i] = this.defaultIcons.bottom;
+                console.log(`🔧 Fixed: Set iconIds[${i}] to default (${this.defaultIcons.bottom})`);
             }
         }
         
         console.log(`✅ iconIds array validated: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+        console.log(`📊 Active slots (count=${this.bottomIconsConfig.count}): [${this.bottomIconsConfig.iconIds.slice(0, this.bottomIconsConfig.count)}]`);
     }
     
-    // 🔥 CLEAN: Simplified updateIconSlots for UI-only operations (canvas handled by loadBottomIconsFromGallery)
+    // 🔥 IMPROVED: Smart UI sync that works with incremental updates
     updateIconSlots() {
         const iconSlotsContainer = document.querySelector('.icon-slots');
         if (!iconSlotsContainer) return;
@@ -1298,6 +1294,7 @@ class TemplateEditor {
         }
         
         console.log(`🎛️ Created ${this.bottomIconsConfig.count} icon configuration slots in UI`);
+        console.log(`🔗 UI synchronized with iconIds: [${this.bottomIconsConfig.iconIds.slice(0, this.bottomIconsConfig.count)}]`);
     }
     
     createIconSlot(slotIndex) {
@@ -5612,6 +5609,190 @@ class TemplateEditor {
         } finally {
             // 🔥 ALWAYS reset loading flag
             this.isLoadingBottomIcons = false;
+        }
+    }
+    
+    /**
+     * 🔥 SMART UPDATE: Incremental bottom icon count changes (preserves existing icons)
+     * @param {number} newCount - New icon count
+     */
+    async updateBottomIconCount(newCount) {
+        // 🔒 RACE CONDITION PREVENTION: Check if already updating
+        if (this.isUpdatingIconCount) {
+            console.log('🚫 Icon count update already in progress, skipping');
+            return;
+        }
+        
+        this.isUpdatingIconCount = true;
+        
+        const oldCount = this.bottomIconsConfig.count;
+        console.log(`🔄 Smart update: changing icon count from ${oldCount} to ${newCount}`);
+        
+        if (newCount === oldCount) {
+            console.log('⏭️ No change needed, counts are the same');
+            this.isUpdatingIconCount = false;
+            return;
+        }
+        
+        // Update configuration
+        this.bottomIconsConfig.count = newCount;
+        
+        try {
+            if (newCount > oldCount) {
+                // INCREASING: Add new icons to the end
+                console.log(`📈 Increasing icons: adding ${newCount - oldCount} new icons`);
+                
+                // Fill new slots in iconIds array with default icon
+                for (let i = oldCount; i < newCount; i++) {
+                    if (!this.bottomIconsConfig.iconIds[i]) {
+                        this.bottomIconsConfig.iconIds[i] = this.defaultIcons.bottom;
+                    }
+                }
+                
+                // Get positions for ALL icons (existing + new)
+                const iconPositions = this.calculateIconPositions(newCount);
+                
+                // Reposition existing icons to new positions
+                for (let i = 0; i < oldCount; i++) {
+                    if (this.templateObjects.bottomIcons[i]) {
+                        this.templateObjects.bottomIcons[i].x(iconPositions[i]);
+                        console.log(`📍 Repositioned existing icon ${i + 1} to x: ${iconPositions[i]}`);
+                    }
+                }
+                
+                // Create only the NEW icons
+                const newIconPromises = [];
+                const iconY = this.positionStates.base?.bottomIcons?.y || this.bottomIconsY || 820;
+                
+                for (let i = oldCount; i < newCount; i++) {
+                    const iconId = this.bottomIconsConfig.iconIds[i];
+                    const x = iconPositions[i];
+                    
+                    console.log(`🔨 Creating NEW icon ${i + 1} (ID: ${iconId}) at x: ${x}`);
+                    const iconPromise = this.createIconFromGallery(iconId, x, iconY, 40);
+                    newIconPromises.push(iconPromise);
+                }
+                
+                // Wait for new icons and add them
+                const newIcons = await Promise.all(newIconPromises);
+                newIcons.forEach((icon, index) => {
+                    if (icon) {
+                        this.templateObjects.bottomIcons.push(icon);
+                        this.contentLayer.add(icon);
+                        console.log(`✅ Added new bottom icon ${oldCount + index + 1}`);
+                    }
+                });
+                
+            } else {
+                // DECREASING: Remove icons from the end
+                console.log(`📉 Decreasing icons: removing ${oldCount - newCount} icons`);
+                
+                // Remove icons from canvas and array
+                for (let i = newCount; i < oldCount; i++) {
+                    if (this.templateObjects.bottomIcons[i]) {
+                        console.log(`🗑️ Removing bottom icon ${i + 1}`);
+                        this.templateObjects.bottomIcons[i].destroy();
+                    }
+                }
+                
+                // Trim the array to new size
+                this.templateObjects.bottomIcons = this.templateObjects.bottomIcons.slice(0, newCount);
+                
+                // Clean up iconIds array (remove unused slots)
+                this.bottomIconsConfig.iconIds = this.bottomIconsConfig.iconIds.slice(0, Math.max(newCount, 6));
+                
+                // Reposition remaining icons
+                const iconPositions = this.calculateIconPositions(newCount);
+                for (let i = 0; i < newCount; i++) {
+                    if (this.templateObjects.bottomIcons[i]) {
+                        this.templateObjects.bottomIcons[i].x(iconPositions[i]);
+                        console.log(`📍 Repositioned remaining icon ${i + 1} to x: ${iconPositions[i]}`);
+                    }
+                }
+            }
+            
+            // Force redraw
+            this.stage.batchDraw();
+            
+            // Re-register with animation system
+            this.registerBottomIconsWithAnimationSystem();
+            
+            // Update timeline only if needed
+            this.updateGSAPTimeline();
+            
+            console.log(`✅ Smart icon count update completed: ${oldCount} → ${newCount}`);
+            console.log(`📊 Final iconIds: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+            
+        } catch (error) {
+            console.error('❌ Error during smart icon count update:', error);
+            // Fallback to complete recreation if incremental update fails
+            console.warn('🔄 Falling back to complete recreation...');
+            this.loadBottomIconsFromGallery();
+        } finally {
+            // 🔓 ALWAYS unlock operation
+            this.isUpdatingIconCount = false;
+        }
+    }
+    
+    /**
+     * 🔥 SMART UPDATE: Update single bottom icon (preserves others)
+     * @param {number} slotIndex - Index of icon to update
+     * @param {number} iconId - New icon ID from gallery
+     */
+    async updateSingleBottomIcon(slotIndex, iconId) {
+        // 🔒 RACE CONDITION PREVENTION: Check if any icon operation is in progress
+        if (this.isUpdatingSingleIcon || this.isUpdatingIconCount) {
+            console.log('🚫 Icon update already in progress, skipping single icon update');
+            return;
+        }
+        
+        this.isUpdatingSingleIcon = true;
+        console.log(`🎯 Smart update: changing icon ${slotIndex + 1} to ID ${iconId}`);
+        
+        try {
+            // Validate slot index
+            if (slotIndex < 0 || slotIndex >= this.bottomIconsConfig.count) {
+                console.warn(`⚠️ Invalid slot index ${slotIndex}, count is ${this.bottomIconsConfig.count}`);
+                return;
+            }
+            
+            // Get existing icon
+            const existingIcon = this.templateObjects.bottomIcons[slotIndex];
+            if (!existingIcon) {
+                console.warn(`⚠️ No existing icon found at slot ${slotIndex}`);
+                return;
+            }
+            
+            // Get current position
+            const x = existingIcon.x();
+            const y = existingIcon.y();
+            
+            console.log(`🔄 Replacing icon ${slotIndex + 1} at position (${x}, ${y})`);
+            
+            // Remove old icon
+            existingIcon.destroy();
+            
+            // Create new icon at same position
+            const newIcon = await this.createIconFromGallery(iconId, x, y, 40);
+            
+            if (newIcon) {
+                // Replace in array
+                this.templateObjects.bottomIcons[slotIndex] = newIcon;
+                this.contentLayer.add(newIcon);
+                
+                // Force redraw
+                this.stage.batchDraw();
+                
+                console.log(`✅ Successfully updated icon ${slotIndex + 1} to ID ${iconId}`);
+            } else {
+                console.error(`❌ Failed to create new icon for slot ${slotIndex}`);
+            }
+            
+        } catch (error) {
+            console.error(`❌ Error updating single icon ${slotIndex + 1}:`, error);
+        } finally {
+            // 🔓 ALWAYS unlock operation
+            this.isUpdatingSingleIcon = false;
         }
     }
 }
