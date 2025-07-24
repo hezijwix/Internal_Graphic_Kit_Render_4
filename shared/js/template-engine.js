@@ -3531,6 +3531,10 @@ class TemplateEditor {
         console.log('🎬 Applying template animations from configuration...');
         
         try {
+            // Calculate dynamic delays for title elements
+            const dynamicDelays = animConfig.utils.calculateDynamicDelays ? 
+                animConfig.utils.calculateDynamicDelays() : {};
+            
             const enabledElements = animConfig.utils.getEnabledElements();
             console.log(`📊 Found ${enabledElements.length} enabled elements to animate`);
             
@@ -3545,9 +3549,18 @@ class TemplateEditor {
                     return;
                 }
                 
-                // Apply intro animation
+                // Apply intro animation with dynamic delay for title elements
                 if (config.animations?.intro) {
-                    this.applyElementAnimation(element, name, config.animations.intro, 'intro');
+                    const animationConfig = { ...config.animations.intro };
+                    
+                    // Override delay for title elements using dynamic stagger system
+                    if (category === 'text' && dynamicDelays[name] !== undefined) {
+                        animationConfig.delay = dynamicDelays[name];
+                        console.log(`🕐 Using dynamic delay for ${name}: ${dynamicDelays[name].toFixed(3)}s`);
+                        console.log(`🔍 Animation config before applying:`, animationConfig);
+                    }
+                    
+                    this.applyElementAnimation(element, name, animationConfig, 'intro');
                 }
                 
                 // Apply exit animation (if enabled in future)
@@ -3556,7 +3569,7 @@ class TemplateEditor {
                 // }
             });
             
-            console.log('✅ All template animations applied successfully');
+            console.log('✅ All template animations applied successfully with dynamic stagger timing');
             
         } catch (error) {
             console.error('❌ Error applying template animations:', error);

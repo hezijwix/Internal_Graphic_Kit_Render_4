@@ -21,9 +21,15 @@ const TemplateAnimations = {
             hold: { start: 2, end: 8 },      // Hold phase: 2-8 seconds  
             exit: { start: 8, end: 10 }      // Exit phase: 8-10 seconds
         },
+        stagger: {
+            offsetFrames: 10,    // Frame offset between consecutive visible title elements
+            get offsetSeconds() { 
+                return this.offsetFrames / TemplateAnimations.global.timeline.fps; 
+            }
+        },
         defaults: {
             ease: "expo.out",    // Default easing for all animations
-            stagger: 0.1         // Default stagger between elements
+            stagger: 0.1         // Default stagger between elements (legacy)
         }
     },
 
@@ -39,8 +45,8 @@ const TemplateAnimations = {
                     from: { y: "+50", opacity: 0 },      // Start 50px below base position
                     to: { y: "0", opacity: 1 },          // End at base position
                     duration: 3,                         // 3 seconds
-                    ease: "expo.out",                    // Exponential ease out
-                    delay: 0.5                           // Start at 0.5s
+                    ease: "expo.out"                     // Exponential ease out
+                    // delay: calculated dynamically based on stagger.offsetFrames
                 }
             }
         },
@@ -53,8 +59,8 @@ const TemplateAnimations = {
                     from: { y: "+50", opacity: 0 },      // Start 50px below base position
                     to: { y: "0", opacity: 1 },          // End at base position
                     duration: 3,                         // 3 seconds
-                    ease: "expo.out",                    // Exponential ease out
-                    delay: 0.2                           // Start at 0.2s (before mainTitle)
+                    ease: "expo.out"                     // Exponential ease out
+                    // delay: calculated dynamically based on stagger.offsetFrames
                 }
             }
         },
@@ -67,8 +73,8 @@ const TemplateAnimations = {
                     from: { y: "+50", opacity: 0 },      // Start 50px below base position
                     to: { y: "0", opacity: 1 },          // End at base position
                     duration: 3,                         // 3 seconds
-                    ease: "expo.out",                    // Exponential ease out
-                    delay: 0.8                           // Start at 0.8s (after mainTitle)
+                    ease: "expo.out"                     // Exponential ease out
+                    // delay: calculated dynamically based on stagger.offsetFrames
                 }
             }
         },
@@ -81,8 +87,8 @@ const TemplateAnimations = {
                     from: { y: "+50", opacity: 0 },      // Start 50px below base position
                     to: { y: "0", opacity: 1 },          // End at base position
                     duration: 3,                         // 3 seconds
-                    ease: "expo.out",                    // Exponential ease out
-                    delay: 1.1                           // Start at 1.1s (last in sequence)
+                    ease: "expo.out"                     // Exponential ease out
+                    // delay: calculated dynamically based on stagger.offsetFrames
                 }
             }
         }
@@ -213,6 +219,33 @@ const TemplateAnimations = {
                 }
             });
             return presets;
+        },
+        
+        // Function to set the stagger offset in frames
+        setStaggerOffset: function(frames) {
+            TemplateAnimations.global.stagger.offsetFrames = frames;
+            console.log(`🎛️ Stagger offset updated to ${frames} frames (${TemplateAnimations.global.stagger.offsetSeconds.toFixed(3)}s)`);
+        },
+        
+        // Function to calculate dynamic delays based on visible title elements
+        calculateDynamicDelays: function() {
+            const titleOrder = ['topTitle', 'mainTitle', 'subtitle1', 'subtitle2'];
+            const enabledTitles = titleOrder.filter(titleName => 
+                TemplateAnimations.text[titleName] && TemplateAnimations.text[titleName].enabled
+            );
+            
+            const offsetSeconds = TemplateAnimations.global.stagger.offsetSeconds;
+            const delays = {};
+            
+            console.log(`🎬 Calculating dynamic delays for ${enabledTitles.length} visible titles`);
+            console.log(`📊 Frame offset: ${TemplateAnimations.global.stagger.offsetFrames} frames = ${offsetSeconds.toFixed(3)}s`);
+            
+            enabledTitles.forEach((titleName, index) => {
+                delays[titleName] = index * offsetSeconds;
+                console.log(`   ${titleName}: ${delays[titleName].toFixed(3)}s (position ${index + 1})`);
+            });
+            
+            return delays;
         },
         
         // Function to validate animation configuration

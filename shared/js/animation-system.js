@@ -604,7 +604,7 @@ class AnimationSystem {
                 exit: { start: 8, end: 10 }
             },
             timing: {
-                elementDelay: 0.1,
+                elementDelay: 0,      // Set to 0 to avoid conflicts with dynamic delays
                 exitStagger: 0.05
             },
             defaultEasing: {
