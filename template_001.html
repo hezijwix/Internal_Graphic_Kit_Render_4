@@ -179,23 +179,20 @@
                 <div class="section-content">
                     <div class="color-group">
                         <label>Text Color</label>
-                        <div class="color-swatches">
-                            <button class="color-swatch active" style="background-color: #FFFFFF" data-color="#FFFFFF" aria-label="White"></button>
-                            <button class="color-swatch" style="background-color: #0066FF" data-color="#0066FF" aria-label="Blue"></button>
-                            <button class="color-swatch" style="background-color: #FF6B6B" data-color="#FF6B6B" aria-label="Red"></button>
-                            <button class="color-swatch" style="background-color: #4ECDC4" data-color="#4ECDC4" aria-label="Teal"></button>
-                            <button class="color-swatch" style="background-color: #45B7D1" data-color="#45B7D1" aria-label="Light Blue"></button>
-                            <button class="color-swatch" style="background-color: #96CEB4" data-color="#96CEB4" aria-label="Green"></button>
+                        <div class="color-picker-container">
+                            <button class="color-thumb" id="text-color-thumb" style="background-color: #FFFFFF" data-color="#FFFFFF" aria-label="Open text color picker">
+                                <span class="color-thumb-inner"></span>
+                            </button>
+                            <span class="color-value" id="text-color-value">#FFFFFF</span>
                         </div>
                     </div>
                     <div class="color-group">
                         <label>Background Color</label>
-                        <div class="color-swatches">
-                            <button class="color-swatch active" style="background-color: #0D0D0D" data-color="#0D0D0D" aria-label="Black"></button>
-                            <button class="color-swatch" style="background-color: #1A1A1A" data-color="#1A1A1A" aria-label="Dark Gray"></button>
-                            <button class="color-swatch" style="background-color: #2C3E50" data-color="#2C3E50" aria-label="Dark Blue"></button>
-                            <button class="color-swatch" style="background-color: #34495E" data-color="#34495E" aria-label="Slate"></button>
-                            <button class="color-swatch transparent-swatch" data-color="transparent" aria-label="Transparent" title="Transparent Background">
+                        <div class="color-picker-container">
+                            <button class="color-thumb" id="bg-color-thumb" style="background-color: #0D0D0D" data-color="#0D0D0D" aria-label="Open background color picker">
+                                <span class="color-thumb-inner"></span>
+                            </button>
+                            <button class="transparency-btn" id="transparency-btn" data-color="transparent" aria-label="Transparent Background" title="Transparent Background">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                     <rect width="16" height="16" fill="url(#checkerboard)"/>
                                     <defs>
@@ -208,11 +205,31 @@
                                     </defs>
                                 </svg>
                             </button>
+                            <span class="color-value" id="bg-color-value">#0D0D0D</span>
                         </div>
-
                     </div>
                 </div>
             </section>
+
+            <!-- Color Picker Popup -->
+            <div class="color-picker-popup" id="color-picker-popup">
+                <div class="color-picker-header">
+                    <h4 id="color-picker-title">Choose Color</h4>
+                    <button class="close-picker" id="close-picker" aria-label="Close color picker">×</button>
+                </div>
+                <div class="color-picker-content">
+                    <input type="color" id="color-input" value="#FFFFFF">
+                    <div class="color-preview">
+                        <div class="color-preview-current" id="color-preview-current"></div>
+                        <span class="color-hex" id="color-hex">#FFFFFF</span>
+                    </div>
+                    <div class="color-picker-actions">
+                        <button class="btn-secondary" id="cancel-color">Cancel</button>
+                        <button class="btn-primary" id="apply-color">Apply</button>
+                    </div>
+                </div>
+            </div>
+            <div class="color-picker-overlay" id="color-picker-overlay"></div>
 
             <!-- Bottom Icons Section -->
             <section class="panel-section" data-section="bottom-icons">
@@ -225,7 +242,7 @@
                     </button>
                     <div class="layer-visibility-toggle">
                         <label class="visibility-switch">
-                            <input type="checkbox" id="bottom-icons-visible" checked>
+                            <input type="checkbox" id="bottom-icons-visible">
                             <span class="visibility-slider"></span>
                         </label>
                         <span class="visibility-label">Visible</span>

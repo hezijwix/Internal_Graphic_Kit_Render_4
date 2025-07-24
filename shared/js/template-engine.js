@@ -358,11 +358,8 @@ class TemplateEditor {
         
         // Template selection removed - editing specific template only
         
-        // Color swatches
-        const colorSwatches = document.querySelectorAll('.color-swatch');
-        colorSwatches.forEach(swatch => {
-            swatch.addEventListener('click', (e) => this.selectColor(e.target));
-        });
+        // Color picker
+        this.setupColorPicker();
         
         // Icon presets
         const iconPresets = document.querySelectorAll('.icon-preset');
@@ -568,21 +565,55 @@ class TemplateEditor {
             });
         }
         if (subtitle1Input) {
-            subtitle1Input.addEventListener('input', (e) => {
-                const limitedValue = this.limitTextInputByWidth(e.target.value, 'subtitle1');
-                if (limitedValue !== e.target.value) {
-                    e.target.value = limitedValue;
+            // Prevent manual line breaks for clean wrapping
+            subtitle1Input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent manual line breaks
                 }
-                this.updateText('subtitle1', limitedValue);
+            });
+            
+            // Handle input with cleaning and automatic 2-line wrapping
+            subtitle1Input.addEventListener('input', (e) => {
+                // Clean the input first
+                const cleanedValue = e.target.value.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
+                
+                // The wrapping will be handled by processTextForWidth automatically
+                this.updateText('subtitle1', cleanedValue);
+            });
+            
+            // Handle paste events to clean up pasted content
+            subtitle1Input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                const cleanedText = pastedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+                subtitle1Input.value = cleanedText;
+                this.updateText('subtitle1', cleanedText);
             });
         }
         if (subtitle2Input) {
-            subtitle2Input.addEventListener('input', (e) => {
-                const limitedValue = this.limitTextInputByWidth(e.target.value, 'subtitle2');
-                if (limitedValue !== e.target.value) {
-                    e.target.value = limitedValue;
+            // Prevent manual line breaks for clean wrapping
+            subtitle2Input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent manual line breaks
                 }
-                this.updateText('subtitle2', limitedValue);
+            });
+            
+            // Handle input with cleaning and automatic 2-line wrapping
+            subtitle2Input.addEventListener('input', (e) => {
+                // Clean the input first
+                const cleanedValue = e.target.value.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
+                
+                // The wrapping will be handled by processTextForWidth automatically
+                this.updateText('subtitle2', cleanedValue);
+            });
+            
+            // Handle paste events to clean up pasted content
+            subtitle2Input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                const cleanedText = pastedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+                subtitle2Input.value = cleanedText;
+                this.updateText('subtitle2', cleanedText);
             });
         }
         
@@ -782,18 +813,182 @@ class TemplateEditor {
         });
     }
     
-    // Asset Management
+    // Color Picker Management
     
-    selectColor(colorSwatch) {
-        const colorGroup = colorSwatch.closest('.color-group');
-        colorGroup.querySelectorAll('.color-swatch').forEach(swatch => swatch.classList.remove('active'));
-        colorSwatch.classList.add('active');
+    setupColorPicker() {
+        this.currentColorType = null;
+        this.currentColorThumb = null;
         
-        const color = colorSwatch.dataset.color;
-        const colorType = colorGroup.querySelector('label').textContent;
+        // Color thumb click handlers
+        const textColorThumb = document.getElementById('text-color-thumb');
+        const bgColorThumb = document.getElementById('bg-color-thumb');
+        const transparencyBtn = document.getElementById('transparency-btn');
         
-        this.updateColor(colorType, color);
-        console.log(`Selected ${colorType}: ${color}`);
+        if (textColorThumb) {
+            textColorThumb.addEventListener('click', () => {
+                this.openColorPicker('Text Color', textColorThumb);
+            });
+        }
+        
+        if (bgColorThumb) {
+            bgColorThumb.addEventListener('click', () => {
+                this.openColorPicker('Background Color', bgColorThumb);
+            });
+        }
+        
+        if (transparencyBtn) {
+            transparencyBtn.addEventListener('click', () => {
+                this.selectTransparency();
+            });
+        }
+        
+        // Color picker popup handlers
+        const colorPickerOverlay = document.getElementById('color-picker-overlay');
+        const closePicker = document.getElementById('close-picker');
+        const cancelColor = document.getElementById('cancel-color');
+        const applyColor = document.getElementById('apply-color');
+        const colorInput = document.getElementById('color-input');
+        
+        if (colorPickerOverlay) {
+            colorPickerOverlay.addEventListener('click', () => this.closeColorPicker());
+        }
+        
+        if (closePicker) {
+            closePicker.addEventListener('click', () => this.closeColorPicker());
+        }
+        
+        if (cancelColor) {
+            cancelColor.addEventListener('click', () => this.closeColorPicker());
+        }
+        
+        if (applyColor) {
+            applyColor.addEventListener('click', () => this.applySelectedColor());
+        }
+        
+        if (colorInput) {
+            colorInput.addEventListener('input', (e) => this.updateColorPreview(e.target.value));
+        }
+        
+        // Keyboard handlers
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isColorPickerOpen()) {
+                this.closeColorPicker();
+            }
+        });
+    }
+    
+    openColorPicker(colorType, thumbElement) {
+        this.currentColorType = colorType;
+        this.currentColorThumb = thumbElement;
+        
+        const popup = document.getElementById('color-picker-popup');
+        const overlay = document.getElementById('color-picker-overlay');
+        const title = document.getElementById('color-picker-title');
+        const colorInput = document.getElementById('color-input');
+        
+        if (popup && overlay && title && colorInput) {
+            const currentColor = thumbElement.dataset.color;
+            
+            title.textContent = `Choose ${colorType}`;
+            colorInput.value = currentColor;
+            this.updateColorPreview(currentColor);
+            
+            overlay.style.display = 'block';
+            popup.style.display = 'block';
+            
+            // Focus the color input for better UX
+            setTimeout(() => colorInput.focus(), 100);
+        }
+        
+        console.log(`Opened color picker for ${colorType}`);
+    }
+    
+    closeColorPicker() {
+        const popup = document.getElementById('color-picker-popup');
+        const overlay = document.getElementById('color-picker-overlay');
+        
+        if (popup && overlay) {
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+        
+        this.currentColorType = null;
+        this.currentColorThumb = null;
+    }
+    
+    isColorPickerOpen() {
+        const popup = document.getElementById('color-picker-popup');
+        return popup && popup.style.display === 'block';
+    }
+    
+    updateColorPreview(color) {
+        const preview = document.getElementById('color-preview-current');
+        const hex = document.getElementById('color-hex');
+        
+        if (preview && hex) {
+            preview.style.backgroundColor = color;
+            hex.textContent = color.toUpperCase();
+        }
+    }
+    
+    applySelectedColor() {
+        const colorInput = document.getElementById('color-input');
+        
+        if (colorInput && this.currentColorType && this.currentColorThumb) {
+            const selectedColor = colorInput.value;
+            
+            // Update the thumb
+            this.updateColorThumb(this.currentColorThumb, selectedColor);
+            
+            // Apply the color to the template
+            this.updateColor(this.currentColorType, selectedColor);
+            
+            this.closeColorPicker();
+        }
+    }
+    
+    selectTransparency() {
+        const transparencyBtn = document.getElementById('transparency-btn');
+        const bgColorThumb = document.getElementById('bg-color-thumb');
+        
+        if (transparencyBtn && bgColorThumb) {
+            // Toggle transparency state
+            const isActive = transparencyBtn.classList.toggle('active');
+            
+            if (isActive) {
+                // Set transparent background
+                this.updateColorThumb(bgColorThumb, 'transparent');
+                this.updateColor('Background Color', 'transparent');
+            } else {
+                // Restore previous background color
+                const lastColor = bgColorThumb.dataset.color !== 'transparent' 
+                    ? bgColorThumb.dataset.color 
+                    : '#0D0D0D';
+                this.updateColorThumb(bgColorThumb, lastColor);
+                this.updateColor('Background Color', lastColor);
+            }
+        }
+    }
+    
+    updateColorThumb(thumbElement, color) {
+        const valueElement = thumbElement.parentElement.querySelector('.color-value');
+        
+        if (color === 'transparent') {
+            thumbElement.style.background = `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3cdefs%3e%3cpattern id='checkerboard' x='0' y='0' width='8' height='8' patternUnits='userSpaceOnUse'%3e%3crect x='0' y='0' width='4' height='4' fill='%23E5E5E5'/%3e%3crect x='4' y='4' width='4' height='4' fill='%23E5E5E5'/%3e%3crect x='4' y='0' width='4' height='4' fill='%23CCCCCC'/%3e%3crect x='0' y='4' width='4' height='4' fill='%23CCCCCC'/%3e%3c/pattern%3e%3c/defs%3e%3crect width='100%25' height='100%25' fill='url(%23checkerboard)'/%3e%3c/svg%3e")`;
+            thumbElement.dataset.color = 'transparent';
+            if (valueElement) valueElement.textContent = 'transparent';
+        } else {
+            thumbElement.style.backgroundColor = color;
+            thumbElement.style.background = color;
+            thumbElement.dataset.color = color;
+            if (valueElement) valueElement.textContent = color.toUpperCase();
+        }
+    }
+    
+    // Legacy method for compatibility - now delegates to new system
+    selectColor(element) {
+        // This method is kept for any remaining legacy calls
+        console.log('Legacy selectColor called - use new color picker system');
     }
     
     selectIcon(iconPreset) {
@@ -927,6 +1122,15 @@ class TemplateEditor {
             return this.wrapTextToTwoLines(uppercaseText, maxWidth);
         }
         
+        // For subtitles, enable automatic word wrapping with 2-line limit
+        if (type === 'subtitle1' || type === 'subtitle2') {
+            // Remove all manual line breaks and extra spaces first
+            const cleanedText = text.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+            
+            // Manual word wrapping with strict 2-line limit
+            return this.wrapSubtitleToTwoLines(cleanedText, maxWidth, type);
+        }
+        
         // For other text types, just return the text as-is
         // Width limiting is handled by input field restrictions
         return text;
@@ -961,6 +1165,63 @@ class TemplateEditor {
             fontSize: dynamicFontSize,
             fontFamily: '"Wix Madefor Display"',
             fontStyle: '800', // Back to original Figma extra bold
+            letterSpacing: 0 // Let natural kerning work
+        });
+        
+        const words = text.split(' ');
+        let line1 = '';
+        let line2 = '';
+        let currentLine = 1;
+        
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine === 1 ? 
+                (line1 + (line1 ? ' ' : '') + word) : 
+                (line2 + (line2 ? ' ' : '') + word);
+            
+            // Test the width of this line
+            tempText.text(testLine);
+            const lineWidth = tempText.width();
+            
+            if (lineWidth <= maxWidth) {
+                // Word fits on current line
+                if (currentLine === 1) {
+                    line1 = testLine;
+                } else {
+                    line2 = testLine;
+                }
+            } else {
+                // Word doesn't fit
+                if (currentLine === 1) {
+                    // Move to line 2
+                    currentLine = 2;
+                    line2 = word;
+                } else {
+                    // Already on line 2 and word doesn't fit - stop here
+                    break;
+                }
+            }
+        }
+        
+        tempText.destroy();
+        
+        // Return the result with at most 2 lines
+        if (line2) {
+            return line1 + '\n' + line2;
+        } else {
+            return line1;
+        }
+    }
+    
+    wrapSubtitleToTwoLines(text, maxWidth, type) {
+        const fontSize = this.getFontSizeForType(type);
+        const fontStyle = this.getFontStyleForType(type);
+        
+        // Create a temporary text object for measurement with proper kerning
+        const tempText = new Konva.Text({
+            fontSize: fontSize,
+            fontFamily: '"Wix Madefor Display"',
+            fontStyle: fontStyle,
             letterSpacing: 0 // Let natural kerning work
         });
         
@@ -1196,6 +1457,7 @@ class TemplateEditor {
             fill: '#FFFFFF',
             align: 'center',
             width: 1490, // 1920 - (215px * 2) = content width
+            wrap: 'word', // Enable word wrapping for 2-line support
             letterSpacing: 0, // Let the font's natural kerning work
             listening: true
         });
@@ -1217,6 +1479,8 @@ class TemplateEditor {
             fill: '#FFFFFF',
             align: 'center',
             width: 1490, // 1920 - (215px * 2) = content width
+            wrap: 'word', // Enable word wrapping for 2-line support
+            lineHeight: 1.25, // Increased leading for better spacing
             letterSpacing: 0, // Let the font's natural kerning work
             listening: true
         });
@@ -1841,9 +2105,9 @@ class TemplateEditor {
     }
     
     getCurrentTextColor() {
-        // Get the current text color from the active color swatch or default to white
-        const activeColorSwatch = document.querySelector('.color-group:first-child .color-swatch.active');
-        return activeColorSwatch ? activeColorSwatch.dataset.color : '#FFFFFF';
+        // Get the current text color from the text color thumb or default to white
+        const textColorThumb = document.getElementById('text-color-thumb');
+        return textColorThumb ? textColorThumb.dataset.color : '#FFFFFF';
     }
     
     createTopIconFromConfig(y) {
@@ -2139,6 +2403,11 @@ class TemplateEditor {
         
         // Refresh debug display if enabled
         this.refreshDebugDisplay();
+        
+        // Trigger auto-save for color changes
+        if (window.projectIntegration && typeof window.projectIntegration.scheduleAutoSave === 'function') {
+            window.projectIntegration.scheduleAutoSave();
+        }
         
         console.log(`Updated ${type}: ${color}`);
     }
@@ -2650,6 +2919,7 @@ class TemplateEditor {
             fill: '#FFFFFF',
             align: 'center',
             width: 1490, // 1920 - (215px * 2) = content width
+            wrap: 'word', // Enable word wrapping for 2-line support
             letterSpacing: 0, // Let the font's natural kerning work
             listening: true
         });
@@ -2671,6 +2941,8 @@ class TemplateEditor {
             fill: '#FFFFFF',
             align: 'center',
             width: 1490, // 1920 - (215px * 2) = content width
+            wrap: 'word', // Enable word wrapping for 2-line support
+            lineHeight: 1.25, // Increased leading for better spacing
             letterSpacing: 0, // Let the font's natural kerning work
             listening: true
         });
@@ -3593,7 +3865,47 @@ class TemplateEditor {
     }
     
     /**
-     * Animate bottom icons with stagger using animation system configuration - UPDATED
+     * Calculate center-out stagger order for bottom icons animation
+     * For odd number (5): 3rd first > 2nd & 4th > 1st & 5th
+     * For even number (6): 3rd & 4th first > 2nd & 5th > 1st & 6th
+     */
+    calculateCenterOutStaggerOrder(totalCount) {
+        const staggerOrder = [];
+        
+        if (totalCount % 2 === 1) {
+            // Odd number: center icon first
+            const centerIndex = Math.floor(totalCount / 2);
+            staggerOrder.push(centerIndex);
+            
+            // Then alternate left and right
+            for (let offset = 1; offset <= Math.floor(totalCount / 2); offset++) {
+                const leftIndex = centerIndex - offset;
+                const rightIndex = centerIndex + offset;
+                
+                if (leftIndex >= 0) staggerOrder.push(leftIndex);
+                if (rightIndex < totalCount) staggerOrder.push(rightIndex);
+            }
+        } else {
+            // Even number: center two icons first
+            const leftCenter = Math.floor(totalCount / 2) - 1;
+            const rightCenter = Math.floor(totalCount / 2);
+            staggerOrder.push(leftCenter, rightCenter);
+            
+            // Then alternate outward
+            for (let offset = 1; offset < totalCount / 2; offset++) {
+                const leftIndex = leftCenter - offset;
+                const rightIndex = rightCenter + offset;
+                
+                if (leftIndex >= 0) staggerOrder.push(leftIndex);
+                if (rightIndex < totalCount) staggerOrder.push(rightIndex);
+            }
+        }
+        
+        return staggerOrder;
+    }
+
+    /**
+     * Animate bottom icons with center-out stagger using animation system configuration - UPDATED
      */
     animateBottomIconsFromSystem(config, iconsArray) {
         if (!Array.isArray(iconsArray) || iconsArray.length === 0) return;
@@ -3601,6 +3913,10 @@ class TemplateEditor {
         const basePos = this.getBasePosition('bottomIcons');
         const iconPositions = this.calculateIconPositions(basePos.count);
         const baseDelay = config.animateIn.order * this.animationSystem.global.timing.elementDelay;
+        
+        // Calculate center-out stagger order
+        const staggerOrder = this.calculateCenterOutStaggerOrder(basePos.count);
+        console.log(`🎭 Center-out stagger order for ${basePos.count} icons:`, staggerOrder);
         
         iconsArray.forEach((icon, index) => {
             if (icon && index < basePos.count) {
@@ -3618,6 +3934,10 @@ class TemplateEditor {
                 icon.scaleY(fromProps.scale || 1);
                 icon.rotation(fromProps.rotation || 0);
                 
+                // Calculate center-out stagger delay instead of linear
+                const staggerStep = staggerOrder.indexOf(index);
+                const centerOutDelay = staggerStep >= 0 ? staggerStep * config.animateIn.stagger : 0;
+                
                 // Animate to final position
                 this.timeline.to(icon, {
                     x: iconPositions[index],
@@ -3628,11 +3948,11 @@ class TemplateEditor {
                     rotation: 0,
                     duration: config.animateIn.duration,
                     ease: config.animateIn.ease
-                }, baseDelay + (index * config.animateIn.stagger));
+                }, baseDelay + centerOutDelay);
             }
         });
         
-        console.log(`🎭 Animated ${iconsArray.length} bottom icons with stagger`);
+        console.log(`🎭 Animated ${iconsArray.length} bottom icons with center-out stagger`);
     }
     
     /**
@@ -4070,11 +4390,24 @@ class TemplateEditor {
         const basePosition = this.positionStates.base?.[elementName];
         console.log(`📍 Using base position for ${elementName}:`, basePosition);
         
+        // Calculate center-out stagger order for bottom icons
+        let staggerOrder = null;
+        if (elementName === 'bottomIcons') {
+            staggerOrder = this.calculateCenterOutStaggerOrder(elements.length);
+            console.log(`🎭 Center-out stagger order for ${elementName}:`, staggerOrder);
+        }
+        
         elements.forEach((element, index) => {
             if (!element) return;
             
-            // Calculate stagger delay
-            const staggerDelay = (animConfig.stagger || 0) * index;
+            // Calculate stagger delay - use center-out for bottom icons, linear for others
+            let staggerDelay;
+            if (elementName === 'bottomIcons' && staggerOrder) {
+                const staggerStep = staggerOrder.indexOf(index);
+                staggerDelay = staggerStep >= 0 ? staggerStep * (animConfig.stagger || 0) : 0;
+            } else {
+                staggerDelay = (animConfig.stagger || 0) * index;
+            }
             const totalDelay = (animConfig.delay || 0) + staggerDelay;
             
             // 🔥 FIX: For bottom icons, each icon needs its individual position as base reference
@@ -5383,23 +5716,34 @@ class TemplateEditor {
                     console.log('Loading text color:', project.config.colors.text);
                     this.updateColor('Text Color', project.config.colors.text);
                     
-                    // Also update the UI color swatch
-                    const textColorSwatch = document.querySelector(`[data-color="${project.config.colors.text}"]`);
-                    if (textColorSwatch) {
-                        // Remove active from all text color swatches
-                        document.querySelectorAll('.color-group:first-child .color-swatch').forEach(s => s.classList.remove('active'));
-                        textColorSwatch.classList.add('active');
+                    // Update the text color thumb
+                    const textColorThumb = document.getElementById('text-color-thumb');
+                    if (textColorThumb) {
+                        this.updateColorThumb(textColorThumb, project.config.colors.text);
                     }
                 }
                 if (project.config.colors.background) {
                     console.log('Loading background color:', project.config.colors.background);
                     this.updateColor('Background Color', project.config.colors.background);
                     
-                    // Update background color swatch
-                    const bgColorSwatch = document.querySelector(`.color-group:last-child [data-color="${project.config.colors.background}"]`);
-                    if (bgColorSwatch) {
-                        document.querySelectorAll('.color-group:last-child .color-swatch').forEach(s => s.classList.remove('active'));
-                        bgColorSwatch.classList.add('active');
+                    // Update the background color thumb and transparency button
+                    const bgColorThumb = document.getElementById('bg-color-thumb');
+                    const transparencyBtn = document.getElementById('transparency-btn');
+                    
+                    if (project.config.colors.background === 'transparent') {
+                        if (transparencyBtn) {
+                            transparencyBtn.classList.add('active');
+                        }
+                        if (bgColorThumb) {
+                            this.updateColorThumb(bgColorThumb, 'transparent');
+                        }
+                    } else {
+                        if (transparencyBtn) {
+                            transparencyBtn.classList.remove('active');
+                        }
+                        if (bgColorThumb) {
+                            this.updateColorThumb(bgColorThumb, project.config.colors.background);
+                        }
                     }
                 }
             }
@@ -5463,11 +5807,8 @@ class TemplateEditor {
                     input.addEventListener('input', projectIntegration.scheduleAutoSave);
                 });
                 
-                // Add color swatch listeners for auto-save
-                const colorSwatches = document.querySelectorAll('.color-swatch');
-                colorSwatches.forEach(swatch => {
-                    swatch.addEventListener('click', projectIntegration.scheduleAutoSave);
-                });
+                // Color changes are auto-saved through the updateColor method
+                // No need for separate listeners since color picker handles this
                 
                 this._autoSaveSetup = true; // Prevent duplicate event listeners
                 console.log('Auto-save listeners setup complete');
