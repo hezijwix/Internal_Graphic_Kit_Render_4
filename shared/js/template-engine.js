@@ -78,33 +78,44 @@ class TemplateEditor {
         // Ensure visibility is locked for icons
         console.log('🔒 Layer visibility initialized with icons FORCED visible');
         
-        // 🔥 NEW: UNIFIED ICON SYSTEM - Maps abstract types to actual gallery icons
-        this.iconMapping = {
-            // Abstract type -> Gallery icon ID mapping
-            'star': 50,      // icon-050-stars.svg (first star icon)
-            'circle': 62,    // icon-062-misc.svg (Union.svg - circular shape)
-            'arrow': 1,      // icon-001-arrow.svg (first arrow icon)
-            'heart': 23,     // icon-023-celebration.svg (celebration icon)
-            'diamond': 51,   // icon-051-stars.svg (diamond-like star)
-            'triangle': 2    // icon-002-arrow.svg (triangular arrow)
-        };
+        // 🔥 UNIFIED ICON SYSTEM - Uses only gallery icon IDs (no abstract types)
         
-        // 🔥 NEW: Default icon configurations using REAL gallery icons
+        // Default icon configurations using REAL gallery icons
         this.defaultIcons = {
             top: 50,        // Default to star icon (icon-050-stars.svg)
             bottom: 23      // Default to celebration icon (icon-023-celebration.svg)
         };
         
-        // Bottom icons configuration - NOW USING GALLERY IDs
+        // 🔥 CLEAN: Bottom icons configuration - ONLY gallery IDs (removed old abstract types)
         this.bottomIconsConfig = {
             count: 4,
-            spacing: 260,
-            iconIds: new Array(6).fill(23)  // All slots use celebration icon (ID 23)
+            spacing: 260, // Preserved but now calculated dynamically based on main title width
+            iconIds: new Array(6).fill(23)  // All slots use celebration icon (ID 23), supports up to 6 icons
         };
         
-        // Top icon configuration - NOW USING GALLERY ID
+        // Top icon configuration - uses gallery ID
         this.topIconConfig = {
-            iconId: this.defaultIcons.top  // Store gallery icon ID, not type
+            iconId: this.defaultIcons.top  // Store gallery icon ID
+        };
+        
+        // 🔥 UNIFIED: Icon mapping for UI display (maps gallery IDs back to abstract types for UI)
+        this.iconIdToTypeMapping = {
+            50: 'star',      // icon-050-stars.svg
+            62: 'circle',    // icon-062-misc.svg (Union.svg)
+            1: 'arrow',      // icon-001-arrow.svg
+            23: 'heart',     // icon-023-celebration.svg
+            51: 'diamond',   // icon-051-stars.svg
+            2: 'triangle'    // icon-002-arrow.svg
+        };
+        
+        // Reverse mapping for UI controls (maps abstract types to gallery IDs)
+        this.iconTypeToIdMapping = {
+            'star': 50,
+            'circle': 62,
+            'arrow': 1,
+            'heart': 23,
+            'diamond': 51,
+            'triangle': 2
         };
         
         // Icon storage and management
@@ -150,11 +161,64 @@ class TemplateEditor {
         this.lastMouseX = 0;
         this.lastMouseY = 0;
         
-        // 🔥 NEW: Prevent overlapping gallery loading operations
+        // 🔥 CLEAN: Prevent overlapping gallery loading operations
         this.isLoadingBottomIcons = false;
         this.isLoadingTopIcon = false;
+    }
+    
+    /**
+     * 🔥 UNIFIED: Register bottom icons with animation system
+     * This ensures bottom icons are properly integrated with GSAP timeline and template animations
+     */
+    registerBottomIconsWithAnimationSystem() {
+        if (!this.templateObjects.bottomIcons || !Array.isArray(this.templateObjects.bottomIcons)) {
+            console.warn('⚠️ Cannot register bottom icons - array not found');
+            return;
+        }
         
-        this.initializeApp();
+        console.log('🎭 Registering bottom icons with animation system...');
+        
+        // Register each bottom icon individually with the animation system
+        this.templateObjects.bottomIcons.forEach((icon, index) => {
+            if (icon && this.animationSystem) {
+                this.animationSystem.register(`bottomIcon${index}`, icon, 'icon');
+            }
+        });
+        
+        console.log(`✅ Registered ${this.templateObjects.bottomIcons.length} bottom icons with animation system`);
+    }
+    
+    /**
+     * 🔥 UNIFIED: Recreate individual bottom icon with new color
+     * @param {Konva.Image} existingIcon - Current icon to replace
+     * @param {number} iconId - Gallery icon ID
+     * @param {number} index - Icon index in array
+     * @param {string} color - New color to apply
+     */
+    async recreateBottomIconWithNewColor(existingIcon, iconId, index, color) {
+        try {
+            // Get current position from existing icon
+            const x = existingIcon.x();
+            const y = existingIcon.y();
+            
+            // Remove existing icon
+            existingIcon.destroy();
+            
+            // Create new icon with updated color
+            const newIcon = await this.createIconFromGallery(iconId, x, y, 40);
+            
+            // Replace in array and add to layer
+            this.templateObjects.bottomIcons[index] = newIcon;
+            this.contentLayer.add(newIcon);
+            
+            console.log(`✅ Bottom icon ${index + 1} recreated with new color`);
+            
+        } catch (error) {
+            console.error(`❌ Failed to recreate bottom icon ${index + 1}:`, error);
+        }
+    }
+    
+    initializeApp() {
     }
     
     initializeApp() {
@@ -578,14 +642,23 @@ class TemplateEditor {
                         console.log(`⚡ Executing debounced icon count change to: ${newCount}`);
                         console.log(`📊 Current iconIds before count change: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
                         
+                        // 🔥 UNIFIED: Preserve existing icon IDs when changing count
+                        const oldCount = this.bottomIconsConfig.count;
                         this.bottomIconsConfig.count = newCount;
-                        this.updateIconSlots();
                         
-                        console.log(`📊 iconIds after updateIconSlots: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+                        // If increasing count, fill new slots with default icon
+                        if (newCount > oldCount) {
+                            for (let i = oldCount; i < newCount; i++) {
+                                if (!this.bottomIconsConfig.iconIds[i]) {
+                                    this.bottomIconsConfig.iconIds[i] = this.defaultIcons.bottom;
+                                }
+                            }
+                        }
                         
-                        // 🔥 FIXED: Only call recalculateLayout - it handles icon recreation
-                        // Remove duplicate createBottomIconsExact() call
-                        this.recalculateLayout();
+                        console.log(`📊 iconIds after count adjustment: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+                        
+                        // 🔥 UNIFIED: Recreate bottom icons using gallery system
+                        this.loadBottomIconsFromGallery();
                         
                         console.log(`✅ Icon count change completed successfully`);
                     } catch (error) {
@@ -595,7 +668,7 @@ class TemplateEditor {
             });
         }
         
-        // Icon selection buttons
+        // Icon selection buttons (for UI controls)
         document.addEventListener('click', (e) => {
             if (e.target.closest('.icon-option')) {
                 const button = e.target.closest('.icon-option');
@@ -603,8 +676,8 @@ class TemplateEditor {
                 const slotIndex = parseInt(slot.dataset.slot);
                 const iconType = button.dataset.icon;
                 
-                // 🔥 UPDATED: Convert abstract icon type to gallery ID using new mapping system
-                const iconId = this.mapIconTypeToId(iconType);
+                // 🔥 UNIFIED: Convert abstract icon type to gallery ID using mapping system
+                const iconId = this.iconTypeToIdMapping[iconType] || this.defaultIcons.bottom;
                 this.bottomIconsConfig.iconIds[slotIndex] = iconId;
                 
                 console.log(`🎨 Icon slot ${slotIndex + 1} changed to type "${iconType}" (Gallery ID: ${iconId})`);
@@ -618,16 +691,15 @@ class TemplateEditor {
                 const currentIcon = slot.querySelector('.current-icon');
                 currentIcon.innerHTML = button.innerHTML;
                 
-                // 🔥 UPDATED: Use unified gallery system for recreation
+                // 🔥 UNIFIED: Use gallery system for recreation with debouncing
                 clearTimeout(this.iconSelectionTimeout);
                 this.iconSelectionTimeout = setTimeout(() => {
                     this.loadBottomIconsFromGallery();
-                    // Note: recalculateLayout() is not needed here since loadBottomIconsFromGallery handles positioning
                 }, 100);
             }
         });
         
-        // Top icon presets
+        // Top icon presets (keep existing functionality)
         document.addEventListener('click', (e) => {
             if (e.target.closest('.icon-preset')) {
                 const button = e.target.closest('.icon-preset');
@@ -637,14 +709,12 @@ class TemplateEditor {
                 document.querySelectorAll('.icon-preset').forEach(preset => preset.classList.remove('active'));
                 button.classList.add('active');
                 
-                // Update top icon configuration and recreate
-                this.topIconConfig.type = iconType;
-                if (this.templateObjects.topIcon) {
-                    this.templateObjects.topIcon.destroy();
-                    this.createTopIconFromConfig(this.templateObjects.topIcon.y());
-                    this.updateGSAPTimeline();
-                    this.stage.batchDraw();
-                }
+                // Update top icon using gallery system (if needed)
+                const iconId = this.iconTypeToIdMapping[iconType] || this.defaultIcons.top;
+                this.topIconConfig.iconId = iconId;
+                
+                // Recreate top icon
+                this.loadTopIconFromGallery();
             }
         });
     }
@@ -1150,20 +1220,20 @@ class TemplateEditor {
         console.log(`Subtitle 2 created at Y=${this.templateObjects.subtitle2.y()}`);
         currentY += subtitle2Height + elementGap;
         
-        // Store the bottom icons Y position for the createBottomIconsExact method
+        // Store the bottom icons Y position for positioning calculations
         this.bottomIconsY = currentY + (bottomIconHeight / 2);
         
         // Calculate base positions for animation system BEFORE creating icons
         this.calculateBasePositions();
         
-        // 🔥 NEW: Load icons using unified gallery system
+        // 🔥 UNIFIED: Load icons using unified gallery system
         console.log('🎨 Loading icons using unified gallery system...');
         
         // Load top icon from gallery
-        this.loadTopIconFromGallery();
+        this.loadTopIconFromGallery(false); // Don't update timeline on initial load
         
         // Load bottom icons from gallery  
-        this.loadBottomIconsFromGallery();
+        this.loadBottomIconsFromGallery(false); // Don't update timeline on initial load
         
         // Skip setting initial hidden positions - let icons stay visible
         // this.setInitialPositions(); // COMMENTED OUT to prevent hiding icons
@@ -1210,6 +1280,7 @@ class TemplateEditor {
         console.log(`✅ iconIds array validated: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
     }
     
+    // 🔥 CLEAN: Simplified updateIconSlots for UI-only operations (canvas handled by loadBottomIconsFromGallery)
     updateIconSlots() {
         const iconSlotsContainer = document.querySelector('.icon-slots');
         if (!iconSlotsContainer) return;
@@ -1226,21 +1297,15 @@ class TemplateEditor {
             iconSlotsContainer.appendChild(iconSlot);
         }
         
-        console.log(`Created ${this.bottomIconsConfig.count} icon configuration slots`);
+        console.log(`🎛️ Created ${this.bottomIconsConfig.count} icon configuration slots in UI`);
     }
     
     createIconSlot(slotIndex) {
-        // 🔥 UPDATED: Get current icon ID from new unified system
+        // 🔥 UNIFIED: Get current icon ID from unified system
         const currentIconId = this.bottomIconsConfig.iconIds[slotIndex] || this.defaultIcons.bottom;
         
-        // Map icon ID back to abstract type for UI display (reverse mapping)
-        let currentIconType = 'heart'; // Default fallback to celebration icon
-        for (const [type, id] of Object.entries(this.iconMapping)) {
-            if (id === currentIconId) {
-                currentIconType = type;
-                break;
-            }
-        }
+        // Map icon ID back to abstract type for UI display using unified mapping
+        const currentIconType = this.iconIdToTypeMapping[currentIconId] || 'heart'; // Default fallback
         
         console.log(`🔧 Creating icon slot ${slotIndex + 1}:`);
         console.log(`   📊 Current iconId: ${currentIconId}`);
@@ -1829,18 +1894,16 @@ class TemplateEditor {
                     this.applyColorToSVGIcon(this.templateObjects.topIcon, color);
                 }
             }
-            // Update bottom icons color to inherit text color
+            // 🔥 UNIFIED: Update bottom icons color using gallery system
             this.templateObjects.bottomIcons.forEach((icon, index) => {
-                if (icon) {
-                    // If the icon came from gallery, recreate it with new color
-                    if (this.currentBottomIconsData && this.currentBottomIconsData[index]) {
-                        console.log(`🔄 Recreating bottom icon ${index + 1} from gallery with new color:`, color);
-                        this.updateBottomIconFromGallery(this.currentBottomIconsData[index], index);
-                    } else {
-                        // For other icons, apply direct color changes
-                        if (icon.fill) icon.fill(color);
-                        if (icon.stroke) icon.stroke(color);
-                    }
+                if (icon && index < this.bottomIconsConfig.count) {
+                    // Get the current icon ID for this slot
+                    const iconId = this.bottomIconsConfig.iconIds[index] || this.defaultIcons.bottom;
+                    
+                    console.log(`🔄 Updating bottom icon ${index + 1} (ID: ${iconId}) with new color:`, color);
+                    
+                    // Recreate icon from gallery with new color (unified approach)
+                    this.recreateBottomIconWithNewColor(icon, iconId, index, color);
                 }
             });
             // Ensure stage is redrawn with new colors
@@ -2447,23 +2510,7 @@ class TemplateEditor {
         }, 100);
     }
     
-    createBottomIconsExact() {
-        console.log('🔄 Starting createBottomIconsExact() - using UNIFIED GALLERY SYSTEM...');
-        
-        // Cancel any pending async icon operations to prevent race conditions
-        console.log(`🚫 Cancelling ${this.pendingIconOperations.size} pending icon operations`);
-        this.pendingIconOperations.clear();
-        this.iconCreationSequence++; // Increment sequence to invalidate old operations
-
-        if (!this.layerVisibility.bottomIcons || this.bottomIconsConfig.count === 0) {
-            console.log('⏭️ Skipping icon creation - visibility or count is 0');
-            return;
-        }
-
-        // 🔥 NEW: Use unified gallery system instead of hardcoded shapes
-        console.log('🎨 Using unified gallery system for bottom icons...');
-        this.loadBottomIconsFromGallery();
-    }
+    // 🔥 REMOVED: Old createBottomIconsExact method - replaced by unified loadBottomIconsFromGallery()
     
     calculateIconPositions(iconCount) {
         if (iconCount === 0) return [];
@@ -5301,14 +5348,7 @@ class TemplateEditor {
     // 🔥 NEW: UNIFIED ICON SYSTEM METHODS
     // ================================
     
-    /**
-     * Convert abstract icon type to gallery icon ID
-     * @param {string} iconType - Abstract type like 'star', 'circle', 'arrow'
-     * @returns {number} Gallery icon ID
-     */
-    mapIconTypeToId(iconType) {
-        return this.iconMapping[iconType] || this.iconMapping['circle']; // Default to circle if not found
-    }
+    // 🔥 REMOVED: Old mapIconTypeToId method - replaced by this.iconTypeToIdMapping direct lookup
     
     /**
      * Get gallery icon data by ID
@@ -5563,7 +5603,10 @@ class TemplateEditor {
                 this.updateGSAPTimeline();
             }
             
-            console.log(`✅ All ${icons.length} bottom icons loaded from gallery successfully`);
+            // 🔥 UNIFIED: Register bottom icons with animation system
+            this.registerBottomIconsWithAnimationSystem();
+            
+            console.log(`✅ All ${icons.length} bottom icons loaded from gallery successfully and registered with animation system`);
         } catch (error) {
             console.error('❌ Failed to load bottom icons from gallery:', error);
         } finally {
