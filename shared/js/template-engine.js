@@ -78,6 +78,10 @@ class TemplateEditor {
         // Ensure visibility is locked for icons
         console.log('🔒 Layer visibility initialized with icons FORCED visible');
         
+        // Debug mode state
+        this.debugMode = false;
+        this.debugElements = []; // Store debug rectangles for cleanup
+        
         // 🔥 UNIFIED ICON SYSTEM - Uses only gallery icon IDs (no abstract types)
         
         // Default icon configurations using REAL gallery icons
@@ -321,11 +325,13 @@ class TemplateEditor {
         this.backgroundLayer = new Konva.Layer();
         this.contentLayer = new Konva.Layer();
         this.uiLayer = new Konva.Layer();
+        this.debugLayer = new Konva.Layer(); // Debug layer for bounding boxes
         
         // Add layers to stage
         this.stage.add(this.backgroundLayer);
         this.stage.add(this.contentLayer);
         this.stage.add(this.uiLayer);
+        this.stage.add(this.debugLayer);
         
         // Initialize template objects and wait for all icons to load
         this.createTemplateObjects().then(() => {
@@ -676,13 +682,8 @@ class TemplateEditor {
                     console.log(`🎨 Icon slot ${slotIndex + 1} changed from ID ${oldIconId} to "${iconType}" (Gallery ID: ${iconId})`);
                     console.log(`📊 Updated iconIds array: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
                     
-                    // Update UI
-                    slot.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
-                    button.classList.add('active');
-                    
-                    // Update current icon display
-                    const currentIcon = slot.querySelector('.current-icon');
-                    currentIcon.innerHTML = button.innerHTML;
+                    // 🔥 SMART UI: Update UI to reflect preset selection
+                    this.updateIconSlotToPreset(slot, slotIndex, iconType, iconId);
                     
                     // 🔥 FIXED: Update only the specific icon that changed
                     clearTimeout(this.iconSelectionTimeout);
@@ -690,6 +691,15 @@ class TemplateEditor {
                         this.updateSingleBottomIcon(slotIndex, iconId);
                     }, 100);
                 }
+            }
+            
+            // 🔥 NEW: Handle "Choose Different Icon" button clicks
+            if (e.target.closest('.change-icon-btn')) {
+                const button = e.target.closest('.change-icon-btn');
+                const slotIndex = parseInt(button.dataset.slot);
+                
+                console.log(`🎨 Opening gallery for bottom icon slot ${slotIndex + 1}`);
+                this.openGalleryForBottomIcon(slotIndex);
             }
         });
         
@@ -897,6 +907,9 @@ class TemplateEditor {
         }
         
         this.updateTemplateProperties();
+        
+        // Refresh debug display if enabled
+        this.refreshDebugDisplay();
         
         console.log(`Updated ${type} text: ${value}`);
     }
@@ -1276,7 +1289,7 @@ class TemplateEditor {
         console.log(`📊 Active slots (count=${this.bottomIconsConfig.count}): [${this.bottomIconsConfig.iconIds.slice(0, this.bottomIconsConfig.count)}]`);
     }
     
-    // 🔥 IMPROVED: Smart UI sync that works with incremental updates
+    // 🔥 SMART: Intelligent UI sync that preserves icon selections  
     updateIconSlots() {
         const iconSlotsContainer = document.querySelector('.icon-slots');
         if (!iconSlotsContainer) return;
@@ -1284,34 +1297,48 @@ class TemplateEditor {
         // Validate iconIds array before creating slots
         this.validateIconIdsArray();
         
+        console.log(`🔄 Smart UI update: recreating ${this.bottomIconsConfig.count} icon slots`);
+        console.log(`📊 Preserving iconIds: [${this.bottomIconsConfig.iconIds.slice(0, this.bottomIconsConfig.count)}]`);
+        
         // Clear existing slots
         iconSlotsContainer.innerHTML = '';
         
-        // Create the required number of icon slots dynamically
+        // Create the required number of icon slots dynamically with preserved state
         for (let i = 0; i < this.bottomIconsConfig.count; i++) {
             const iconSlot = this.createIconSlot(i);
             iconSlotsContainer.appendChild(iconSlot);
         }
         
-        console.log(`🎛️ Created ${this.bottomIconsConfig.count} icon configuration slots in UI`);
+        console.log(`✅ Created ${this.bottomIconsConfig.count} icon configuration slots with preserved selections`);
         console.log(`🔗 UI synchronized with iconIds: [${this.bottomIconsConfig.iconIds.slice(0, this.bottomIconsConfig.count)}]`);
+        
+        // 🔥 SMART: Log the state for debugging
+        for (let i = 0; i < this.bottomIconsConfig.count; i++) {
+            const iconId = this.bottomIconsConfig.iconIds[i];
+            const iconType = this.iconIdToTypeMapping[iconId];
+            const isCustom = !iconType;
+            console.log(`   Slot ${i + 1}: ID ${iconId} → ${isCustom ? 'CUSTOM GALLERY ICON' : `Preset "${iconType}"`}`);
+        }
     }
     
     createIconSlot(slotIndex) {
-        // 🔥 UNIFIED: Get current icon ID from unified system
+        // 🔥 SMART UI: Get current icon ID and determine display mode
         const currentIconId = this.bottomIconsConfig.iconIds[slotIndex] || this.defaultIcons.bottom;
         
-        // Map icon ID back to abstract type for UI display using unified mapping
-        const currentIconType = this.iconIdToTypeMapping[currentIconId] || 'heart'; // Default fallback
+        // Check if this icon maps to one of our 6 presets
+        const currentIconType = this.iconIdToTypeMapping[currentIconId];
+        const isCustomGalleryIcon = !currentIconType; // True if user selected from gallery (not preset)
+        const displayType = currentIconType || 'heart'; // Fallback for SVG generation only
         
         console.log(`🔧 Creating icon slot ${slotIndex + 1}:`);
         console.log(`   📊 Current iconId: ${currentIconId}`);
-        console.log(`   📊 Mapped to type: ${currentIconType}`);
-        console.log(`   📊 Full iconIds array: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+        console.log(`   📊 Mapped to preset type: ${currentIconType || 'NONE (custom gallery icon)'}`);
+        console.log(`   📊 Is custom gallery icon: ${isCustomGalleryIcon}`);
         
         const slot = document.createElement('div');
         slot.className = 'icon-slot active';
         slot.setAttribute('data-slot', slotIndex);
+        slot.setAttribute('data-icon-id', currentIconId); // Store the actual icon ID
         
         slot.innerHTML = `
             <div class="slot-header">
@@ -1319,29 +1346,34 @@ class TemplateEditor {
                 <button class="remove-icon" aria-label="Remove icon">×</button>
             </div>
             <div class="icon-picker">
-                <div class="current-icon">
-                    ${this.getIconSVG(currentIconType, '24')}
+                <div class="current-icon" data-icon-id="${currentIconId}">
+                    ${isCustomGalleryIcon ? '<div class="loading-gallery-icon">Loading...</div>' : this.getIconSVG(displayType, '24')}
                 </div>
                 <div class="icon-options">
-                    <button class="icon-option ${currentIconType === 'star' ? 'active' : ''}" data-icon="star">
+                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'star' ? 'active' : ''}" data-icon="star">
                         ${this.getIconSVG('star', '16')}
                     </button>
-                    <button class="icon-option ${currentIconType === 'circle' ? 'active' : ''}" data-icon="circle">
+                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'circle' ? 'active' : ''}" data-icon="circle">
                         ${this.getIconSVG('circle', '16')}
                     </button>
-                    <button class="icon-option ${currentIconType === 'arrow' ? 'active' : ''}" data-icon="arrow">
+                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'arrow' ? 'active' : ''}" data-icon="arrow">
                         ${this.getIconSVG('arrow', '16')}
                     </button>
-                    <button class="icon-option ${currentIconType === 'heart' ? 'active' : ''}" data-icon="heart">
+                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'heart' ? 'active' : ''}" data-icon="heart">
                         ${this.getIconSVG('heart', '16')}
                     </button>
-                    <button class="icon-option ${currentIconType === 'diamond' ? 'active' : ''}" data-icon="diamond">
+                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'diamond' ? 'active' : ''}" data-icon="diamond">
                         ${this.getIconSVG('diamond', '16')}
                     </button>
-                    <button class="icon-option ${currentIconType === 'triangle' ? 'active' : ''}" data-icon="triangle">
+                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'triangle' ? 'active' : ''}" data-icon="triangle">
                         ${this.getIconSVG('triangle', '16')}
                     </button>
                 </div>
+                ${isCustomGalleryIcon ? `
+                <div class="custom-icon-indicator">
+                    <span class="custom-label">Gallery Icon ID: ${currentIconId}</span>
+                    <button class="change-icon-btn" data-slot="${slotIndex}">Choose Different Icon</button>
+                </div>` : ''}
             </div>
             <div class="upload-section">
                 <button class="upload-icon-btn" data-slot="${slotIndex}">
@@ -1350,10 +1382,177 @@ class TemplateEditor {
             </div>
         `;
         
+        // 🔥 SMART UI: Load actual gallery icon for display if it's custom
+        if (isCustomGalleryIcon) {
+            this.loadGalleryIconForUIDisplay(slot, currentIconId, slotIndex);
+        }
+        
         return slot;
     }
     
-    getIconSVG(iconType, size) {
+    /**
+     * 🔥 SMART UI: Load actual gallery icon for UI display
+     * @param {HTMLElement} slot - The slot element
+     * @param {number} iconId - Gallery icon ID
+     * @param {number} slotIndex - Slot index
+     */
+    async loadGalleryIconForUIDisplay(slot, iconId, slotIndex) {
+        const currentIconDiv = slot.querySelector('.current-icon');
+        
+        try {
+            console.log(`🎨 Loading gallery icon ${iconId} for UI display in slot ${slotIndex + 1}`);
+            
+            // Get icon data from gallery
+            const iconData = await this.getGalleryIconData(iconId);
+            if (!iconData) {
+                throw new Error(`Icon ${iconId} not found in gallery`);
+            }
+            
+            // Load SVG content
+            const response = await fetch(iconData.fullPath);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch icon: ${response.status}`);
+            }
+            
+            const svgContent = await response.text();
+            
+            // Get current text color for colorizing
+            const currentTextColor = this.getCurrentTextColor();
+            const colorizedSVG = this.colorizeReferenceSVG(svgContent, currentTextColor);
+            
+            // Update the current icon display with actual gallery icon
+            currentIconDiv.innerHTML = `
+                <div class="gallery-icon-display" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                    ${colorizedSVG}
+                </div>
+            `;
+            
+            // Style the SVG to fit properly
+            const svgElement = currentIconDiv.querySelector('svg');
+            if (svgElement) {
+                svgElement.style.width = '24px';
+                svgElement.style.height = '24px';
+                svgElement.style.maxWidth = '100%';
+                svgElement.style.maxHeight = '100%';
+            }
+            
+            console.log(`✅ Gallery icon ${iconId} loaded in UI slot ${slotIndex + 1}`);
+            
+        } catch (error) {
+            console.error(`❌ Failed to load gallery icon ${iconId} for UI:`, error);
+            // Fallback to showing icon ID
+            currentIconDiv.innerHTML = `
+                <div class="gallery-icon-fallback" style="font-size: 10px; text-align: center; color: #666;">
+                    Icon<br/>${iconId}
+                </div>
+            `;
+                 }
+     }
+     
+     /**
+      * 🔥 SMART UI: Update icon slot to show preset selection (removes custom state)
+      * @param {HTMLElement} slot - Slot element
+      * @param {number} slotIndex - Slot index
+      * @param {string} iconType - Preset icon type
+      * @param {number} iconId - Gallery icon ID
+      */
+     updateIconSlotToPreset(slot, slotIndex, iconType, iconId) {
+         // Update UI buttons
+         slot.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
+         slot.querySelector(`[data-icon="${iconType}"]`).classList.add('active');
+         
+         // Update current icon display to preset
+         const currentIcon = slot.querySelector('.current-icon');
+         currentIcon.innerHTML = this.getIconSVG(iconType, '24');
+         currentIcon.setAttribute('data-icon-id', iconId);
+         
+         // Remove custom icon indicator if it exists
+         const customIndicator = slot.querySelector('.custom-icon-indicator');
+         if (customIndicator) {
+             customIndicator.remove();
+         }
+         
+         // Update slot data
+         slot.setAttribute('data-icon-id', iconId);
+         
+         console.log(`✅ UI updated to preset: slot ${slotIndex + 1} → ${iconType} (ID: ${iconId})`);
+     }
+     
+     /**
+      * 🔥 SMART UI: Open gallery for bottom icon selection
+      * @param {number} slotIndex - Slot index
+      */
+     openGalleryForBottomIcon(slotIndex) {
+         console.log(`🎨 Opening gallery for bottom icon slot ${slotIndex + 1}`);
+         
+         // Check if SimpleIconGallery is available (like for top icons)
+         if (window.simpleIconGallery) {
+             window.simpleIconGallery.open((iconData) => {
+                 console.log(`Gallery icon selected for slot ${slotIndex + 1}:`, iconData);
+                 
+                 // Update iconIds array with selected gallery icon
+                 this.bottomIconsConfig.iconIds[slotIndex] = iconData.id;
+                 console.log(`📊 Updated iconIds[${slotIndex}] = ${iconData.id}`);
+                 
+                 // Update canvas icon
+                 this.updateSingleBottomIcon(slotIndex, iconData.id);
+                 
+                 // Update UI to show custom gallery selection
+                 this.updateIconSlotToCustom(slotIndex, iconData);
+             });
+         } else {
+             console.warn('⚠️ SimpleIconGallery not available - falling back to basic gallery');
+             // Fallback: could implement basic gallery or file upload
+             alert('Icon gallery is not available. Please refresh the page.');
+         }
+     }
+     
+     /**
+      * 🔥 SMART UI: Update icon slot to show custom gallery selection
+      * @param {number} slotIndex - Slot index
+      * @param {Object} iconData - Selected icon data from gallery
+      */
+     async updateIconSlotToCustom(slotIndex, iconData) {
+         const iconSlotsContainer = document.querySelector('.icon-slots');
+         if (!iconSlotsContainer) return;
+         
+         const slot = iconSlotsContainer.children[slotIndex];
+         if (!slot) return;
+         
+         console.log(`🔄 Updating UI slot ${slotIndex + 1} to custom gallery icon ${iconData.id}`);
+         
+         // Clear all preset button selections
+         slot.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
+         
+         // Update current icon display
+         const currentIcon = slot.querySelector('.current-icon');
+         currentIcon.setAttribute('data-icon-id', iconData.id);
+         currentIcon.innerHTML = '<div class="loading-gallery-icon">Loading...</div>';
+         
+         // Add or update custom icon indicator
+         let customIndicator = slot.querySelector('.custom-icon-indicator');
+         if (!customIndicator) {
+             const iconPicker = slot.querySelector('.icon-picker');
+             customIndicator = document.createElement('div');
+             customIndicator.className = 'custom-icon-indicator';
+             iconPicker.appendChild(customIndicator);
+         }
+         
+         customIndicator.innerHTML = `
+             <span class="custom-label">Gallery Icon: ${iconData.originalName} (ID: ${iconData.id})</span>
+             <button class="change-icon-btn" data-slot="${slotIndex}">Choose Different Icon</button>
+         `;
+         
+         // Update slot data
+         slot.setAttribute('data-icon-id', iconData.id);
+         
+         // Load the actual gallery icon for display
+         await this.loadGalleryIconForUIDisplay(slot, iconData.id, slotIndex);
+         
+         console.log(`✅ UI updated to custom gallery icon: slot ${slotIndex + 1} → ${iconData.originalName} (ID: ${iconData.id})`);
+     }
+     
+     getIconSVG(iconType, size) {
         const svgSize = size || '16';
         
         switch (iconType) {
@@ -1923,6 +2122,9 @@ class TemplateEditor {
         }
         
         this.updateTemplateProperties();
+        
+        // Refresh debug display if enabled
+        this.refreshDebugDisplay();
         
         console.log(`Updated ${type}: ${color}`);
     }
@@ -5717,6 +5919,9 @@ class TemplateEditor {
             // Re-register with animation system
             this.registerBottomIconsWithAnimationSystem();
             
+            // 🔥 SMART UI: Update the UI slots to match new count
+            this.updateIconSlots();
+            
             // Update timeline only if needed
             this.updateGSAPTimeline();
             
@@ -5793,6 +5998,314 @@ class TemplateEditor {
         } finally {
             // 🔓 ALWAYS unlock operation
             this.isUpdatingSingleIcon = false;
+        }
+    }
+
+    // ============================== 
+    // DEBUG MODE FUNCTIONALITY
+    // ==============================
+
+    /**
+     * Toggle debug mode on/off
+     * @param {boolean} enabled - True to show debug boxes, false to hide
+     */
+    toggleDebugMode(enabled) {
+        console.log(`🐛 Debug mode ${enabled ? 'enabled' : 'disabled'}`);
+        this.debugMode = enabled;
+        
+        if (enabled) {
+            this.showDebugBoxes();
+        } else {
+            this.hideDebugBoxes();
+        }
+        
+        this.stage.batchDraw();
+    }
+
+    /**
+     * Show bounding boxes for all template elements
+     */
+    showDebugBoxes() {
+        console.log('🔍 Showing debug bounding boxes...');
+        
+        // Clear existing debug elements
+        this.hideDebugBoxes();
+        
+        // Get all template objects
+        const objectsToDebug = {
+            background: this.templateObjects.background,
+            topIcon: this.templateObjects.topIcon,
+            topTitle: this.templateObjects.topTitle,
+            mainTitle: this.templateObjects.mainTitle,
+            subtitle1: this.templateObjects.subtitle1,
+            subtitle2: this.templateObjects.subtitle2,
+            bottomIcons: this.templateObjects.bottomIcons
+        };
+
+        // Create debug boxes for each element
+        Object.keys(objectsToDebug).forEach(key => {
+            const obj = objectsToDebug[key];
+            
+            if (key === 'bottomIcons' && Array.isArray(obj)) {
+                // Handle bottom icons array
+                obj.forEach((icon, index) => {
+                    if (icon) {
+                        this.createDebugBox(icon, `bottomIcon${index}`, '#00ff00');
+                    }
+                });
+            } else if (obj) {
+                // Handle single objects
+                const color = this.getDebugColor(key);
+                this.createDebugBox(obj, key, color);
+            }
+        });
+
+        // Show gaps between elements
+        this.showElementGaps();
+        
+        console.log(`✅ Created ${this.debugElements.length} debug elements`);
+    }
+
+    /**
+     * Create a debug bounding box for an element
+     * @param {Konva.Node} element - The element to create debug box for
+     * @param {string} label - Label for the debug box
+     * @param {string} color - Color for the debug box
+     */
+    createDebugBox(element, label, color) {
+        if (!element || typeof element.x !== 'function') {
+            console.warn(`⚠️ Cannot create debug box for ${label}: invalid element`);
+            return;
+        }
+
+        const x = element.x();
+        const y = element.y();
+        let width = element.width ? element.width() : 0;
+        let height = element.height ? element.height() : 0;
+        
+        // Handle elements with offset (like images)
+        const offsetX = element.offsetX ? element.offsetX() : 0;
+        const offsetY = element.offsetY ? element.offsetY() : 0;
+        
+        // Adjust position based on offset
+        const debugX = x - offsetX;
+        const debugY = y - offsetY;
+
+        // Special handling for text elements
+        if (element.getClassName() === 'Text') {
+            const textWidth = element.getTextWidth();
+            const textHeight = element.fontSize();
+            width = textWidth || width;
+            height = textHeight || height;
+        }
+
+        // Create debug rectangle
+        const debugRect = new Konva.Rect({
+            x: debugX,
+            y: debugY,
+            width: width,
+            height: height,
+            stroke: color,
+            strokeWidth: 2,
+            dash: [5, 5],
+            listening: false,
+            opacity: 0.8,
+            name: `debug-${label}`
+        });
+
+        // Create debug label
+        const debugLabel = new Konva.Text({
+            x: debugX + 5,
+            y: debugY - 20,
+            text: `${label} (${Math.round(width)}x${Math.round(height)})`,
+            fontSize: 12,
+            fontFamily: 'Arial',
+            fill: color,
+            listening: false,
+            name: `debug-label-${label}`
+        });
+
+        // Add to debug layer
+        this.debugLayer.add(debugRect);
+        this.debugLayer.add(debugLabel);
+        
+        // Store for cleanup
+        this.debugElements.push(debugRect, debugLabel);
+        
+        console.log(`🔍 Debug box created for ${label}: ${Math.round(debugX)},${Math.round(debugY)} ${Math.round(width)}x${Math.round(height)}`);
+    }
+
+    /**
+     * Show gaps between elements with visual indicators
+     */
+    showElementGaps() {
+        console.log('📏 Showing element gaps...');
+        
+        // Get positions of text elements for gap calculation
+        const elements = [];
+        
+        if (this.templateObjects.topTitle) {
+            elements.push({
+                name: 'topTitle',
+                y: this.templateObjects.topTitle.y(),
+                height: this.templateObjects.topTitle.fontSize()
+            });
+        }
+        
+        if (this.templateObjects.mainTitle) {
+            elements.push({
+                name: 'mainTitle', 
+                y: this.templateObjects.mainTitle.y(),
+                height: this.templateObjects.mainTitle.fontSize()
+            });
+        }
+        
+        if (this.templateObjects.subtitle1) {
+            elements.push({
+                name: 'subtitle1',
+                y: this.templateObjects.subtitle1.y(),
+                height: this.templateObjects.subtitle1.fontSize()
+            });
+        }
+        
+        if (this.templateObjects.subtitle2) {
+            elements.push({
+                name: 'subtitle2',
+                y: this.templateObjects.subtitle2.y(),
+                height: this.templateObjects.subtitle2.fontSize()
+            });
+        }
+
+        // Sort by Y position
+        elements.sort((a, b) => a.y - b.y);
+
+        // Create gap indicators between consecutive elements
+        for (let i = 0; i < elements.length - 1; i++) {
+            const current = elements[i];
+            const next = elements[i + 1];
+            
+            const currentBottom = current.y + (current.height / 2);
+            const nextTop = next.y - (next.height / 2);
+            const gap = nextTop - currentBottom;
+            
+            if (gap > 0) {
+                this.createGapIndicator(currentBottom, nextTop, gap, `${current.name}-${next.name}`);
+            }
+        }
+    }
+
+    /**
+     * Create a visual indicator for the gap between elements
+     * @param {number} startY - Start Y position of the gap
+     * @param {number} endY - End Y position of the gap
+     * @param {number} gapSize - Size of the gap in pixels
+     * @param {string} label - Label for the gap
+     */
+    createGapIndicator(startY, endY, gapSize, label) {
+        const centerX = 960; // Canvas center
+        const gapCenterY = (startY + endY) / 2;
+        
+        // Create gap line
+        const gapLine = new Konva.Line({
+            points: [centerX - 50, startY, centerX - 50, endY],
+            stroke: '#ff9500',
+            strokeWidth: 2,
+            dash: [3, 3],
+            listening: false,
+            name: `debug-gap-${label}`
+        });
+
+        // Create gap measurement arrows
+        const topArrow = new Konva.Line({
+            points: [centerX - 55, startY, centerX - 45, startY, centerX - 50, startY - 3, centerX - 50, startY + 3, centerX - 45, startY],
+            stroke: '#ff9500',
+            strokeWidth: 1,
+            closed: false,
+            listening: false,
+            name: `debug-gap-arrow-top-${label}`
+        });
+
+        const bottomArrow = new Konva.Line({
+            points: [centerX - 55, endY, centerX - 45, endY, centerX - 50, endY - 3, centerX - 50, endY + 3, centerX - 45, endY],
+            stroke: '#ff9500',
+            strokeWidth: 1,
+            closed: false,
+            listening: false,
+            name: `debug-gap-arrow-bottom-${label}`
+        });
+
+        // Create gap measurement text
+        const gapText = new Konva.Text({
+            x: centerX - 40,
+            y: gapCenterY - 6,
+            text: `${Math.round(gapSize)}px`,
+            fontSize: 11,
+            fontFamily: 'Arial',
+            fill: '#ff9500',
+            listening: false,
+            name: `debug-gap-text-${label}`
+        });
+
+        // Add to debug layer
+        this.debugLayer.add(gapLine);
+        this.debugLayer.add(topArrow);
+        this.debugLayer.add(bottomArrow);
+        this.debugLayer.add(gapText);
+        
+        // Store for cleanup
+        this.debugElements.push(gapLine, topArrow, bottomArrow, gapText);
+        
+        console.log(`📏 Gap indicator created for ${label}: ${Math.round(gapSize)}px`);
+    }
+
+    /**
+     * Hide all debug boxes and gaps
+     */
+    hideDebugBoxes() {
+        console.log('🚫 Hiding debug elements...');
+        
+        // Remove all debug elements
+        this.debugElements.forEach(element => {
+            if (element && typeof element.destroy === 'function') {
+                element.destroy();
+            }
+        });
+        
+        // Clear the array
+        this.debugElements = [];
+        
+        // Clear the debug layer
+        this.debugLayer.removeChildren();
+        console.log('✅ All debug elements cleared');
+    }
+
+    /**
+     * Get debug color for different element types
+     * @param {string} elementType - Type of element
+     * @returns {string} Color string
+     */
+    getDebugColor(elementType) {
+        const colors = {
+            background: '#333333',
+            topIcon: '#00ffff',
+            topTitle: '#ff0000', 
+            mainTitle: '#00ff00',
+            subtitle1: '#0000ff',
+            subtitle2: '#ff00ff',
+            bottomIcons: '#ffff00'
+        };
+        
+        return colors[elementType] || '#ffffff';
+    }
+
+    /**
+     * Refresh debug display (useful after element updates)
+     */
+    refreshDebugDisplay() {
+        if (this.debugMode) {
+            console.log('🔄 Refreshing debug display...');
+            this.showDebugBoxes();
+            this.stage.batchDraw();
         }
     }
 }

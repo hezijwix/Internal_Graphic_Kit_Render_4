@@ -1493,6 +1493,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Give a moment for other initializations
             setTimeout(initializeIconGalleries, 500);
+            
+            // Setup debug mode toggle after a delay to ensure template editor is ready
+            setTimeout(setupDebugModeToggle, 1000);
         });
         
         // Add debugging helpers
@@ -1681,6 +1684,29 @@
 
         // Navigation prevention during save operations
         let isSaveInProgress = false;
+        
+        // Setup debug mode toggle
+        function setupDebugModeToggle() {
+            const debugToggle = document.getElementById('debug-mode-toggle');
+            if (debugToggle && window.templateEditor) {
+                debugToggle.addEventListener('change', (e) => {
+                    const isEnabled = e.target.checked;
+                    console.log(`🐛 Debug toggle changed: ${isEnabled}`);
+                    
+                    if (window.templateEditor.toggleDebugMode) {
+                        window.templateEditor.toggleDebugMode(isEnabled);
+                    } else {
+                        console.warn('❌ Template editor debug mode not available');
+                    }
+                });
+                
+                console.log('✅ Debug mode toggle event listener connected');
+            } else {
+                console.warn('⚠️ Debug toggle or template editor not found, retrying...');
+                // Retry in case template editor isn't ready yet
+                setTimeout(setupDebugModeToggle, 200);
+            }
+        }
         
         // Update the save function to track save state
         const originalSaveCurrentProject = saveCurrentProject;
