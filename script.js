@@ -65,6 +65,22 @@ class TemplateEditor {
         this.timeline = null;
         this.animationDuration = 10; // seconds
         
+        // Animation Configuration - Fixed frame intervals for consistent stagger
+        this.animationConfig = {
+            frameInterval: 10, // frames between each element animation (10 frames = ~0.33s at 30fps)
+            elementDuration: 0.8, // seconds for each element's animation
+            easingFunction: 'power2.out',
+            // Fixed timeline positions (in seconds) for each element - maintains consistent spacing
+            elementTimings: {
+                topIcon: 0,      // Frame 0
+                topTitle: 0.33,  // Frame 10
+                mainTitle: 0.66, // Frame 20  
+                subtitle1: 1,    // Frame 30
+                subtitle2: 1.33, // Frame 40
+                bottomIcons: 1.66 // Frame 50
+            }
+        };
+        
         // Background transparency
         this.currentBackgroundColor = '#0D0D0D';
         this.isTransparent = false;
@@ -325,7 +341,8 @@ class TemplateEditor {
                 }
             });
             
-            // Handle input with cleaning and limiting
+            // Handle input with cleaning and limiting - ADD DEBOUNCING to prevent flickering
+            let mainTitleTimeout;
             mainTitleInput.addEventListener('input', (e) => {
                 // Clean the input first
                 const cleanedValue = e.target.value.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
@@ -335,7 +352,16 @@ class TemplateEditor {
                 if (limitedValue !== e.target.value) {
                     e.target.value = limitedValue;
                 }
-                this.updateText('mainTitle', limitedValue);
+                
+                // Clear existing timeout to debounce rapid typing
+                if (mainTitleTimeout) {
+                    clearTimeout(mainTitleTimeout);
+                }
+                
+                // Debounce the expensive updateText call to prevent icon flickering
+                mainTitleTimeout = setTimeout(() => {
+                    this.updateText('mainTitle', limitedValue);
+                }, 100); // 100ms debounce - responsive but prevents excessive updates
             });
             
             // Handle paste events to clean up pasted content
@@ -596,6 +622,21 @@ class TemplateEditor {
         visibilityBtn.setAttribute('aria-pressed', isVisible);
         visibilityBtn.style.opacity = isVisible ? '0.5' : '1';
         
+        // Update layerVisibility state to match new visibility
+        const visibilityMap = {
+            'top-icon': 'topIcon',
+            'top-title': 'topTitle', 
+            'main-title': 'mainTitle',
+            'subtitle1': 'subtitle1',
+            'subtitle2': 'subtitle2',
+            'bottom-icons': 'bottomIcons'
+        };
+        
+        const visibilityKey = visibilityMap[layerType];
+        if (visibilityKey) {
+            this.layerVisibility[visibilityKey] = !isVisible;
+        }
+        
         // Toggle Konva object visibility
         const layerMap = {
             'top-icon': this.templateObjects.topIcon,
@@ -615,6 +656,12 @@ class TemplateEditor {
                 object.visible(!isVisible);
             }
         }
+        
+        // Reposition layers to maintain proper spacing without animation gaps
+        this.repositionLayers();
+        
+        // Recreate timeline to reflect new visibility state and maintain fixed frame intervals
+        this.updateGSAPTimeline();
         
         if (this.stage) {
             this.stage.batchDraw();
@@ -659,12 +706,8 @@ class TemplateEditor {
             
             
             // Recalculate layout when text content changes (affects height and visibility)
+            // Note: recalculateLayout() already handles bottom icon positioning, so no need for separate createBottomIconsExact() call
             this.recalculateLayout();
-            
-            // If main title changed, update icon positions to match new width
-            if (type === 'mainTitle' && this.layerVisibility.bottomIcons) {
-                this.createBottomIconsExact();
-            }
             
             this.stage.batchDraw();
         }
@@ -867,6 +910,10 @@ class TemplateEditor {
             
             // Recalculate layout to maintain proper spacing
             this.recalculateLayout();
+            
+            // Recreate timeline to reflect new visibility state and maintain fixed frame intervals
+            this.updateGSAPTimeline();
+            
             this.stage.batchDraw();
         }
     }
@@ -963,6 +1010,7 @@ class TemplateEditor {
             align: 'center',
             width: 1490, // 1920 - (215px * 2) = content width
             letterSpacing: 0, // Let the font's natural kerning work
+            lineHeight: 1.1,
             listening: true
         });
         // Center the text horizontally and vertically (using fixed width centering)
@@ -1971,6 +2019,7 @@ class TemplateEditor {
             align: 'center',
             width: 1490, // 1920 - (215px * 2) = content width
             letterSpacing: 0, // Let the font's natural kerning work
+            lineHeight: 1.1,
             listening: true
         });
         // Center the text horizontally and vertically (using fixed width centering)
@@ -2364,38 +2413,104 @@ class TemplateEditor {
     }
     
     createGSAPTimeline() {
-        // Create blank master timeline - no animations
+        // Create master timeline with proper duration
         this.timeline = gsap.timeline({ 
             paused: true,
             duration: this.animationDuration,
             ease: "none"
         });
         
-        // Set all objects to visible state immediately (no animations)
-        if (this.templateObjects.topIcon && this.layerVisibility.topIcon) {
-            this.templateObjects.topIcon.opacity(1);
-        }
-        if (this.templateObjects.topTitle && this.layerVisibility.topTitle) {
-            this.templateObjects.topTitle.opacity(1);
-        }
-        if (this.templateObjects.mainTitle && this.layerVisibility.mainTitle) {
-            this.templateObjects.mainTitle.opacity(1);
-        }
-        if (this.templateObjects.subtitle1 && this.layerVisibility.subtitle1) {
-            this.templateObjects.subtitle1.opacity(1);
-        }
-        if (this.templateObjects.subtitle2 && this.layerVisibility.subtitle2) {
-            this.templateObjects.subtitle2.opacity(1);
-        }
-        if (this.templateObjects.bottomIcons && this.layerVisibility.bottomIcons) {
-            this.templateObjects.bottomIcons.forEach(icon => {
-                icon.opacity(1);
-            });
+        // Set all objects to initial hidden state for animations
+        const allObjects = [
+            this.templateObjects.topIcon,
+            this.templateObjects.topTitle,
+            this.templateObjects.mainTitle,
+            this.templateObjects.subtitle1,
+            this.templateObjects.subtitle2,
+            ...this.templateObjects.bottomIcons
+        ].filter(obj => obj); // Filter out null objects
+        
+        // Initialize all objects to invisible and positioned for animation
+        allObjects.forEach(obj => {
+            obj.opacity(0);
+            obj.y(obj.y() + 30); // Start 30px below final position for slide-up effect
+            obj.scaleX(0.8);
+            obj.scaleY(0.8);
+        });
+        
+        // Add animations at fixed timeline positions - maintains consistent spacing regardless of visibility
+        this.addElementAnimation('topIcon', this.templateObjects.topIcon, this.animationConfig.elementTimings.topIcon);
+        this.addElementAnimation('topTitle', this.templateObjects.topTitle, this.animationConfig.elementTimings.topTitle);
+        this.addElementAnimation('mainTitle', this.templateObjects.mainTitle, this.animationConfig.elementTimings.mainTitle);
+        this.addElementAnimation('subtitle1', this.templateObjects.subtitle1, this.animationConfig.elementTimings.subtitle1);
+        this.addElementAnimation('subtitle2', this.templateObjects.subtitle2, this.animationConfig.elementTimings.subtitle2);
+        
+        // Handle bottom icons as a group with stagger
+        if (this.templateObjects.bottomIcons && this.templateObjects.bottomIcons.length > 0) {
+            this.addBottomIconsAnimation(this.animationConfig.elementTimings.bottomIcons);
         }
         
-        // Create empty timeline placeholders for timeline functionality
-        this.timeline.to({}, { duration: this.animationDuration }, 0);
+        // Ensure timeline has minimum duration for scrubbing functionality
+        this.timeline.to({}, { duration: Math.max(0.1, this.animationDuration - 2.5) }, 2.5);
         
+        // Force stage redraw after timeline setup
+        if (this.stage) {
+            this.stage.batchDraw();
+        }
+    }
+    
+    addElementAnimation(elementName, element, startTime) {
+        // Only animate visible elements, but maintain fixed timeline positions
+        if (!element || !this.layerVisibility[elementName]) {
+            return; // Skip hidden elements but keep their timeline slots
+        }
+        
+        // Get the original Y position for the element before animation
+        const originalY = element.y() - 30; // Subtract the initial offset we added
+        
+        // Add the animation at the fixed timeline position
+        this.timeline.to(element, {
+            opacity: 1,
+            y: originalY,
+            scaleX: 1,
+            scaleY: 1,
+            duration: this.animationConfig.elementDuration,
+            ease: this.animationConfig.easingFunction,
+            onUpdate: () => {
+                if (this.contentLayer) {
+                    this.contentLayer.batchDraw();
+                }
+            }
+        }, startTime);
+    }
+    
+    addBottomIconsAnimation(startTime) {
+        // Only animate if bottom icons are visible
+        if (!this.layerVisibility.bottomIcons || !this.templateObjects.bottomIcons.length) {
+            return;
+        }
+        
+        // Animate bottom icons with internal stagger
+        this.templateObjects.bottomIcons.forEach((icon, index) => {
+            if (icon) {
+                const originalY = icon.y() - 30; // Subtract initial offset
+                const iconDelay = index * 0.1; // 0.1s stagger between individual icons
+                
+                this.timeline.to(icon, {
+                    opacity: 1,
+                    y: originalY,
+                    scaleX: 1,
+                    scaleY: 1,
+                    duration: this.animationConfig.elementDuration,
+                    ease: this.animationConfig.easingFunction,
+                    onUpdate: () => {
+                        if (this.contentLayer) {
+                            this.contentLayer.batchDraw();
+                        }
+                    }
+                }, startTime + iconDelay);
+            }
+        });
     }
     
     updateGSAPTimeline() {

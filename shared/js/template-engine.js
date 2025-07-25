@@ -4214,10 +4214,24 @@ class TemplateEditor {
             console.log(`⏱️ Timeline duration: ${this.timeline.duration()}s`);
             console.log(`🎬 Template animations applied: ${animConfig.utils ? 'SUCCESS' : 'FALLBACK'}`);
             
-            // Emergency fix: Ensure icons are visible if timeline doesn't auto-play
+            // Auto-play animation on page load to show opacity animations
             setTimeout(() => {
-                if (this.timeline && this.timeline.progress() === 0) {
-                    console.log('🔧 Timeline not playing, ensuring icons are visible...');
+                if (this.timeline) {
+                    console.log('🎬 Auto-playing animation timeline on page load...');
+                    this.timeline.play();
+                    // Update UI to reflect playing state
+                    this.isPlaying = true;
+                    
+                    // Update play/pause button states
+                    const playIcons = document.querySelectorAll('.play-icon');
+                    const pauseIcons = document.querySelectorAll('.pause-icon');
+                    playIcons.forEach(icon => icon.classList.add('hidden'));
+                    pauseIcons.forEach(icon => icon.classList.remove('hidden'));
+                    
+                    // Start timeline position updates
+                    this.updateTimelinePosition();
+                } else {
+                    console.log('🔧 Timeline not available, ensuring icons are visible...');
                     this.forceIconsVisible();
                 }
             }, 500);
