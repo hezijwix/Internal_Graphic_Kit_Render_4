@@ -97,7 +97,7 @@ const SimpleAnimations = {
         },
         
         mainTitle: {
-            visible: false, // HIDDEN - test dynamic delay system
+            visible: true, // Fixed: Should be visible when content exists
             animationOrder: 2, // Position in animation sequence
             
             animateIn: {
@@ -125,7 +125,7 @@ const SimpleAnimations = {
         },
         
         subtitle1: {
-            visible: false, // HIDDEN - test dynamic delay system
+            visible: true, // Fixed: Should be visible when content exists
             animationOrder: 3, // Position in animation sequence
             
             animateIn: {

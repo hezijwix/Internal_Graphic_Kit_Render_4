@@ -149,7 +149,7 @@ xdg-open http://localhost:8000      # Linux
 Internal_Graphic_Kit_Render_4/
 ├── index.html          # Main application structure + Konva.js CDN
 ├── styles.css          # Complete CSS styling
-├── script.js           # Konva-based template editor functionality
+├── shared/js/template-engine.js # Konva-based template editor functionality
 ├── README.md           # This documentation
 └── Docs/               # Project specifications
     ├── wix-video-asset-creator-prd.md

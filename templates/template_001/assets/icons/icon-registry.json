@@ -1,26 +1,13 @@
 {
-  "totalIcons": 66,
+  "totalIcons": 64,
   "categories": [
     "arrow",
     "celebration",
     "stars",
     "technology",
-    "misc",
-    "test"
+    "misc"
   ],
   "icons": {
-    "0": {
-      "originalName": "TEST ICON.svg",
-      "newName": "test-icon.svg",
-      "category": "test",
-      "path": "templates/template_001/assets/icons/test-icon.svg"
-    },
-    "999": {
-      "originalName": "VISIBLE TEST.svg",
-      "newName": "test-icon-visible.svg",
-      "category": "test",
-      "path": "templates/template_001/assets/icons/test-icon-visible.svg"
-    },
     "1": {
       "originalName": "Arrow 01.svg",
       "newName": "icon-001-arrow.svg",

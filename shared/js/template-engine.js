@@ -4302,6 +4302,22 @@ class TemplateEditor {
         try {
             const elements = SimpleAnimations.elements;
             
+            // Sync SimpleAnimations visibility with template engine layerVisibility
+            console.log('🔄 Syncing animation visibility with layerVisibility...');
+            Object.keys(elements).forEach(elementName => {
+                if (this.layerVisibility.hasOwnProperty(elementName)) {
+                    const shouldBeVisible = this.layerVisibility[elementName];
+                    const currentlyVisible = elements[elementName].visible;
+                    
+                    if (currentlyVisible !== shouldBeVisible) {
+                        console.log(`🔄 Syncing ${elementName}: ${currentlyVisible} → ${shouldBeVisible}`);
+                        SimpleAnimations.setElementVisibility(elementName, shouldBeVisible);
+                    } else {
+                        console.log(`✅ ${elementName} visibility already synced: ${shouldBeVisible}`);
+                    }
+                }
+            });
+            
             // Apply animations for each element
             Object.keys(elements).forEach(elementName => {
                 const config = elements[elementName];

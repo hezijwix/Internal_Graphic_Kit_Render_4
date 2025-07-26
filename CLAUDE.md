@@ -28,7 +28,7 @@ python -m http.server 8000
 Internal_Graphic_Kit_Render_4/
 ├── index.html          # Main application + CDN dependencies
 ├── styles.css          # Complete CSS styling system
-├── script.js           # Single-class Konva-based editor
+├── shared/js/template-engine.js # Single-class Konva-based editor
 ├── README.md           # Comprehensive documentation
 └── Docs/               # Project specifications
     ├── wix-video-asset-creator-prd.md
