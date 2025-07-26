@@ -4185,11 +4185,14 @@ class TemplateEditor {
             console.log(`   Animation phases:`, animConfig.global?.phases || 'Using fallback phases');
             
             // Apply animations from configuration
-            if (animConfig.utils && animConfig.utils.getEnabledElements) {
+            if (typeof SimpleAnimations !== 'undefined' && SimpleAnimations.elements) {
+                console.log('🎬 Applying animations from SimpleAnimations Configuration...');
+                this.applySimpleAnimations();
+            } else if (animConfig.utils && animConfig.utils.getEnabledElements) {
                 console.log('🎬 Applying animations from Template Animation Configuration...');
                 this.applyTemplateAnimations(animConfig);
             } else {
-                console.warn('⚠️ Template Animation Configuration not available, using fallback');
+                console.warn('⚠️ No animation configuration available, using fallback');
                 this.applyFallbackMainTitleAnimation();
             }
             
@@ -4252,6 +4255,325 @@ class TemplateEditor {
         // Add global debugging methods
         window.forceIconsVisible = () => this.forceIconsVisible();
         window.debugIconStates = () => this.debugIconStates();
+    }
+    
+    /**
+     * Calculate dynamic delay for an element based on visible elements before it
+     * @param {string} elementName - Name of the element
+     * @returns {number} Delay in seconds
+     */
+    calculateElementDelay(elementName) {
+        // Use SimpleAnimations helper function for consistent calculation
+        if (typeof SimpleAnimations !== 'undefined' && SimpleAnimations.calculateElementDelay) {
+            return SimpleAnimations.calculateElementDelay(elementName);
+        }
+        
+        // Fallback calculation if SimpleAnimations not available
+        const baseDelay = 0.3;
+        const frameOffset = 10;
+        const fps = 30;
+        
+        // Count visible elements before this one (simple fallback)
+        const elementOrder = ['topIcon', 'topTitle', 'mainTitle', 'subtitle1', 'subtitle2', 'bottomIcons'];
+        const targetIndex = elementOrder.indexOf(elementName);
+        
+        if (targetIndex === -1) return baseDelay;
+        
+        let visibleCount = 0;
+        for (let i = 0; i < targetIndex; i++) {
+            const element = this.templateObjects[elementOrder[i]];
+            if (element && element.visible && element.visible()) {
+                visibleCount++;
+            }
+        }
+        
+        return baseDelay + (visibleCount * frameOffset / fps);
+    }
+    
+    /**
+     * Apply simple animations from SimpleAnimations configuration
+     * Uses dynamic delay calculation system
+     */
+    applySimpleAnimations() {
+        console.log('🎬 Applying SimpleAnimations configuration...');
+        console.log('🔍 Available templateObjects:', Object.keys(this.templateObjects));
+        console.log('🔍 SimpleAnimations.elements:', Object.keys(SimpleAnimations.elements));
+        
+        try {
+            const elements = SimpleAnimations.elements;
+            
+            // Apply animations for each element
+            Object.keys(elements).forEach(elementName => {
+                const config = elements[elementName];
+                console.log(`🔍 Processing element: ${elementName}, visible: ${config.visible}, hasAnimateIn: ${!!config.animateIn}`);
+                
+                // Skip if element is not visible
+                if (!config.visible) {
+                    console.log(`⚪ Skipping ${elementName} (not visible)`);
+                    return;
+                }
+                
+                // Get the template element
+                const element = this.getTemplateElement(elementName);
+                if (!element) {
+                    console.warn(`⚠️ Element not found: ${elementName}`);
+                    console.log(`🔍 Available in templateObjects:`, Object.keys(this.templateObjects));
+                    return;
+                }
+                
+                console.log(`✅ Found element ${elementName}, applying animations...`);
+                
+                // Apply entrance animation
+                if (config.animateIn) {
+                    this.addElementAnimationSimple(element, elementName, config.animateIn, 'in');
+                }
+                
+                // Apply exit animation (if configured)
+                if (config.animateOut) {
+                    this.addElementAnimationSimple(element, elementName, config.animateOut, 'out');
+                }
+            });
+            
+            console.log('✅ All SimpleAnimations applied successfully');
+            
+        } catch (error) {
+            console.error('❌ Error applying SimpleAnimations:', error);
+            console.log('🔧 Falling back to basic main title animation');
+            this.applyFallbackMainTitleAnimation();
+        }
+    }
+    
+    /**
+     * Add element animation from SimpleAnimations config
+     * @param {Konva.Node|Array} element - Konva element or array of elements
+     * @param {string} elementName - Element name
+     * @param {Object} animConfig - Animation configuration
+     * @param {string} type - Animation type ('in' or 'out')
+     */
+    addElementAnimationSimple(element, elementName, animConfig, type) {
+        console.log(`🔍 DEBUG: Processing ${elementName} - element exists: ${!!element}`);
+        console.log(`🔍 AnimConfig for ${elementName}:`, {
+            duration: animConfig.duration,
+            ease: animConfig.ease,
+            hasFrom: !!animConfig.from,
+            hasTo: !!animConfig.to
+        });
+        
+        // Calculate delay dynamically
+        let delay;
+        if (type === 'in') {
+            // Use dynamic delay calculation for entrance animations
+            delay = this.calculateElementDelay(elementName);
+            console.log(`✅ Using dynamic delay: ${elementName} delay=${delay.toFixed(3)}s`);
+        } else {
+            // Use configured timing for exit animations
+            delay = animConfig.startTime || 0;
+            console.log(`⚠️ Using exit timing: ${elementName} at ${delay}s`);
+        }
+        
+        const duration = animConfig.duration; // Already in seconds
+        const ease = animConfig.ease;
+        
+        console.log(`🎭 Final animation for ${elementName}:`);
+        console.log(`   ⏰ Delay: ${delay.toFixed(3)}s (dynamic calculation)`);
+        console.log(`   ⏱️ Duration: ${duration}s`);
+        console.log(`   🎨 Ease: ${ease}`);
+        
+        // Validation
+        if (delay < 0) {
+            console.error(`❌ Invalid delay for ${elementName}: ${delay}s`);
+            return;
+        }
+        if (duration <= 0) {
+            console.error(`❌ Invalid duration for ${elementName}: ${duration}s`);
+            return;
+        }
+        
+        // Handle bottom icons as array
+        if (elementName === 'bottomIcons' && Array.isArray(element)) {
+            this.addBottomIconsAnimationSimple(element, animConfig, delay, type);
+            return;
+        }
+        
+        // Set initial state for entrance animations
+        if (type === 'in' && animConfig.from) {
+            const basePosition = this.positionStates.base?.[elementName];
+            
+            Object.keys(animConfig.from).forEach(prop => {
+                let value = animConfig.from[prop];
+                
+                // Handle relative positioning
+                if (prop === 'y' && basePosition && basePosition.y !== undefined) {
+                    if (typeof value === 'number' && value !== 0) {
+                        value = basePosition.y + value;
+                    } else if (value === 0) {
+                        value = basePosition.y;
+                    }
+                }
+                if (prop === 'x' && basePosition && basePosition.x !== undefined) {
+                    if (typeof value === 'number' && value !== 0) {
+                        value = basePosition.x + value;
+                    } else if (value === 0) {
+                        value = basePosition.x;
+                    }
+                }
+                
+                element[prop](value);
+            });
+            
+            this.stage.batchDraw();
+        }
+        
+        // Create animation properties
+        const animProps = {};
+        const targetConfig = type === 'in' ? animConfig.to : animConfig.to;
+        
+        Object.keys(targetConfig).forEach(prop => {
+            let value = targetConfig[prop];
+            
+            // Handle relative positioning for target values
+            const basePosition = this.positionStates.base?.[elementName];
+            if (prop === 'y' && basePosition && basePosition.y !== undefined) {
+                if (typeof value === 'number' && value !== 0) {
+                    value = basePosition.y + value;
+                } else if (value === 0) {
+                    value = basePosition.y;
+                }
+            }
+            if (prop === 'x' && basePosition && basePosition.x !== undefined) {
+                if (typeof value === 'number' && value !== 0) {
+                    value = basePosition.x + value;
+                } else if (value === 0) {
+                    value = basePosition.x;
+                }
+            }
+            
+            animProps[prop] = value;
+        });
+        
+        // Add to timeline
+        this.timeline.to(element, {
+            ...animProps,
+            duration: duration,
+            ease: ease
+        }, delay);
+    }
+    
+    /**
+     * Calculate center-out stagger delay for an icon
+     * @param {number} index - Icon index in array (0-based)
+     * @param {number} totalCount - Total number of icons
+     * @param {number} baseStagger - Base stagger interval between rings
+     * @returns {number} Stagger delay in seconds
+     */
+    calculateCenterOutStagger(index, totalCount, baseStagger) {
+        // Calculate center position (can be fractional for even counts)
+        const center = (totalCount - 1) / 2;
+        
+        // Calculate distance from center
+        const distanceFromCenter = Math.abs(index - center);
+        
+        // Convert distance to ring number (0 = center, 1 = first ring, etc.)
+        const ring = Math.floor(distanceFromCenter);
+        
+        // Calculate delay: ring * baseStagger
+        const staggerDelay = ring * baseStagger;
+        
+        console.log(`🎭 Icon ${index + 1}/${totalCount}: center=${center.toFixed(1)}, distance=${distanceFromCenter.toFixed(1)}, ring=${ring}, delay=+${staggerDelay.toFixed(3)}s`);
+        
+        return staggerDelay;
+    }
+    
+    /**
+     * Add bottom icons animation with stagger
+     * @param {Array} iconElements - Array of icon elements
+     * @param {Object} animConfig - Animation configuration
+     * @param {number} delay - Start delay
+     * @param {string} type - Animation type ('in' or 'out')
+     */
+    addBottomIconsAnimationSimple(iconElements, animConfig, delay, type) {
+        // Use stagger directly in seconds
+        const staggerInSeconds = animConfig.stagger || 0.12;
+        const staggerType = animConfig.staggerType || 'linear';
+        
+        console.log(`🎭 Starting ${type} animation for ${iconElements.length} bottom icons with ${staggerType} stagger`);
+        console.log(`🎯 Stagger: ${staggerInSeconds}s between rings`);
+        
+        iconElements.forEach((icon, index) => {
+            // Calculate hierarchical delay: componentBaseDelay + centerOutOffset
+            let iconStaggerOffset;
+            
+            if (staggerType === 'center-out') {
+                // Use center-out calculation for hierarchical timing
+                iconStaggerOffset = this.calculateCenterOutStagger(index, iconElements.length, staggerInSeconds);
+            } else {
+                // Use linear stagger (backward compatibility)
+                iconStaggerOffset = index * staggerInSeconds;
+            }
+            
+            // Final delay = component base delay + individual icon offset
+            const iconDelay = delay + iconStaggerOffset;
+            
+            console.log(`🎯 Bottom icon ${index + 1} (${staggerType}): base=${delay}s + offset=${iconStaggerOffset.toFixed(3)}s = ${iconDelay.toFixed(3)}s`);
+            
+            // Get base position (single position object for all bottom icons)
+            const basePosition = this.positionStates.base?.bottomIcons;
+            
+            // Calculate individual icon position using the existing positioning logic
+            const iconPositions = this.calculateIconPositions(iconElements.length);
+            const iconBaseX = iconPositions[index];
+            const iconBaseY = basePosition?.y || this.bottomIconsY || 820;
+            
+            // Set initial state for entrance animations
+            if (type === 'in' && animConfig.from) {
+                Object.keys(animConfig.from).forEach(prop => {
+                    let value = animConfig.from[prop];
+                    
+                    // Handle relative positioning
+                    if (prop === 'y' && typeof value === 'number') {
+                        value = iconBaseY + value; // Add offset to base Y position
+                    } else if (prop === 'x' && typeof value === 'number') {
+                        value = iconBaseX + value; // Add offset to base X position
+                    }
+                    
+                    icon[prop](value);
+                });
+            }
+            
+            // Create animation properties
+            const animProps = {};
+            const targetConfig = type === 'in' ? animConfig.to : animConfig.to;
+            
+            Object.keys(targetConfig).forEach(prop => {
+                let value = targetConfig[prop];
+                
+                // Handle relative positioning for target values
+                if (prop === 'y') {
+                    if (typeof value === 'number' && value !== 0) {
+                        value = iconBaseY + value; // Add offset to base Y position
+                    } else if (value === 0) {
+                        value = iconBaseY; // Use base Y position
+                    }
+                } else if (prop === 'x') {
+                    if (typeof value === 'number' && value !== 0) {
+                        value = iconBaseX + value; // Add offset to base X position
+                    } else if (value === 0) {
+                        value = iconBaseX; // Use base X position
+                    }
+                }
+                
+                animProps[prop] = value;
+            });
+            
+            // Add to timeline with stagger
+            this.timeline.to(icon, {
+                ...animProps,
+                duration: animConfig.duration,
+                ease: animConfig.ease
+            }, iconDelay);
+        });
+        
+        this.stage.batchDraw();
     }
     
     /**

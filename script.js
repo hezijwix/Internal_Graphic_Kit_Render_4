@@ -145,8 +145,7 @@ class TemplateEditor {
         this.setupCanvasInteraction();
         
         
-        // Create blank GSAP timeline
-        this.createGSAPTimeline();
+        // Timeline will be created after layout calculation
         
     }
     
@@ -2064,6 +2063,10 @@ class TemplateEditor {
         
         // Initial render
         this.stage.batchDraw();
+        
+        // Create GSAP timeline now that all elements exist
+        console.log('🎬 Creating initial GSAP timeline after template objects creation');
+        this.createGSAPTimeline();
     }
     
     createBottomIconsExact() {
@@ -2420,38 +2423,69 @@ class TemplateEditor {
             ease: "none"
         });
         
-        // Set all objects to initial hidden state for animations
-        const allObjects = [
-            this.templateObjects.topIcon,
-            this.templateObjects.topTitle,
-            this.templateObjects.mainTitle,
-            this.templateObjects.subtitle1,
-            this.templateObjects.subtitle2,
-            ...this.templateObjects.bottomIcons
-        ].filter(obj => obj); // Filter out null objects
-        
-        // Initialize all objects to invisible and positioned for animation
-        allObjects.forEach(obj => {
-            obj.opacity(0);
-            obj.y(obj.y() + 30); // Start 30px below final position for slide-up effect
-            obj.scaleX(0.8);
-            obj.scaleY(0.8);
-        });
-        
-        // Add animations at fixed timeline positions - maintains consistent spacing regardless of visibility
-        this.addElementAnimation('topIcon', this.templateObjects.topIcon, this.animationConfig.elementTimings.topIcon);
-        this.addElementAnimation('topTitle', this.templateObjects.topTitle, this.animationConfig.elementTimings.topTitle);
-        this.addElementAnimation('mainTitle', this.templateObjects.mainTitle, this.animationConfig.elementTimings.mainTitle);
-        this.addElementAnimation('subtitle1', this.templateObjects.subtitle1, this.animationConfig.elementTimings.subtitle1);
-        this.addElementAnimation('subtitle2', this.templateObjects.subtitle2, this.animationConfig.elementTimings.subtitle2);
-        
-        // Handle bottom icons as a group with stagger
-        if (this.templateObjects.bottomIcons && this.templateObjects.bottomIcons.length > 0) {
-            this.addBottomIconsAnimation(this.animationConfig.elementTimings.bottomIcons);
+        // Check if SimpleAnimations is available
+        if (typeof SimpleAnimations === 'undefined') {
+            console.warn('SimpleAnimations not loaded, using fallback');
+            return;
         }
         
-        // Ensure timeline has minimum duration for scrubbing functionality
-        this.timeline.to({}, { duration: Math.max(0.1, this.animationDuration - 2.5) }, 2.5);
+        // Process ALL configured elements, not just visible ones (like legacy system)
+        const allElements = ['topIcon', 'topTitle', 'mainTitle', 'subtitle1', 'subtitle2', 'bottomIcons'];
+        console.log('🎬 Creating animations for ALL elements (legacy style):', allElements);
+        console.log('📊 Layer visibility state:', this.layerVisibility);
+        console.log('🎯 Template objects:', Object.keys(this.templateObjects).map(key => 
+            `${key}: ${this.templateObjects[key] ? (Array.isArray(this.templateObjects[key]) ? `[${this.templateObjects[key].length}]` : 'exists') : 'null'}`
+        ));
+        
+        // Process each element with its animation configuration
+        allElements.forEach((elementName, index) => {
+            const element = this.templateObjects[elementName];
+            const config = SimpleAnimations.getElementConfig(elementName);
+            
+            console.log(`🎭 Processing ${elementName}:`, {
+                element: element ? (Array.isArray(element) ? `Array[${element.length}]` : 'exists') : 'null',
+                config: config ? 'exists' : 'null',
+                delay: config?.animateIn?.delay || 'no delay'
+            });
+            
+            if (!element || !config || !config.animateIn) {
+                console.warn(`⚠️ Skipping ${elementName} - element:${!!element}, config:${!!config}, animateIn:${!!config?.animateIn}`);
+                return;
+            }
+            
+            // Use legacy delay system directly
+            const startTime = config.animateIn.delay || 0;
+            
+            // Handle different element types
+            if (elementName === 'bottomIcons') {
+                if (Array.isArray(element) && element.length > 0) {
+                    console.log(`✨ Animating ${element.length} bottom icons`);
+                    this.addBottomIconsAnimationSimple(element, config, startTime);
+                } else {
+                    console.warn(`⚠️ Bottom icons array is empty or invalid:`, element);
+                }
+            } else {
+                console.log(`✨ Animating ${elementName}`);
+                this.addElementAnimationSimple(elementName, element, config, startTime);
+            }
+        });
+        
+        // Add exit animations if configured (for all elements)
+        allElements.forEach(elementName => {
+            const element = this.templateObjects[elementName];
+            const config = SimpleAnimations.getElementConfig(elementName);
+            
+            if (!element || !config || !config.animateOut) return;
+            
+            if (elementName === 'bottomIcons' && Array.isArray(element)) {
+                this.addBottomIconsExitAnimation(element, config.animateOut);
+            } else {
+                this.addElementExitAnimation(element, config.animateOut);
+            }
+        });
+        
+        // Ensure timeline has full duration for scrubbing
+        this.timeline.to({}, { duration: 0.1 }, this.animationDuration);
         
         // Force stage redraw after timeline setup
         if (this.stage) {
@@ -2459,57 +2493,154 @@ class TemplateEditor {
         }
     }
     
-    addElementAnimation(elementName, element, startTime) {
-        // Only animate visible elements, but maintain fixed timeline positions
-        if (!element || !this.layerVisibility[elementName]) {
-            return; // Skip hidden elements but keep their timeline slots
-        }
-        
-        // Get the original Y position for the element before animation
-        const originalY = element.y() - 30; // Subtract the initial offset we added
-        
-        // Add the animation at the fixed timeline position
-        this.timeline.to(element, {
-            opacity: 1,
-            y: originalY,
-            scaleX: 1,
-            scaleY: 1,
-            duration: this.animationConfig.elementDuration,
-            ease: this.animationConfig.easingFunction,
-            onUpdate: () => {
-                if (this.contentLayer) {
-                    this.contentLayer.batchDraw();
-                }
-            }
-        }, startTime);
-    }
-    
-    addBottomIconsAnimation(startTime) {
-        // Only animate if bottom icons are visible
-        if (!this.layerVisibility.bottomIcons || !this.templateObjects.bottomIcons.length) {
+    addElementAnimationSimple(elementName, element, config, startTime) {
+        if (!element || !config.animateIn) {
+            console.warn(`⚠️ addElementAnimationSimple failed for ${elementName}:`, {element: !!element, animateIn: !!config?.animateIn});
             return;
         }
         
-        // Animate bottom icons with internal stagger
-        this.templateObjects.bottomIcons.forEach((icon, index) => {
-            if (icon) {
-                const originalY = icon.y() - 30; // Subtract initial offset
-                const iconDelay = index * 0.1; // 0.1s stagger between individual icons
-                
-                this.timeline.to(icon, {
-                    opacity: 1,
-                    y: originalY,
-                    scaleX: 1,
-                    scaleY: 1,
-                    duration: this.animationConfig.elementDuration,
-                    ease: this.animationConfig.easingFunction,
-                    onUpdate: () => {
-                        if (this.contentLayer) {
-                            this.contentLayer.batchDraw();
-                        }
-                    }
-                }, startTime + iconDelay);
+        console.log(`🎨 Setting up animation for ${elementName} at ${startTime}s`);
+        const animIn = config.animateIn;
+        
+        // Store original values
+        const originalValues = {};
+        
+        // Set initial state from 'from' values
+        if (animIn.from) {
+            Object.entries(animIn.from).forEach(([prop, value]) => {
+                if (prop === 'y' || prop === 'x') {
+                    // Handle relative position changes
+                    originalValues[prop] = element[prop]();
+                    element[prop](originalValues[prop] + value);
+                } else {
+                    // Handle direct properties
+                    originalValues[prop] = element[prop]();
+                    element[prop](value);
+                }
+            });
+        }
+        
+        // Prepare animation target values
+        const toValues = {};
+        if (animIn.to) {
+            Object.entries(animIn.to).forEach(([prop, value]) => {
+                if (prop === 'y' || prop === 'x') {
+                    // For position, use original values
+                    toValues[prop] = originalValues[prop] || element[prop]();
+                } else {
+                    toValues[prop] = value;
+                }
+            });
+        }
+        
+        // Add update callback for Konva
+        toValues.onUpdate = () => {
+            if (this.contentLayer) {
+                this.contentLayer.batchDraw();
             }
+        };
+        
+        // Create the animation
+        this.timeline.to(element, {
+            ...toValues,
+            duration: animIn.duration,
+            ease: animIn.ease,
+        }, startTime);
+        
+        console.log(`✅ Created animation for ${elementName}: ${startTime}s → ${startTime + animIn.duration}s (${animIn.ease})`);
+    }
+    
+    addBottomIconsAnimationSimple(icons, config, startTime) {
+        if (!icons || !config.animateIn) return;
+        
+        const animIn = config.animateIn;
+        
+        icons.forEach((icon, index) => {
+            if (!icon) return;
+            
+            // Store original values
+            const originalValues = {};
+            
+            // Set initial state
+            if (animIn.from) {
+                Object.entries(animIn.from).forEach(([prop, value]) => {
+                    if (prop === 'y' || prop === 'x') {
+                        originalValues[prop] = icon[prop]();
+                        icon[prop](originalValues[prop] + value);
+                    } else {
+                        originalValues[prop] = icon[prop]();
+                        icon[prop](value);
+                    }
+                });
+            }
+            
+            // Prepare animation target
+            const toValues = {};
+            if (animIn.to) {
+                Object.entries(animIn.to).forEach(([prop, value]) => {
+                    if (prop === 'y' || prop === 'x') {
+                        toValues[prop] = originalValues[prop] || icon[prop]();
+                    } else {
+                        toValues[prop] = value;
+                    }
+                });
+            }
+            
+            toValues.onUpdate = () => {
+                if (this.contentLayer) {
+                    this.contentLayer.batchDraw();
+                }
+            };
+            
+            // Calculate delay including stagger
+            const delay = startTime + (index * (animIn.stagger || 0));
+            
+            // Create the animation
+            this.timeline.to(icon, {
+                ...toValues,
+                duration: animIn.duration,
+                ease: animIn.ease,
+            }, delay);
+        });
+    }
+    
+    addElementExitAnimation(element, animOut) {
+        if (!element || !animOut) return;
+        
+        const toValues = animOut.to || {};
+        toValues.onUpdate = () => {
+            if (this.contentLayer) {
+                this.contentLayer.batchDraw();
+            }
+        };
+        
+        this.timeline.to(element, {
+            ...toValues,
+            duration: animOut.duration,
+            ease: animOut.ease,
+        }, animOut.startTime);
+    }
+    
+    addBottomIconsExitAnimation(icons, animOut) {
+        if (!icons || !animOut) return;
+        
+        icons.forEach((icon, index) => {
+            if (!icon) return;
+            
+            const toValues = animOut.to || {};
+            toValues.onUpdate = () => {
+                if (this.contentLayer) {
+                    this.contentLayer.batchDraw();
+                }
+            };
+            
+            const delay = animOut.startTime + (index * (animOut.stagger || 0));
+            
+            this.timeline.to(icon, {
+                ...toValues,
+                duration: animOut.duration,
+                ease: animOut.ease,
+            }, delay);
         });
     }
     
