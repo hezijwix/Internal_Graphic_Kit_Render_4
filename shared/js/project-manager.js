@@ -65,7 +65,7 @@ class ProjectManager {
                 },
                 icons: {
                     top: 50,            // Gallery icon ID for top icon  
-                    bottom: 50          // Single default gallery icon ID for ALL bottom icons
+                    bottom: 23          // Single default gallery icon ID for ALL bottom icons (celebration, not stars)
                 },
                 visibility: {
                     topIcon: true,

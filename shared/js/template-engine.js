@@ -86,7 +86,7 @@ class TemplateEditor {
         
         // Default icon configurations using REAL gallery icons
         this.defaultIcons = {
-            top: 50,        // Default to star icon (icon-050-stars.svg)
+            top: 23,        // Default to celebration icon (icon-023-celebration.svg)
             bottom: 23      // Default to celebration icon (icon-023-celebration.svg)
         };
         
