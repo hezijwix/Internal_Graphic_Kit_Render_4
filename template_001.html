@@ -567,6 +567,10 @@
                                 window.templateEditor.loadProjectData();
                             }
                         }
+                    } else {
+                        // No project ID - check for localhost saved data
+                        console.log('No project ID found, checking for localhost saved data...');
+                        loadLocalhostSavedProject();
                     }
 
                     // Connect save button to project manager
@@ -656,11 +660,62 @@
             console.log('Save button clicked');
             
             if (!currentProject) {
-                console.error('No current project to save');
-                alert('No project loaded. Please create a project from the gallery.');
-                return;
+                console.warn('No project loaded - using standalone save for localhost');
+                
+                // Fallback: Standalone save for localhost usage
+                try {
+                    const editor = window.templateEditor;
+                    if (!editor) {
+                        throw new Error('Template Editor not available');
+                    }
+                    
+                    // Create a standalone save data structure
+                    const projectData = {
+                        name: document.querySelector('.project-name')?.textContent || 'Localhost Project',
+                        template: 'Template: Animated Title Card',
+                        texts: {
+                            topTitle: document.getElementById('top-title')?.value || '',
+                            mainTitle: document.getElementById('main-title')?.value || '',
+                            subtitle1: document.getElementById('subtitle1')?.value || '',
+                            subtitle2: document.getElementById('subtitle2')?.value || ''
+                        },
+                        colors: {
+                            text: editor.getCurrentTextColor ? editor.getCurrentTextColor() : '#FFFFFF',
+                            background: editor.currentBackgroundColor || '#0D0D0D'
+                        },
+                        visibility: { ...editor.layerVisibility } || {},
+                        iconConfig: {
+                            topIcon: editor.topIconConfig || { iconId: 23 },
+                            bottomIcons: editor.bottomIconsConfig || { count: 4 }
+                        },
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    // Save to localStorage for localhost usage
+                    localStorage.setItem('wix-video-localhost-project', JSON.stringify(projectData));
+                    
+                    // Update save status
+                    const saveStatus = document.querySelector('.save-status');
+                    if (saveStatus) {
+                        saveStatus.textContent = 'Saved to localhost';
+                        setTimeout(() => {
+                            saveStatus.textContent = 'Auto-saved';
+                        }, 2000);
+                    }
+                    
+                    console.log('✅ Project saved to localhost successfully');
+                    
+                    // Show success feedback - no more alert, just visual feedback
+                    return; // Successfully saved to localhost
+                    
+                } catch (error) {
+                    console.error('❌ Localhost save failed:', error);
+                    alert(`Failed to save: ${error.message}`);
+                    return;
+                }
             }
 
+            // Original project-based save logic continues here...
             try {
                 console.log('Attempting to save project:', currentProject.name);
                 
@@ -1771,6 +1826,78 @@
         
         console.log('🛡️ Navigation protection during save operations enabled');
 
+        // Function to load localhost-saved project data
+        function loadLocalhostSavedProject() {
+            try {
+                const savedData = localStorage.getItem('wix-video-localhost-project');
+                if (!savedData) {
+                    console.log('No localhost project data found');
+                    return;
+                }
+                
+                const projectData = JSON.parse(savedData);
+                console.log('Loading localhost project data:', projectData);
+                
+                // Update project name in header
+                const projectNameElement = document.querySelector('.project-name');
+                if (projectNameElement && projectData.name) {
+                    projectNameElement.textContent = projectData.name;
+                }
+                
+                // Restore text values
+                if (projectData.texts) {
+                    Object.keys(projectData.texts).forEach(textKey => {
+                        const input = document.getElementById(textKey === 'topTitle' ? 'top-title' : 
+                                                           textKey === 'mainTitle' ? 'main-title' : textKey);
+                        if (input && projectData.texts[textKey]) {
+                            input.value = projectData.texts[textKey];
+                        }
+                    });
+                }
+                
+                // Restore template editor data if available
+                if (window.templateEditor) {
+                    // Restore layer visibility
+                    if (projectData.visibility) {
+                        Object.keys(projectData.visibility).forEach(layer => {
+                            if (window.templateEditor.layerVisibility && typeof window.templateEditor.layerVisibility[layer] !== 'undefined') {
+                                window.templateEditor.layerVisibility[layer] = projectData.visibility[layer];
+                            }
+                        });
+                    }
+                    
+                    // Restore icon configuration
+                    if (projectData.iconConfig) {
+                        if (projectData.iconConfig.topIcon && window.templateEditor.topIconConfig) {
+                            window.templateEditor.topIconConfig = { ...window.templateEditor.topIconConfig, ...projectData.iconConfig.topIcon };
+                        }
+                        if (projectData.iconConfig.bottomIcons && window.templateEditor.bottomIconsConfig) {
+                            window.templateEditor.bottomIconsConfig = { ...window.templateEditor.bottomIconsConfig, ...projectData.iconConfig.bottomIcons };
+                        }
+                    }
+                    
+                    // Trigger recreation of template objects with restored data
+                    console.log('Recreating template objects with restored data...');
+                    window.templateEditor.createTemplateObjects();
+                }
+                
+                // Update save status
+                const saveStatus = document.querySelector('.save-status');
+                if (saveStatus) {
+                    saveStatus.textContent = 'Loaded from localhost';
+                    setTimeout(() => {
+                        saveStatus.textContent = 'Auto-saved';
+                    }, 2000);
+                }
+                
+                console.log('✅ Localhost project data loaded successfully');
+                
+            } catch (error) {
+                console.error('❌ Failed to load localhost project data:', error);
+            }
+        }
+
+        // Auto-save functionality with async handling
     </script>
 </body>
 </html> 
