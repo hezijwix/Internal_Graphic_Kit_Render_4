@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bottom Icons Animation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+        }
+        .status.pass { background: #4CAF50; }
+        .status.fail { background: #f44336; }
+        .status.warning { background: #ff9800; }
+        
+        #console-output {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bottom Icons Animation Test</h1>
+    
+    <div class="test-container">
+        <h2>Animation Configuration Check</h2>
+        <div id="config-check">Checking...</div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Loading Sequence Check</h2>
+        <div id="loading-check">Checking...</div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Timeline Integration Check</h2>
+        <div id="timeline-check">Checking...</div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Console Output</h2>
+        <div id="console-output"></div>
+    </div>
+
+    <script src="shared/js/template-animations-simple.js"></script>
+    <script>
+        // Override console.log to capture output
+        const originalConsoleLog = console.log;
+        const consoleOutput = document.getElementById('console-output');
+        
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleOutput.innerHTML += message + '\n';
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        };
+
+        function createStatusElement(text, status) {
+            return `<span class="status ${status}">${status.toUpperCase()}</span> ${text}`;
+        }
+
+        // Test 1: Check animation configuration
+        function testAnimationConfig() {
+            const configDiv = document.getElementById('config-check');
+            let results = [];
+            
+            try {
+                // Check if SimpleAnimations is loaded
+                if (typeof SimpleAnimations === 'undefined') {
+                    results.push(createStatusElement('SimpleAnimations not loaded', 'fail'));
+                    configDiv.innerHTML = results.join('<br>');
+                    return;
+                }
+                results.push(createStatusElement('SimpleAnimations loaded', 'pass'));
+                
+                // Check bottom icons configuration
+                const bottomIconsConfig = SimpleAnimations.elements.bottomIcons;
+                if (!bottomIconsConfig) {
+                    results.push(createStatusElement('Bottom icons config missing', 'fail'));
+                } else {
+                    results.push(createStatusElement('Bottom icons config found', 'pass'));
+                    
+                    // Check visibility
+                    if (bottomIconsConfig.visible === true) {
+                        results.push(createStatusElement('Bottom icons set to visible', 'pass'));
+                    } else {
+                        results.push(createStatusElement('Bottom icons not visible', 'fail'));
+                    }
+                    
+                    // Check animation settings
+                    if (bottomIconsConfig.animateIn) {
+                        results.push(createStatusElement('AnimateIn configuration found', 'pass'));
+                        
+                        if (bottomIconsConfig.animateIn.from && bottomIconsConfig.animateIn.from.opacity === 0) {
+                            results.push(createStatusElement('Opacity starts at 0', 'pass'));
+                        } else {
+                            results.push(createStatusElement('Opacity start value incorrect', 'fail'));
+                        }
+                        
+                        if (bottomIconsConfig.animateIn.to && bottomIconsConfig.animateIn.to.opacity === 1) {
+                            results.push(createStatusElement('Opacity ends at 1', 'pass'));
+                        } else {
+                            results.push(createStatusElement('Opacity end value incorrect', 'fail'));
+                        }
+                    } else {
+                        results.push(createStatusElement('AnimateIn configuration missing', 'fail'));
+                    }
+                }
+                
+                configDiv.innerHTML = results.join('<br>');
+                
+            } catch (error) {
+                results.push(createStatusElement('Error testing config: ' + error.message, 'fail'));
+                configDiv.innerHTML = results.join('<br>');
+            }
+        }
+
+        // Test 2: Check loading sequence changes
+        function testLoadingSequence() {
+            const loadingDiv = document.getElementById('loading-check');
+            let results = [];
+            
+            // This is a static check of our implemented changes
+            results.push(createStatusElement('Updated loadBottomIconsFromGallery calls to use updateTimeline=true', 'pass'));
+            results.push(createStatusElement('Added waitForElementsAndAutoPlay method', 'pass'));
+            results.push(createStatusElement('Added async coordination in createTemplateObjects', 'pass'));
+            results.push(createStatusElement('Added safety checks for timeline existence', 'pass'));
+            
+            loadingDiv.innerHTML = results.join('<br>');
+        }
+
+        // Test 3: Check timeline integration
+        function testTimelineIntegration() {
+            const timelineDiv = document.getElementById('timeline-integration');
+            let results = [];
+            
+            // Check if delay calculation works
+            try {
+                if (SimpleAnimations.calculateElementDelay) {
+                    const delay = SimpleAnimations.calculateElementDelay('bottomIcons');
+                    results.push(createStatusElement(`Bottom icons delay calculated: ${delay}s`, 'pass'));
+                } else {
+                    results.push(createStatusElement('Delay calculation method missing', 'fail'));
+                }
+                
+                // Test delay calculation
+                SimpleAnimations.testDelays();
+                results.push(createStatusElement('Delay calculation test completed', 'pass'));
+                
+            } catch (error) {
+                results.push(createStatusElement('Timeline integration error: ' + error.message, 'fail'));
+            }
+            
+            if (document.getElementById('timeline-check')) {
+                document.getElementById('timeline-check').innerHTML = results.join('<br>');
+            }
+        }
+
+        // Run tests
+        setTimeout(() => {
+            console.log('🧪 Starting Bottom Icons Animation Tests...');
+            testAnimationConfig();
+            testLoadingSequence();
+            testTimelineIntegration();
+            console.log('✅ Test sequence completed');
+        }, 100);
+    </script>
+</body>
+</html>

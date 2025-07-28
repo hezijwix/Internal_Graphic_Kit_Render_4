@@ -518,107 +518,61 @@ class TemplateEditor {
     }
     
     setupFormControls() {
-        // Text inputs for all layers
-        const topTitleInput = document.getElementById('top-title');
-        const mainTitleInput = document.getElementById('main-title');
-        const subtitle1Input = document.getElementById('subtitle1');
-        const subtitle2Input = document.getElementById('subtitle2');
+        // Configuration for text inputs - eliminates repetitive code
+        const textInputConfigs = [
+            { id: 'top-title', type: 'topTitle', limitMethod: 'limitTextInputByWidth' },
+            { id: 'main-title', type: 'mainTitle', limitMethod: 'limitMainTitleInput', preventLineBreaks: true, cleanInput: true },
+            { id: 'subtitle1', type: 'subtitle1', preventLineBreaks: true, cleanInput: true },
+            { id: 'subtitle2', type: 'subtitle2', preventLineBreaks: true, cleanInput: true }
+        ];
         
-        // Text input event listeners with width-based limiting
-        if (topTitleInput) {
-            topTitleInput.addEventListener('input', (e) => {
-                const limitedValue = this.limitTextInputByWidth(e.target.value, 'topTitle');
-                if (limitedValue !== e.target.value) {
-                    e.target.value = limitedValue;
-                }
-                this.updateText('topTitle', limitedValue);
-            });
-        }
-        if (mainTitleInput) {
-            // Prevent manual line breaks
-            mainTitleInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault(); // Prevent manual line breaks
-                }
-            });
-            
-            // Handle input with cleaning and limiting
-            mainTitleInput.addEventListener('input', (e) => {
-                // Clean the input first
-                const cleanedValue = e.target.value.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
-                
-                // Then limit by 2-line wrapping
-                const limitedValue = this.limitMainTitleInput(cleanedValue);
-                if (limitedValue !== e.target.value) {
-                    e.target.value = limitedValue;
-                }
-                this.updateText('mainTitle', limitedValue);
-            });
-            
-            // Handle paste events to clean up pasted content
-            mainTitleInput.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-                const cleanedText = pastedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
-                mainTitleInput.value = cleanedText;
-                this.updateText('mainTitle', cleanedText);
-            });
-        }
-        if (subtitle1Input) {
-            // Prevent manual line breaks for clean wrapping
-            subtitle1Input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault(); // Prevent manual line breaks
-                }
-            });
-            
-            // Handle input with cleaning and automatic 2-line wrapping
-            subtitle1Input.addEventListener('input', (e) => {
-                // Clean the input first
-                const cleanedValue = e.target.value.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
-                
-                // The wrapping will be handled by processTextForWidth automatically
-                this.updateText('subtitle1', cleanedValue);
-            });
-            
-            // Handle paste events to clean up pasted content
-            subtitle1Input.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-                const cleanedText = pastedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
-                subtitle1Input.value = cleanedText;
-                this.updateText('subtitle1', cleanedText);
-            });
-        }
-        if (subtitle2Input) {
-            // Prevent manual line breaks for clean wrapping
-            subtitle2Input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault(); // Prevent manual line breaks
-                }
-            });
-            
-            // Handle input with cleaning and automatic 2-line wrapping
-            subtitle2Input.addEventListener('input', (e) => {
-                // Clean the input first
-                const cleanedValue = e.target.value.replace(/\n+/g, ' ').replace(/\s+/g, ' ');
-                
-                // The wrapping will be handled by processTextForWidth automatically
-                this.updateText('subtitle2', cleanedValue);
-            });
-            
-            // Handle paste events to clean up pasted content
-            subtitle2Input.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-                const cleanedText = pastedText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
-                subtitle2Input.value = cleanedText;
-                this.updateText('subtitle2', cleanedText);
-            });
-        }
+        // Setup all text inputs using configuration
+        textInputConfigs.forEach(config => this.setupTextInput(config));
         
         // Layer visibility toggles
         this.setupVisibilityToggles();
+    }
+    
+    // Helper method to eliminate repetitive text input setup code
+    setupTextInput(config) {
+        const input = document.getElementById(config.id);
+        if (!input) return;
+        
+        // Common text cleaning function
+        const cleanText = (text) => config.cleanInput ? 
+            text.replace(/\n+/g, ' ').replace(/\s+/g, ' ') : text;
+        
+        // Prevent line breaks if specified
+        if (config.preventLineBreaks) {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') e.preventDefault();
+            });
+        }
+        
+        // Input handler
+        input.addEventListener('input', (e) => {
+            let value = cleanText(e.target.value);
+            
+            // Apply limiting if specified
+            if (config.limitMethod && this[config.limitMethod]) {
+                const limitedValue = this[config.limitMethod](value, config.type);
+                if (limitedValue !== e.target.value) {
+                    e.target.value = limitedValue;
+                }
+                value = limitedValue;
+            }
+            
+            this.updateText(config.type, value);
+        });
+        
+        // Paste handler
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const cleanedText = cleanText(pastedText).trim();
+            input.value = cleanedText;
+            this.updateText(config.type, cleanedText);
+        });
         
         // Font controls
         const fontFamilySelect = document.getElementById('font-family');
@@ -694,64 +648,67 @@ class TemplateEditor {
             });
         }
         
-        // Icon selection buttons (for UI controls)
+        // Simplified delegated event handling for all icon interactions
+        this.setupIconEventDelegation();
+    }
+    
+    // Simplified icon event delegation - reduces complex nested conditionals
+    setupIconEventDelegation() {
+        // Event delegation map for cleaner code organization
+        const iconEventHandlers = {
+            '.icon-option': this.handleIconOptionClick.bind(this),
+            '.change-icon-btn': this.handleChangeIconClick.bind(this),
+            '.icon-preset': this.handleIconPresetClick.bind(this)
+        };
+        
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.icon-option')) {
-                const button = e.target.closest('.icon-option');
-                const slot = button.closest('.icon-slot');
-                const slotIndex = parseInt(slot.dataset.slot);
-                const iconType = button.dataset.icon;
-                
-                // 🔥 UNIFIED: Convert abstract icon type to gallery ID using mapping system
-                const iconId = this.iconTypeToIdMapping[iconType] || this.defaultIcons.bottom;
-                const oldIconId = this.bottomIconsConfig.iconIds[slotIndex];
-                
-                // Only update if the icon actually changed
-                if (oldIconId !== iconId) {
-                    this.bottomIconsConfig.iconIds[slotIndex] = iconId;
-                    
-                    console.log(`🎨 Icon slot ${slotIndex + 1} changed from ID ${oldIconId} to "${iconType}" (Gallery ID: ${iconId})`);
-                    console.log(`📊 Updated iconIds array: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
-                    
-                    // 🔥 SMART UI: Update UI to reflect preset selection
-                    this.updateIconSlotToPreset(slot, slotIndex, iconType, iconId);
-                    
-                    // 🔥 FIXED: Update only the specific icon that changed
-                    clearTimeout(this.iconSelectionTimeout);
-                    this.iconSelectionTimeout = setTimeout(() => {
-                        this.updateSingleBottomIcon(slotIndex, iconId);
-                    }, 100);
+            // Check each selector and execute corresponding handler
+            for (const [selector, handler] of Object.entries(iconEventHandlers)) {
+                if (e.target.closest(selector)) {
+                    handler(e.target.closest(selector), e);
+                    break; // Only handle one event type per click
                 }
             }
-            
-            // 🔥 NEW: Handle "Choose Different Icon" button clicks
-            if (e.target.closest('.change-icon-btn')) {
-                const button = e.target.closest('.change-icon-btn');
-                const slotIndex = parseInt(button.dataset.slot);
-                
-                console.log(`🎨 Opening gallery for bottom icon slot ${slotIndex + 1}`);
-                this.openGalleryForBottomIcon(slotIndex);
-            }
         });
+    }
+    
+    // Extracted handler methods for better organization
+    handleIconOptionClick(button) {
+        const slot = button.closest('.icon-slot');
+        const slotIndex = parseInt(slot.dataset.slot);
+        const iconType = button.dataset.icon;
         
-        // Top icon presets (keep existing functionality)
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.icon-preset')) {
-                const button = e.target.closest('.icon-preset');
-                const iconType = button.dataset.icon;
-                
-                // Update active state
-                document.querySelectorAll('.icon-preset').forEach(preset => preset.classList.remove('active'));
-                button.classList.add('active');
-                
-                // Update top icon using gallery system (if needed)
-                const iconId = this.iconTypeToIdMapping[iconType] || this.defaultIcons.top;
-                this.topIconConfig.iconId = iconId;
-                
-                // Recreate top icon
-                this.loadTopIconFromGallery();
-            }
-        });
+        const iconId = this.iconTypeToIdMapping[iconType] || this.defaultIcons.bottom;
+        const oldIconId = this.bottomIconsConfig.iconIds[slotIndex];
+        
+        if (oldIconId !== iconId) {
+            this.bottomIconsConfig.iconIds[slotIndex] = iconId;
+            this.updateIconSlotToPreset(slot, slotIndex, iconType, iconId);
+            
+            // Debounced update
+            clearTimeout(this.iconSelectionTimeout);
+            this.iconSelectionTimeout = setTimeout(() => {
+                this.updateSingleBottomIcon(slotIndex, iconId);
+            }, 100);
+        }
+    }
+    
+    handleChangeIconClick(button) {
+        const slotIndex = parseInt(button.dataset.slot);
+        this.openGalleryForBottomIcon(slotIndex);
+    }
+    
+    handleIconPresetClick(button) {
+        const iconType = button.dataset.icon;
+        
+        // Update active state
+        document.querySelectorAll('.icon-preset').forEach(preset => preset.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Update top icon
+        const iconId = this.iconTypeToIdMapping[iconType] || this.defaultIcons.top;
+        this.topIconConfig.iconId = iconId;
+        this.loadTopIconFromGallery();
     }
     
     setupPlaybackControls() {
@@ -1504,7 +1461,7 @@ class TemplateEditor {
         this.loadTopIconFromGallery(false); // Don't update timeline on initial load
         
         // Load bottom icons from gallery  
-        this.loadBottomIconsFromGallery(false); // Don't update timeline on initial load
+        this.loadBottomIconsFromGallery(true); // Update timeline on initial load to ensure animations work
         
         // Skip setting initial hidden positions - let icons stay visible
         // this.setInitialPositions(); // COMMENTED OUT to prevent hiding icons
@@ -1626,24 +1583,7 @@ class TemplateEditor {
                     ${isCustomGalleryIcon ? '<div class="loading-gallery-icon">Loading...</div>' : this.getIconSVG(displayType, '24')}
                 </div>
                 <div class="icon-options">
-                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'star' ? 'active' : ''}" data-icon="star">
-                        ${this.getIconSVG('star', '16')}
-                    </button>
-                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'circle' ? 'active' : ''}" data-icon="circle">
-                        ${this.getIconSVG('circle', '16')}
-                    </button>
-                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'arrow' ? 'active' : ''}" data-icon="arrow">
-                        ${this.getIconSVG('arrow', '16')}
-                    </button>
-                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'heart' ? 'active' : ''}" data-icon="heart">
-                        ${this.getIconSVG('heart', '16')}
-                    </button>
-                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'diamond' ? 'active' : ''}" data-icon="diamond">
-                        ${this.getIconSVG('diamond', '16')}
-                    </button>
-                    <button class="icon-option ${!isCustomGalleryIcon && currentIconType === 'triangle' ? 'active' : ''}" data-icon="triangle">
-                        ${this.getIconSVG('triangle', '16')}
-                    </button>
+                    ${this.generateIconOptions(isCustomGalleryIcon, currentIconType)}
                 </div>
                 ${isCustomGalleryIcon ? `
                 <div class="custom-icon-indicator">
@@ -2967,7 +2907,7 @@ class TemplateEditor {
             console.log('⏳ Waiting for all icons to load...');
             await Promise.all([
                 this.loadTopIconFromGallery(false), // Don't update timeline on initial load
-                this.loadBottomIconsFromGallery(false) // Don't update timeline on initial load
+                this.loadBottomIconsFromGallery(true) // Update timeline on initial load to ensure animations work
             ]);
             console.log('✅ All icons loaded successfully!');
         } catch (error) {
@@ -4151,6 +4091,59 @@ class TemplateEditor {
         console.log('Layout recalculation complete with base position system');
     }
     
+    /**
+     * Wait for all essential elements to be loaded before auto-playing animation
+     * This ensures bottom icons and other async elements are ready for animation
+     */
+    async waitForElementsAndAutoPlay() {
+        console.log('⏳ Waiting for all elements to be loaded before auto-play...');
+        
+        // Check if bottom icons are still loading
+        let attempts = 0;
+        const maxAttempts = 20; // Maximum 2 seconds (20 * 100ms)
+        
+        while (this.isLoadingBottomIcons && attempts < maxAttempts) {
+            console.log(`🔄 Waiting for bottom icons to finish loading (attempt ${attempts + 1}/${maxAttempts})...`);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        // Additional check for bottom icons existence
+        if (!this.templateObjects.bottomIcons || this.templateObjects.bottomIcons.length === 0) {
+            console.log('⚠️ Bottom icons not found, waiting a bit more...');
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        
+        // Verify bottom icons are properly loaded
+        const bottomIconsValid = Array.isArray(this.templateObjects.bottomIcons) && 
+                                this.templateObjects.bottomIcons.length > 0 &&
+                                this.templateObjects.bottomIcons[0] && 
+                                typeof this.templateObjects.bottomIcons[0].opacity === 'function';
+        
+        console.log(`🔍 Bottom icons validation: ${bottomIconsValid ? 'VALID' : 'INVALID'}`);
+        console.log(`📊 Bottom icons count: ${Array.isArray(this.templateObjects.bottomIcons) ? this.templateObjects.bottomIcons.length : 'N/A'}`);
+        
+        if (this.timeline) {
+            console.log('🎬 Auto-playing animation timeline after element validation...');
+            this.timeline.play();
+            
+            // Update UI to reflect playing state
+            this.isPlaying = true;
+            
+            // Update play/pause button states
+            const playIcons = document.querySelectorAll('.play-icon');
+            const pauseIcons = document.querySelectorAll('.pause-icon');
+            playIcons.forEach(icon => icon.classList.add('hidden'));
+            pauseIcons.forEach(icon => icon.classList.remove('hidden'));
+            
+            // Start timeline position updates
+            this.updateTimelinePosition();
+        } else {
+            console.log('🔧 Timeline not available, ensuring icons are visible...');
+            this.forceIconsVisible();
+        }
+    }
+    
     createGSAPTimeline() {
         console.log('🎬 Creating GSAP timeline using Template Animation Configuration...');
         
@@ -4217,27 +4210,8 @@ class TemplateEditor {
             console.log(`⏱️ Timeline duration: ${this.timeline.duration()}s`);
             console.log(`🎬 Template animations applied: ${animConfig.utils ? 'SUCCESS' : 'FALLBACK'}`);
             
-            // Auto-play animation on page load to show opacity animations
-            setTimeout(() => {
-                if (this.timeline) {
-                    console.log('🎬 Auto-playing animation timeline on page load...');
-                    this.timeline.play();
-                    // Update UI to reflect playing state
-                    this.isPlaying = true;
-                    
-                    // Update play/pause button states
-                    const playIcons = document.querySelectorAll('.play-icon');
-                    const pauseIcons = document.querySelectorAll('.pause-icon');
-                    playIcons.forEach(icon => icon.classList.add('hidden'));
-                    pauseIcons.forEach(icon => icon.classList.remove('hidden'));
-                    
-                    // Start timeline position updates
-                    this.updateTimelinePosition();
-                } else {
-                    console.log('🔧 Timeline not available, ensuring icons are visible...');
-                    this.forceIconsVisible();
-                }
-            }, 500);
+            // Auto-play animation on page load after ensuring all elements are loaded
+            this.waitForElementsAndAutoPlay();
             
         } catch (error) {
             console.error('❌ Error creating GSAP timeline:', error);
@@ -4291,6 +4265,124 @@ class TemplateEditor {
     }
     
     /**
+     * Validate all template objects are ready for animation
+     * Provides detailed diagnostics about object states
+     */
+    validateObjectsForAnimation() {
+        console.log('🔍 === ANIMATION READINESS VALIDATION ===');
+        
+        const validationResults = {};
+        
+        // Check each required element
+        const requiredElements = ['topIcon', 'topTitle', 'mainTitle', 'subtitle1', 'subtitle2', 'bottomIcons'];
+        
+        requiredElements.forEach(elementName => {
+            const element = this.templateObjects[elementName];
+            const isVisible = this.layerVisibility[elementName];
+            
+            if (!element) {
+                validationResults[elementName] = { status: 'missing', reason: 'Object not found' };
+            } else if (elementName === 'bottomIcons') {
+                // Special validation for bottomIcons array
+                if (!Array.isArray(element)) {
+                    validationResults[elementName] = { status: 'invalid', reason: 'Not an array' };
+                } else if (element.length === 0) {
+                    validationResults[elementName] = { status: 'empty', reason: 'Array has no items' };
+                } else {
+                    const validIcons = element.filter(icon => icon && typeof icon.x === 'function');
+                    if (validIcons.length === 0) {
+                        validationResults[elementName] = { status: 'invalid', reason: 'No valid Konva objects in array' };
+                    } else {
+                        validationResults[elementName] = { 
+                            status: 'ready', 
+                            count: validIcons.length, 
+                            total: element.length,
+                            visible: isVisible 
+                        };
+                    }
+                }
+            } else {
+                // Regular object validation
+                if (typeof element.x !== 'function' || typeof element.y !== 'function') {
+                    validationResults[elementName] = { status: 'invalid', reason: 'Not a valid Konva object' };
+                } else {
+                    validationResults[elementName] = { status: 'ready', visible: isVisible };
+                }
+            }
+        });
+        
+        // Report results
+        Object.keys(validationResults).forEach(elementName => {
+            const result = validationResults[elementName];
+            switch (result.status) {
+                case 'ready':
+                    if (elementName === 'bottomIcons') {
+                        console.log(`✅ ${elementName}: Ready (${result.count}/${result.total} valid icons, visible: ${result.visible})`);
+                    } else {
+                        console.log(`✅ ${elementName}: Ready (visible: ${result.visible})`);
+                    }
+                    break;
+                case 'missing':
+                    console.warn(`❌ ${elementName}: ${result.reason}`);
+                    break;
+                case 'invalid':
+                    console.warn(`⚠️ ${elementName}: ${result.reason}`);
+                    break;
+                case 'empty':
+                    console.warn(`📭 ${elementName}: ${result.reason}`);
+                    break;
+            }
+        });
+        
+        console.log('🔍 === END VALIDATION ===');
+        return validationResults;
+    }
+
+    /**
+     * Debug helper for animation timing issues - can be called from browser console
+     * Usage: window.templateEditor.debugAnimationTiming()
+     */
+    debugAnimationTiming() {
+        console.log('🐛 === ANIMATION TIMING DEBUG ===');
+        
+        // Check object states
+        console.log('📊 Object States:');
+        const validation = this.validateObjectsForAnimation();
+        
+        // Check timeline state
+        console.log('⏱️ Timeline State:');
+        if (this.timeline) {
+            console.log(`  Timeline exists: ✅`);
+            console.log(`  Timeline duration: ${this.timeline.duration()}s`);
+            console.log(`  Timeline progress: ${this.timeline.progress()}`);
+            console.log(`  Timeline paused: ${this.timeline.paused()}`);
+        } else {
+            console.log(`  Timeline exists: ❌`);
+        }
+        
+        // Check loading states
+        console.log('🔄 Loading States:');
+        console.log(`  isLoadingBottomIcons: ${this.isLoadingBottomIcons}`);
+        console.log(`  isLoadingTopIcon: ${this.isLoadingTopIcon}`);
+        console.log(`  isUpdatingIconCount: ${this.isUpdatingIconCount}`);
+        
+        // Check configuration
+        console.log('⚙️ Configuration:');
+        console.log(`  bottomIconsConfig.count: ${this.bottomIconsConfig.count}`);
+        console.log(`  bottomIconsConfig.iconIds: [${this.bottomIconsConfig.iconIds.slice(0, 6)}]`);
+        console.log(`  layerVisibility.bottomIcons: ${this.layerVisibility.bottomIcons}`);
+        
+        // Manual animation retry option
+        console.log('🔧 Manual Fix Options:');
+        console.log('  1. Recreate timeline: window.templateEditor.createGSAPTimeline()');
+        console.log('  2. Reload icons: window.templateEditor.loadBottomIconsFromGallery()');
+        console.log('  3. Force icons visible: window.templateEditor.forceIconsVisible()');
+        
+        console.log('🐛 === END DEBUG ===');
+        return validation;
+    }
+
+    /**
      * Apply simple animations from SimpleAnimations configuration
      * Uses dynamic delay calculation system
      */
@@ -4298,6 +4390,9 @@ class TemplateEditor {
         console.log('🎬 Applying SimpleAnimations configuration...');
         console.log('🔍 Available templateObjects:', Object.keys(this.templateObjects));
         console.log('🔍 SimpleAnimations.elements:', Object.keys(SimpleAnimations.elements));
+        
+        // 🔥 DIAGNOSTIC: Check object readiness before animation
+        this.validateObjectsForAnimation();
         
         try {
             const elements = SimpleAnimations.elements;
@@ -4335,6 +4430,24 @@ class TemplateEditor {
                     console.warn(`⚠️ Element not found: ${elementName}`);
                     console.log(`🔍 Available in templateObjects:`, Object.keys(this.templateObjects));
                     return;
+                }
+                
+                // Special validation for bottomIcons array
+                if (elementName === 'bottomIcons') {
+                    if (!Array.isArray(element)) {
+                        console.warn(`⚠️ ${elementName} is not an array, skipping animation`);
+                        return;
+                    }
+                    if (element.length === 0) {
+                        console.warn(`⚠️ ${elementName} array is empty, skipping animation`);
+                        return;
+                    }
+                    const validIcons = element.filter(icon => icon && typeof icon.x === 'function');
+                    if (validIcons.length === 0) {
+                        console.warn(`⚠️ ${elementName} contains no valid icons, skipping animation`);
+                        return;
+                    }
+                    console.log(`✅ ${elementName} validation passed: ${validIcons.length}/${element.length} valid icons`);
                 }
                 
                 console.log(`✅ Found element ${elementName}, applying animations...`);
@@ -4508,20 +4621,51 @@ class TemplateEditor {
      * @param {string} type - Animation type ('in' or 'out')
      */
     addBottomIconsAnimationSimple(iconElements, animConfig, delay, type) {
+        // Validate input array
+        if (!Array.isArray(iconElements)) {
+            console.warn(`⚠️ addBottomIconsAnimationSimple: iconElements is not an array`);
+            return;
+        }
+        
+        if (iconElements.length === 0) {
+            console.warn(`⚠️ addBottomIconsAnimationSimple: iconElements array is empty`);
+            return;
+        }
+        
+        // Filter out null/undefined icons and validate each icon
+        const validIcons = iconElements.filter((icon, index) => {
+            if (!icon) {
+                console.warn(`⚠️ Bottom icon ${index} is null/undefined, skipping`);
+                return false;
+            }
+            if (typeof icon.x !== 'function' || typeof icon.y !== 'function') {
+                console.warn(`⚠️ Bottom icon ${index} is not a valid Konva object, skipping`);
+                return false;
+            }
+            return true;
+        });
+        
+        if (validIcons.length === 0) {
+            console.warn(`⚠️ addBottomIconsAnimationSimple: no valid icons found in array`);
+            return;
+        }
+        
+        console.log(`🎭 Validated icons: ${validIcons.length}/${iconElements.length} valid icons for ${type} animation`);
+        
         // Use stagger directly in seconds
         const staggerInSeconds = animConfig.stagger || 0.12;
         const staggerType = animConfig.staggerType || 'linear';
         
-        console.log(`🎭 Starting ${type} animation for ${iconElements.length} bottom icons with ${staggerType} stagger`);
+        console.log(`🎭 Starting ${type} animation for ${validIcons.length} bottom icons with ${staggerType} stagger`);
         console.log(`🎯 Stagger: ${staggerInSeconds}s between rings`);
         
-        iconElements.forEach((icon, index) => {
+        validIcons.forEach((icon, index) => {
             // Calculate hierarchical delay: componentBaseDelay + centerOutOffset
             let iconStaggerOffset;
             
             if (staggerType === 'center-out') {
                 // Use center-out calculation for hierarchical timing
-                iconStaggerOffset = this.calculateCenterOutStagger(index, iconElements.length, staggerInSeconds);
+                iconStaggerOffset = this.calculateCenterOutStagger(index, validIcons.length, staggerInSeconds);
             } else {
                 // Use linear stagger (backward compatibility)
                 iconStaggerOffset = index * staggerInSeconds;
@@ -4536,7 +4680,7 @@ class TemplateEditor {
             const basePosition = this.positionStates.base?.bottomIcons;
             
             // Calculate individual icon position using the existing positioning logic
-            const iconPositions = this.calculateIconPositions(iconElements.length);
+            const iconPositions = this.calculateIconPositions(validIcons.length);
             const iconBaseX = iconPositions[index];
             const iconBaseY = basePosition?.y || this.bottomIconsY || 820;
             
@@ -5151,20 +5295,7 @@ class TemplateEditor {
         
         // Update font family for all text objects
         const fontFamily = document.getElementById('font-family')?.value || 'Wix Madefor Display';
-        
-        // Update font family for all text objects
-        if (this.templateObjects.topTitle) {
-            this.templateObjects.topTitle.fontFamily(fontFamily);
-        }
-        if (this.templateObjects.mainTitle) {
-            this.templateObjects.mainTitle.fontFamily(fontFamily);
-        }
-        if (this.templateObjects.subtitle1) {
-            this.templateObjects.subtitle1.fontFamily(fontFamily);
-        }
-        if (this.templateObjects.subtitle2) {
-            this.templateObjects.subtitle2.fontFamily(fontFamily);
-        }
+        this.applyToAllTextObjects('fontFamily', fontFamily);
         
         // Update offset for center alignment
         this.updateTextCentering();
@@ -5173,6 +5304,66 @@ class TemplateEditor {
         this.stage.batchDraw();
         
         console.log('Template properties updated');
+    }
+    
+    // Helper method to reduce repetition in property updates
+    applyToAllTextObjects(property, value) {
+        const textObjects = ['topTitle', 'mainTitle', 'subtitle1', 'subtitle2'];
+        textObjects.forEach(objName => {
+            const obj = this.templateObjects[objName];
+            if (obj && typeof obj[property] === 'function') {
+                obj[property](value);
+            }
+        });
+    }
+    
+    // Helper method for common icon operations to reduce duplication
+    async createAndAddIcon(iconId, x, y, size, targetProperty, updateTimeline = true) {
+        try {
+            // Remove existing icon if it exists
+            if (this.templateObjects[targetProperty]) {
+                if (Array.isArray(this.templateObjects[targetProperty])) {
+                    // Handle array of icons (bottom icons)
+                    this.templateObjects[targetProperty].forEach(icon => icon?.destroy());
+                    this.templateObjects[targetProperty] = [];
+                } else {
+                    // Handle single icon (top icon)
+                    this.templateObjects[targetProperty].destroy();
+                    this.templateObjects[targetProperty] = null;
+                }
+            }
+            
+            // Create new icon
+            const icon = await this.createIconFromGallery(iconId, x, y, size);
+            
+            // Add to template objects and layer
+            this.templateObjects[targetProperty] = icon;
+            this.contentLayer.add(icon);
+            this.stage.batchDraw();
+            
+            // Update timeline if requested
+            if (updateTimeline) {
+                this.updateGSAPTimeline();
+            }
+            
+            return icon;
+        } catch (error) {
+            console.error(`❌ Failed to create and add icon:`, error);
+            return null;
+        }
+    }
+    
+    // Helper method to generate icon option buttons - eliminates repetitive HTML
+    generateIconOptions(isCustomGalleryIcon, currentIconType) {
+        const iconTypes = ['star', 'circle', 'arrow', 'heart', 'diamond', 'triangle'];
+        return iconTypes.map(iconType => {
+            const isActive = !isCustomGalleryIcon && currentIconType === iconType;
+            return `
+                <button class="icon-option ${isActive ? 'active' : ''}" data-icon="${iconType}">
+                    ${this.getIconSVG(iconType, '16')}
+                </button>
+            `;
+        }).join('');
     }
     
     easeInOut(t) {
@@ -6448,9 +6639,12 @@ class TemplateEditor {
             this.contentLayer.add(icon);
             this.stage.batchDraw();
             
-            // Only update timeline if requested (not on initial load)
-            if (updateTimeline) {
+            // Only update timeline if requested and timeline exists
+            if (updateTimeline && this.timeline) {
+                console.log('🔄 Updating GSAP timeline with new top icon...');
                 this.updateGSAPTimeline();
+            } else if (updateTimeline && !this.timeline) {
+                console.log('⏳ Timeline not yet created, top icon will be included when timeline is created');
             }
             
             console.log('✅ Top icon loaded from gallery successfully');
@@ -6534,9 +6728,12 @@ class TemplateEditor {
             
             this.stage.batchDraw();
             
-            // Only update timeline if requested (not on initial load)
-            if (updateTimeline) {
+            // Only update timeline if requested and timeline exists
+            if (updateTimeline && this.timeline) {
+                console.log('🔄 Updating GSAP timeline with new bottom icons...');
                 this.updateGSAPTimeline();
+            } else if (updateTimeline && !this.timeline) {
+                console.log('⏳ Timeline not yet created, bottom icons will be included when timeline is created');
             }
             
             // 🔥 UNIFIED: Register bottom icons with animation system
