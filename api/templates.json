@@ -22,6 +22,29 @@
       "version": "1.0.0",
       "created": "2024-01-01T00:00:00.000Z",
       "modified": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "template_002",
+      "name": "Chapter",
+      "description": "Professional chapter template with customizable text and icons. Perfect for video sections and chapter markers.",
+      "features": [
+        "Icon Upload Support",
+        "Color Customization", 
+        "Multiple Text Layers",
+        "GSAP Animations",
+        "Export Options"
+      ],
+      "category": "titles",
+      "file": "template_002.html",
+      "thumbnail": "shared/assets/template-002-thumb.jpg",
+      "preview": "shared/assets/template-002-preview.mp4",
+      "duration": 10,
+      "resolution": "1920x1080",
+      "fps": 30,
+      "tags": ["chapter", "title", "section", "marker"],
+      "version": "1.0.0",
+      "created": "2024-01-01T00:00:00.000Z",
+      "modified": "2024-01-01T00:00:00.000Z"
     }
   ],
   "categories": [

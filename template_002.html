@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wix Video Asset Creator - Chapter Template</title>
+    <link rel="stylesheet" href="shared/css/template-base.css">
+    <link rel="stylesheet" href="shared/css/icon-gallery.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Konva.js for advanced canvas rendering -->
+    <script src="https://unpkg.com/konva@9.2.0/konva.min.js"></script>
+    
+    <!-- GSAP for professional animations and timeline -->
+    <script src="https://unpkg.com/gsap@3.12.2/dist/gsap.min.js"></script>
+</head>
+<body>
+    <!-- Header Bar (60px height) -->
+    <header class="header-bar">
+        <div class="header-left">
+            <div class="wix-logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M8 8h16v16H8z" fill="#0066FF"/>
+                    <path d="M12 12h8v8h-8z" fill="#fff"/>
+                </svg>
+            </div>
+            <button class="back-btn" onclick="window.location.href='index.html'" aria-label="Back to templates">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Templates
+            </button>
+            <div class="project-name" contenteditable="true" aria-label="Project name">Untitled Project</div>
+            <div class="auto-save-indicator">
+                <span class="save-status">Auto-saved</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="template-badge">Template: Chapter</div>
+        </div>
+        <div class="header-right">
+            <button class="save-preset-btn" id="save-preset-btn" aria-label="Save current configuration as preset">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M12.5 1h-9A1.5 1.5 0 0 0 2 2.5v11A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 12.5 1Z" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M8 7v6M5 10l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Save Preset
+            </button>
+            <div class="export-dropdown">
+                <button class="export-btn" aria-label="Export project" aria-expanded="false">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 1v10M4 7l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Export
+                    <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="export-menu" role="menu">
+                    <button class="export-option" data-format="mp4" role="menuitem">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <rect x="2" y="3" width="12" height="8" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <circle cx="6" cy="6.5" r="1" fill="currentColor"/>
+                            <path d="M10 8.5L8.5 7L7 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Export as MP4
+                        <span class="format-desc">Video file</span>
+                    </button>
+                    <button class="export-option" data-format="png" role="menuitem">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 2h8v12H4z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <path d="M6 6h4M6 8h4M6 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        Export PNG Sequence
+                        <span class="format-desc">Frame images with alpha</span>
+                    </button>
+                </div>
+            </div>
+            <div class="account-dropdown">
+                <button class="account-btn" aria-label="Account menu">
+                    <div class="avatar">H</div>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Left Tool Panel (300px width) -->
+        <aside class="tool-panel">
+            <div class="panel-header">
+                <h2>Properties</h2>
+            </div>
+            
+            <!-- Top Icon Section -->
+            <section class="panel-section" data-section="top-icon">
+                <div class="section-header">
+                    <h3>Top Icon</h3>
+                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle top icon section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div class="layer-visibility-toggle">
+                        <label class="visibility-switch">
+                            <input type="checkbox" id="top-icon-visible" checked>
+                            <span class="visibility-slider"></span>
+                        </label>
+                        <span class="visibility-label">Visible</span>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label>Choose Top Icon</label>
+                        <div id="top-icon-selector" class="icon-selector-container">
+                            <button class="top-icon-preview-button" id="static-top-icon-button" style="width: 40px; height: 40px; background: #333; border: 2px solid #555; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; transition: all 0.2s; padding: 4px; margin: 0;">
+                                <div class="top-icon-preview-area" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                                    <img src="templates/template_002/assets/icons/icon-023-celebration.svg" style="max-width: 100%; max-height: 100%; filter: brightness(0) saturate(100%) invert(100%);" alt="Top Icon">
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="upload-area" style="margin-top: 16px; display: none;">
+                        <button class="upload-btn" id="upload-top-icon">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 1v12M4 9l6-6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Upload Custom Icon
+                        </button>
+                        <span class="upload-hint">PNG, SVG, GIF up to 2MB</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Text Properties Section -->
+            <section class="panel-section" data-section="text">
+                <div class="section-header">
+                    <h3>Text Content</h3>
+                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle text properties section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="top-title">Top Title</label>
+                        <input type="text" id="top-title" placeholder="Enter top title" value="Top Title">
+                    </div>
+                    <div class="form-group">
+                        <label for="main-title">Main Title (Auto Uppercase)</label>
+                        <input type="text" id="main-title" placeholder="Enter main title" value="MAIN TITLE">
+                    </div>
+                    <div class="form-group">
+                        <label for="subtitle1">Subtitle 1</label>
+                        <input type="text" id="subtitle1" placeholder="Enter subtitle 1" value="Subtitle 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="subtitle2">Subtitle 2</label>
+                        <input type="text" id="subtitle2" placeholder="Enter subtitle 2" value="Subtitle 2">
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Color Properties Section -->
+            <section class="panel-section" data-section="colors">
+                <div class="section-header">
+                    <h3>Colors</h3>
+                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle colors section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="section-content">
+                    <!-- Current Color Selection Display -->
+                    <div class="current-color-selection">
+                        <div class="color-group">
+                            <label>Text Color</label>
+                            <div class="color-picker-container">
+                                <div class="color-thumb" id="text-color-thumb" style="background-color: #FFFFFF" data-color="#FFFFFF">
+                                    <span class="color-thumb-inner"></span>
+                                </div>
+                                <span class="color-value" id="text-color-value">#FFFFFF</span>
+                            </div>
+                        </div>
+                        <div class="color-group">
+                            <label>Background Color</label>
+                            <div class="color-picker-container">
+                                <div class="color-thumb" id="bg-color-thumb" style="background-color: #0D0D0D" data-color="#0D0D0D">
+                                    <span class="color-thumb-inner"></span>
+                                </div>
+                                <button class="transparency-btn" id="transparency-btn" data-color="transparent" aria-label="Transparent Background" title="Transparent Background">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <rect width="16" height="16" fill="url(#checkerboard)"/>
+                                        <defs>
+                                            <pattern id="checkerboard" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+                                                <rect x="0" y="0" width="4" height="4" fill="#E5E5E5"/>
+                                                <rect x="4" y="4" width="4" height="4" fill="#E5E5E5"/>
+                                                <rect x="4" y="0" width="4" height="4" fill="#CCCCCC"/>
+                                                <rect x="0" y="4" width="4" height="4" fill="#CCCCCC"/>
+                                            </pattern>
+                                        </defs>
+                                    </svg>
+                                </button>
+                                <span class="color-value" id="bg-color-value">#0D0D0D</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Branded Color Palette Gallery -->
+                    <div class="branded-color-gallery" id="branded-color-gallery">
+                        <div class="branded-color-loading">
+                            Loading brand colors...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Icons Section -->
+            <section class="panel-section" data-section="bottom-icons">
+                <div class="section-header">
+                    <h3>Bottom Icons</h3>
+                    <button class="section-toggle" aria-expanded="true" aria-label="Toggle bottom icons section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div class="layer-visibility-toggle">
+                        <label class="visibility-switch">
+                            <input type="checkbox" id="bottom-icons-visible" checked>
+                            <span class="visibility-slider"></span>
+                        </label>
+                        <span class="visibility-label">Visible</span>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="icon-count">Number of Icons (0-6)</label>
+                        <div class="slider-container">
+                            <input type="range" id="icon-count" min="0" max="6" value="6">
+                            <span class="slider-value">6</span>
+                        </div>
+                    </div>
+                    
+                    <div class="icons-configuration">
+                        <h4>Configure Icons</h4>
+                        <div class="bottom-icons-grid" id="bottom-icons-grid">
+                            <!-- Bottom icon gallery triggers will be dynamically created here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Animation Properties Section -->
+            <section class="panel-section" data-section="animation">
+                <div class="section-header">
+                    <h3>Animation</h3>
+                    <button class="section-toggle" aria-expanded="false" aria-label="Toggle animation section">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="section-content collapsed">
+                    <div class="animation-presets">
+                        <div class="preset-card active">
+                            <div class="preset-preview">
+                                <div class="motion-curve"></div>
+                            </div>
+                            <div class="preset-name">Slide In Left</div>
+                        </div>
+                        <div class="preset-card">
+                            <div class="preset-preview">
+                                <div class="motion-curve"></div>
+                            </div>
+                            <div class="preset-name">Fade In</div>
+                        </div>
+                        <div class="preset-card">
+                            <div class="preset-preview">
+                                <div class="motion-curve"></div>
+                            </div>
+                            <div class="preset-name">Scale Up</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Debug Mode Section -->
+            <section class="debug-mode-section" style="margin-top: auto; padding: 16px; border-top: 1px solid #333;">
+                <div class="debug-toggle-container">
+                    <label class="debug-toggle-label">
+                        <input type="checkbox" id="debug-mode-toggle" class="debug-mode-checkbox">
+                        <span class="debug-toggle-slider"></span>
+                        <span class="debug-toggle-text">Debug Mode</span>
+                    </label>
+                </div>
+            </section>
+        </aside>
+
+        <!-- Center-Right Preview Area -->
+        <section class="preview-area">
+            <div class="preview-header">
+                <div class="preview-controls">
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" id="zoom-out" aria-label="Zoom out">-</button>
+                        <select class="zoom-select" aria-label="Zoom level">
+                            <option value="10">10%</option>
+                            <option value="25">25%</option>
+                            <option value="50" selected>50%</option>
+                            <option value="75">75%</option>
+                            <option value="100">100%</option>
+                            <option value="125">125%</option>
+                            <option value="150">150%</option>
+                            <option value="200">200%</option>
+                            <option value="300">300%</option>
+                            <option value="400">400%</option>
+                        </select>
+                        <button class="zoom-btn" id="zoom-in" aria-label="Zoom in">+</button>
+                        <button class="fit-btn" id="fit-to-screen" aria-label="Fit to screen">Fit</button>
+                    </div>
+                    <div class="resolution-indicator">
+                        <span class="resolution-badge">1920 × 1080</span>
+                    </div>
+                </div>
+                <div class="playback-controls">
+                    <button class="play-btn" aria-label="Play/Pause (Space)">
+                        <svg class="play-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 2L13 8L3 14V2Z" fill="currentColor"/>
+                        </svg>
+                        <svg class="pause-icon hidden" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M5 2H7V14H5V2ZM9 2H11V14H9V2Z" fill="currentColor"/>
+                        </svg>
+                    </button>
+                    <div class="time-display">00:00:00:00</div>
+                </div>
+            </div>
+            
+            <div class="canvas-container" id="canvas-container">
+                <div class="canvas-wrapper" id="canvas-wrapper">
+                    <div class="transparency-checkerboard" id="transparency-checkerboard"></div>
+                    <div id="konva-container" aria-label="Template preview"></div>
+                    <div class="canvas-overlay">
+                        <!-- Overlay for selection handles, guides, etc. -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Timeline Panel (250px height) -->
+    <footer class="timeline-panel">
+        <div class="timeline-header">
+            <div class="timeline-controls">
+                <button class="timeline-btn" aria-label="Go to beginning">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 2V14M7 8L13 14V2L7 8Z" fill="currentColor"/>
+                    </svg>
+                </button>
+                <button class="timeline-btn" aria-label="Previous frame">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="timeline-btn timeline-play" aria-label="Play/Pause">
+                    <svg class="play-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 2L13 8L3 14V2Z" fill="currentColor"/>
+                    </svg>
+                    <svg class="pause-icon hidden" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M5 2H7V14H5V2ZM9 2H11V14H9V2Z" fill="currentColor"/>
+                    </svg>
+                </button>
+                <button class="timeline-btn" aria-label="Next frame">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="timeline-btn" aria-label="Go to end">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M13 2V14M9 8L3 2V14L9 8Z" fill="currentColor"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="timeline-info">
+                <span class="current-frame">Frame: 001</span>
+                <span class="total-duration">/ 300 (10.0s)</span>
+            </div>
+        </div>
+        
+        <div class="timeline-content">
+            <div class="timeline-track">
+                <div class="timecode-ruler">
+                    <div class="timecode-marker" style="left: 0%">0s</div>
+                    <div class="timecode-marker" style="left: 10%">1s</div>
+                    <div class="timecode-marker" style="left: 20%">2s</div>
+                    <div class="timecode-marker" style="left: 30%">3s</div>
+                    <div class="timecode-marker" style="left: 40%">4s</div>
+                    <div class="timecode-marker" style="left: 50%">5s</div>
+                    <div class="timecode-marker" style="left: 60%">6s</div>
+                    <div class="timecode-marker" style="left: 70%">7s</div>
+                    <div class="timecode-marker" style="left: 80%">8s</div>
+                    <div class="timecode-marker" style="left: 90%">9s</div>
+                    <div class="timecode-marker" style="left: 100%">10s</div>
+                </div>
+                
+                <div class="playhead" style="left: 0%">
+                    <div class="playhead-handle"></div>
+                    <div class="playhead-line"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Export Modal -->
+    <div class="export-modal" id="export-modal" role="dialog" aria-labelledby="export-modal-title" aria-hidden="true">
+        <div class="export-modal-content">
+            <div class="export-modal-header">
+                <h2 id="export-modal-title">Export Project</h2>
+                <button class="export-modal-close" aria-label="Close export modal">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="export-modal-body">
+                <div class="export-format-info">
+                    <div class="export-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" id="export-format-icon">
+                            <!-- Will be updated based on selected format -->
+                        </svg>
+                    </div>
+                    <div class="export-details">
+                        <h3 id="export-format-title">Export Format</h3>
+                        <p id="export-format-description">Format description</p>
+                        <div class="export-specs">
+                            <span class="spec-item">Resolution: 1920×1080</span>
+                            <span class="spec-item">Duration: 10 seconds</span>
+                            <span class="spec-item" id="export-spec-format">30 FPS</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="export-progress" id="export-progress" style="display: none;">
+                    <div class="progress-header">
+                        <span class="progress-label">Processing...</span>
+                        <span class="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-details">
+                        <span class="progress-frame">Frame 0 of 300</span>
+                        <span class="progress-eta">Estimated time remaining: --</span>
+                    </div>
+                </div>
+                
+                <div class="export-complete" id="export-complete" style="display: none;">
+                    <div class="complete-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="#22c55e" stroke-width="2" fill="none"/>
+                            <path d="M8 12l2 2 6-6" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3>Export Complete!</h3>
+                    <p id="export-complete-message">Your export has been completed successfully.</p>
+                    <button class="download-btn" id="download-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 1v10M4 7l4 4 4-4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Download
+                    </button>
+                </div>
+            </div>
+            
+            <div class="export-modal-footer">
+                <button class="export-cancel-btn" id="export-cancel-btn">Cancel</button>
+                <button class="export-start-btn" id="export-start-btn">Start Export</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="shared/js/project-manager.js"></script>
+    <script src="shared/js/simple-icon-gallery.js"></script>
+    <script src="shared/js/wix-color-palette.js"></script>
+    <script src="shared/js/template-engine.js"></script>
+    
+    <!-- Animation System -->
+    <script src="shared/js/animation-system.js"></script>
+    
+    <!-- Chapter Template Specific Animations -->
+    <script src="templates/template_002/animations.js"></script>
+    
+    <script>
+        // Template configuration for template_002
+        const templateConfig = {
+            id: 'template_002',
+            name: 'Chapter',
+            version: '1.0.0',
+            type: 'chapter'
+        };
+
+        // Project management integration
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = urlParams.get('projectId');
+        const projectManager = new ProjectManager();
+        let currentProject = null;
+
+        // Initialize project management
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing project integration...');
+            
+            // EMERGENCY ICON FIX: Force icons visible after DOM load
+            setTimeout(() => {
+                console.log('🔧 DOM loaded - emergency icon visibility fix...');
+                if (window.templateEditor && window.templateEditor.forceIconsVisible) {
+                    const result = window.templateEditor.forceIconsVisible();
+                    console.log('Emergency icon fix result:', result);
+                } else {
+                    console.log('TemplateEditor not ready yet for icon fix');
+                }
+            }, 2000);
+            
+            // Wait for TemplateEditor to be available and remove shadow immediately
+            function initializeProjectIntegration() {
+                if (window.templateEditor) {
+                    console.log('TemplateEditor found, removing shadow and initializing project...');
+                    
+                    // Force remove shadow immediately
+                    window.templateEditor.removeMainTitleShadow();
+                    
+                    // Load project if projectId is provided
+                    if (projectId) {
+                        currentProject = projectManager.loadProject(projectId);
+                        if (currentProject) {
+                            // Update project name in header
+                            const projectNameElement = document.querySelector('.project-name');
+                            if (projectNameElement) {
+                                projectNameElement.textContent = currentProject.name;
+                            }
+                            console.log('Loaded project:', currentProject.name);
+                            
+                            // Set up project integration for template engine
+                            window.projectIntegration = {
+                                currentProject,
+                                saveCurrentProject,
+                                scheduleAutoSave
+                            };
+                            
+                            // Trigger loading project data into template editor
+                            if (window.templateEditor.loadProjectData) {
+                                console.log('Triggering project data load...');
+                                window.templateEditor.loadProjectData();
+                            }
+                        }
+                    } else {
+                        // No project ID - check for localhost saved data
+                        console.log('No project ID found, checking for localhost saved data...');
+                        loadLocalhostSavedProject();
+                    }
+
+                    // Connect save button to project manager
+                    const saveBtn = document.getElementById('save-preset-btn');
+                    if (saveBtn) {
+                        if (currentProject) {
+                            saveBtn.innerHTML = `
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M12.5 1h-9A1.5 1.5 0 0 0 2 2.5v11A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 12.5 1Z" stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M8 7v6M5 10l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Save Project
+                            `;
+                        }
+                        // Async-aware save button handler with loading state
+                        saveBtn.addEventListener('click', async (e) => {
+                            e.preventDefault(); // Prevent any default behavior
+                            
+                            // Disable button and show loading state
+                            const originalHTML = saveBtn.innerHTML;
+                            const originalDisabled = saveBtn.disabled;
+                            
+                            saveBtn.disabled = true;
+                            saveBtn.innerHTML = `
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="37.7" stroke-dashoffset="37.7">
+                                        <animate attributeName="stroke-dashoffset" dur="1s" values="37.7;0;37.7" repeatCount="indefinite"/>
+                                    </circle>
+                                </svg>
+                                Saving...
+                            `;
+                            
+                            try {
+                                console.log('🔄 Save button clicked - awaiting async save...');
+                                await saveCurrentProject();
+                                console.log('✅ Async save completed successfully');
+                                
+                                // Show success state briefly
+                                saveBtn.innerHTML = `
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="currentColor"/>
+                                    </svg>
+                                    Saved!
+                                `;
+                                
+                                // Reset button after 2 seconds
+                                setTimeout(() => {
+                                    saveBtn.innerHTML = originalHTML;
+                                    saveBtn.disabled = originalDisabled;
+                                }, 2000);
+                                
+                            } catch (error) {
+                                console.error('❌ Save button async handler failed:', error);
+                                
+                                // Show error state
+                                saveBtn.innerHTML = `
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM7 5a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0V5zM8 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" fill="currentColor"/>
+                                    </svg>
+                                    Error!
+                                `;
+                                
+                                // Reset button after 3 seconds
+                                setTimeout(() => {
+                                    saveBtn.innerHTML = originalHTML;
+                                    saveBtn.disabled = originalDisabled;
+                                }, 3000);
+                                
+                                // Show user-friendly error
+                                alert(`Save failed: ${error.message}\nPlease try again or check the console for details.`);
+                            }
+                        });
+                        console.log('✅ Async save button connected with loading states');
+                    }
+                } else {
+                    // Retry after a short delay
+                    console.log('TemplateEditor not ready, retrying...');
+                    setTimeout(initializeProjectIntegration, 100);
+                }
+            }
+            
+            // Start initialization
+            initializeProjectIntegration();
+        });
+
+        async function saveCurrentProject() {
+            console.log('Save button clicked');
+            
+            if (!currentProject) {
+                console.warn('No project loaded - using standalone save for localhost');
+                
+                // Fallback: Standalone save for localhost usage
+                try {
+                    const editor = window.templateEditor;
+                    if (!editor) {
+                        throw new Error('Template Editor not available');
+                    }
+                    
+                    // Create a standalone save data structure
+                    const projectData = {
+                        name: document.querySelector('.project-name')?.textContent || 'Localhost Project',
+                        template: 'Template: Animated Title Card',
+                        texts: {
+                            topTitle: document.getElementById('top-title')?.value || '',
+                            mainTitle: document.getElementById('main-title')?.value || '',
+                            subtitle1: document.getElementById('subtitle1')?.value || '',
+                            subtitle2: document.getElementById('subtitle2')?.value || ''
+                        },
+                        colors: {
+                            text: editor.getCurrentTextColor ? editor.getCurrentTextColor() : '#FFFFFF',
+                            background: editor.currentBackgroundColor || '#0D0D0D'
+                        },
+                        visibility: { ...editor.layerVisibility } || {},
+                        iconConfig: {
+                            topIcon: editor.topIconConfig || { iconId: 23 },
+                            bottomIcons: editor.bottomIconsConfig || { count: 4 }
+                        },
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    // Save to localStorage for localhost usage
+                    localStorage.setItem('wix-video-localhost-project', JSON.stringify(projectData));
+                    
+                    // Update save status
+                    const saveStatus = document.querySelector('.save-status');
+                    if (saveStatus) {
+                        saveStatus.textContent = 'Saved to localhost';
+                        setTimeout(() => {
+                            saveStatus.textContent = 'Auto-saved';
+                        }, 2000);
+                    }
+                    
+                    console.log('✅ Project saved to localhost successfully');
+                    
+                    // Show success feedback - no more alert, just visual feedback
+                    return; // Successfully saved to localhost
+                    
+                } catch (error) {
+                    console.error('❌ Localhost save failed:', error);
+                    alert(`Failed to save: ${error.message}`);
+                return;
+                }
+            }
+
+            // Original project-based save logic continues here...
+            try {
+                console.log('Attempting to save project:', currentProject.name);
+                
+                // Get current template configuration from the editor
+                const editor = window.templateEditor;
+                if (!editor) {
+                    throw new Error('Template Editor not available');
+                }
+
+                console.log('Template Editor found, gathering current state...');
+
+                // Capture current text values from form inputs
+                const texts = {
+                    topTitle: document.getElementById('top-title')?.value || '',
+                    mainTitle: document.getElementById('main-title')?.value || '',
+                    subtitle1: document.getElementById('subtitle1')?.value || '',
+                    subtitle2: document.getElementById('subtitle2')?.value || ''
+                };
+
+                // Capture current colors from editor methods
+                const colors = {
+                    text: editor.getCurrentTextColor ? editor.getCurrentTextColor() : '#FFFFFF',
+                    background: editor.currentBackgroundColor || '#0D0D0D'
+                };
+
+                // Capture current visibility state
+                const visibility = { ...editor.layerVisibility } || {};
+
+                // Capture icon configurations
+                const iconConfig = {
+                    topIcon: editor.topIconConfig || { type: 'circle' },
+                    bottomIcons: editor.bottomIconsConfig || { count: 4 }
+                };
+
+                // Capture additional editor state
+                const editorState = {
+                    isTransparent: editor.isTransparent || false,
+                    currentFrame: editor.currentFrame || 0,
+                    zoomLevel: editor.zoomLevel || 100
+                };
+
+                const config = {
+                    texts,
+                    colors, 
+                    visibility,
+                    iconConfig,
+                    editorState,
+                    version: '1.0.1' // Increment version for better debugging
+                };
+
+                console.log('Config gathered:', config);
+
+                // Robust canvas thumbnail capture with validation and retry
+                let thumbnail = null;
+                
+                // Helper function to validate canvas readiness
+                async function captureCanvasThumbnail(editor, maxRetries = 3, retryDelay = 100) {
+                    console.log('📸 Starting robust canvas thumbnail capture...');
+                    
+                    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                        try {
+                            console.log(`Capture attempt ${attempt}/${maxRetries}`);
+                            
+                            // Validate editor and stage availability
+                            if (!editor || !editor.stage) {
+                                throw new Error('Editor or stage not available');
+                            }
+                            
+                            // Capture from hold section where all content is visible (50% progress)
+                            const originalProgress = editor.timeline ? editor.timeline.progress() : 0;
+                            const originalPlaying = editor.isPlaying;
+                            
+                            try {
+                                if (editor.timeline) {
+                                    // Stop any current playback
+                                    if (originalPlaying) {
+                                        console.log('⏸️ Pausing playback for thumbnail capture...');
+                                        editor.timeline.pause();
+                                    }
+                                    
+                                    // Save current position
+                                    const currentFrame = editor.currentFrame || Math.floor(editor.totalFrames * originalProgress);
+                                    console.log(`💾 Saving current position: frame ${currentFrame}/${editor.totalFrames} (${Math.round(originalProgress * 100)}%)`);
+                                    
+                                    // Seek to 50% (middle of hold section where everything is visible)
+                                    const captureProgress = 0.5; // 50% = middle of 2-8s hold section
+                                    const captureFrame = Math.floor(editor.totalFrames * captureProgress);
+                                    
+                                    console.log(`📍 Seeking to capture frame: ${captureFrame}/${editor.totalFrames} (${Math.round(captureProgress * 100)}%) for thumbnail`);
+                                    editor.timeline.progress(captureProgress);
+                                    
+                                    // Update frame display to match
+                                    editor.currentFrame = captureFrame;
+                                    const frameDisplay = document.querySelector('.frame-display');
+                                    if (frameDisplay) {
+                                        frameDisplay.textContent = `${captureFrame}/${editor.totalFrames}`;
+                                    }
+                                }
+                            } catch (timelineError) {
+                                console.warn('Timeline positioning failed:', timelineError);
+                            }
+                            
+                            // Wait for any pending renders to complete
+                            await new Promise(resolve => {
+                                editor.stage.batchDraw();
+                                setTimeout(resolve, retryDelay * 2); // Longer delay for timeline update
+                            });
+                            
+                            // Ensure all objects are visible for thumbnail capture
+                            const originalObjectStates = {};
+                            
+                            try {
+                                if (editor.templateObjects) {
+                                    Object.keys(editor.templateObjects).forEach(key => {
+                                        const obj = editor.templateObjects[key];
+                                        if (obj && typeof obj.opacity === 'function') {
+                                            // Save original state
+                                            originalObjectStates[key] = {
+                                                opacity: obj.opacity(),
+                                                visible: obj.visible()
+                                            };
+                                            
+                                            // Force visible
+                                            obj.opacity(1);
+                                            obj.visible(true);
+                                        }
+                                    });
+                                    
+                                    // Handle bottom icons array separately
+                                    if (editor.templateObjects.bottomIcons && Array.isArray(editor.templateObjects.bottomIcons)) {
+                                        editor.templateObjects.bottomIcons.forEach((icon, index) => {
+                                            if (icon && typeof icon.opacity === 'function') {
+                                                const key = `bottomIcon${index}`;
+                                                originalObjectStates[key] = {
+                                                    opacity: icon.opacity(),
+                                                    visible: icon.visible()
+                                                };
+                                                icon.opacity(1);
+                                                icon.visible(true);
+                                            }
+                                        });
+                                    }
+                                    
+                                    // Force redraw with visible objects
+                                    editor.stage.batchDraw();
+                                    
+                                    // Wait for redraw to complete
+                                    await new Promise(resolve => setTimeout(resolve, 100));
+                                }
+                            } catch (visibilityError) {
+                                console.warn('Object visibility forcing failed:', visibilityError.message);
+                            }
+                            
+                            // Get canvas for validation (production version)
+                            let canvas = null;
+                            
+                            try {
+                                // Try primary method: querySelector from stage container
+                                const stageContainer = editor.stage.container();
+                                canvas = stageContainer.querySelector('canvas');
+                                
+                                if (!canvas) {
+                                    // Fallback: try getCanvas method if available
+                                    try {
+                                        const konvaCanvas = editor.stage.getCanvas();
+                                        if (konvaCanvas && konvaCanvas._canvas) {
+                                            canvas = konvaCanvas._canvas;
+                                        }
+                                    } catch (e) {
+                                        // Silent fallback
+                                    }
+                                }
+                            } catch (canvasError) {
+                                console.warn('Canvas access failed:', canvasError.message);
+                            }
+                            
+                            // Validate canvas and its dimensions
+                            if (!canvas) {
+                                throw new Error(`Canvas not accessible (attempt ${attempt})`);
+                            }
+                            
+                            if (canvas.width === 0 || canvas.height === 0) {
+                                throw new Error(`Canvas has invalid dimensions: ${canvas.width}x${canvas.height}`);
+                            }
+                            
+                            // 🎨 MULTI-LAYER CANVAS COMPOSITE FOR COMPLETE THUMBNAIL
+                            // Generate ultra-high-quality thumbnail from all canvas layers
+                            
+                            // Create composite canvas at logical stage size
+                            const compositeCanvas = document.createElement('canvas');
+                            const compositeCtx = compositeCanvas.getContext('2d');
+                            compositeCanvas.width = 1920;
+                            compositeCanvas.height = 1080;
+                            
+                            // Get all canvas elements in the Konva stage container and composite them
+                            const stageContainer = editor.stage.container();
+                            const allStageLayers = stageContainer.querySelectorAll('canvas');
+                            
+                            // Draw each layer onto composite canvas
+                            allStageLayers.forEach((layerCanvas, index) => {
+                                try {
+                                    // Draw this layer onto composite (scale down from high DPI if needed)
+                                    compositeCtx.drawImage(
+                                        layerCanvas,
+                                        0, 0, layerCanvas.width, layerCanvas.height,  // Source (high DPI)
+                                        0, 0, 1920, 1080  // Destination (logical size)
+                                    );
+                                } catch (layerError) {
+                                    console.warn(`Layer ${index} composite failed:`, layerError.message);
+                                }
+                            });
+                            
+                            // Create ultra-high-quality thumbnail canvas (maximum resolution)
+                            const thumbCanvas = document.createElement('canvas');
+                            const thumbCtx = thumbCanvas.getContext('2d');
+                            thumbCanvas.width = 600;  // Ultra-high resolution for crystal clear thumbnails
+                            thumbCanvas.height = 338; // Maintains perfect 16:9 ratio (600/338 ≈ 1.777)
+                            
+                            // Calculate perfect aspect ratio fitting (cover mode - fills container without distortion)
+                            const sourceAspect = compositeCanvas.width / compositeCanvas.height;
+                            const targetAspect = thumbCanvas.width / thumbCanvas.height;
+                            
+                            let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+                            
+                            // Use "cover" behavior - fills the entire thumbnail without distortion
+                            if (sourceAspect > targetAspect) {
+                                // Source is wider - fit width, crop top/bottom if needed
+                                drawWidth = thumbCanvas.width;
+                                drawHeight = drawWidth / sourceAspect;
+                                offsetY = (thumbCanvas.height - drawHeight) / 2;
+                            } else {
+                                // Source is taller - fit height, crop left/right if needed
+                                drawHeight = thumbCanvas.height;
+                                drawWidth = drawHeight * sourceAspect;
+                                offsetX = (thumbCanvas.width - drawWidth) / 2;
+                            }
+                            
+                            // Set highest quality rendering
+                            thumbCtx.imageSmoothingEnabled = true;
+                            thumbCtx.imageSmoothingQuality = 'high';
+                            
+                            // Clear canvas with template background color
+                            thumbCtx.fillStyle = '#1a1a1a';
+                            thumbCtx.fillRect(0, 0, thumbCanvas.width, thumbCanvas.height);
+                            
+                            // Draw the composite canvas to thumbnail with high quality
+                            thumbCtx.drawImage(
+                                compositeCanvas,
+                                0, 0, compositeCanvas.width, compositeCanvas.height,  // Source (composite)
+                                offsetX, offsetY, drawWidth, drawHeight  // Destination (scaled & centered)
+                            );
+                            
+                            // Create final thumbnail data URL with highest quality
+                            const dataURL = thumbCanvas.toDataURL('image/jpeg', 0.95); // Highest quality for best thumbnails
+                            
+                            // Validate the generated thumbnail
+                            if (!dataURL || dataURL.length < 1000) {
+                                throw new Error(`Generated thumbnail too small: ${dataURL?.length || 0} bytes`);
+                            }
+                            
+                            // Check storage limits (warn if approaching 5MB localStorage limit)
+                            const sizeKB = Math.round(dataURL.length / 1024);
+                            if (sizeKB > 500) {
+                                console.warn(`⚠️ Large thumbnail generated: ${sizeKB}KB (consider reducing quality)`);
+                            }
+                            
+                            console.log('✅ Canvas thumbnail captured successfully!', {
+                                attempt: attempt,
+                                sizeKB: sizeKB,
+                                dimensions: '600x338',
+                                canvasSource: `${compositeCanvas.width}x${compositeCanvas.height}`
+                            });
+                            
+                            // Restore original object states
+                            try {
+                                if (editor.templateObjects && Object.keys(originalObjectStates).length > 0) {
+                                    Object.keys(originalObjectStates).forEach(key => {
+                                        if (key.startsWith('bottomIcon')) {
+                                            // Handle bottom icons array
+                                            const iconIndex = parseInt(key.replace('bottomIcon', ''));
+                                            const icon = editor.templateObjects.bottomIcons?.[iconIndex];
+                                            if (icon && typeof icon.opacity === 'function') {
+                                                icon.opacity(originalObjectStates[key].opacity);
+                                                icon.visible(originalObjectStates[key].visible);
+                                            }
+                                        } else {
+                                            // Handle regular template objects
+                                            const obj = editor.templateObjects[key];
+                                            if (obj && typeof obj.opacity === 'function') {
+                                                obj.opacity(originalObjectStates[key].opacity);
+                                                obj.visible(originalObjectStates[key].visible);
+                                            }
+                                        }
+                                    });
+                                    
+                                    // Force redraw with restored states
+                                    editor.stage.batchDraw();
+                                }
+                            } catch (restoreError) {
+                                console.warn('Object state restoration failed:', restoreError.message);
+                            }
+
+                            
+                            // Restore original timeline position and playback state
+                            try {
+                                if (editor.timeline) {
+                                    console.log(`🔄 Restoring original position: ${Math.round(originalProgress * 100)}%`);
+                                    editor.timeline.progress(originalProgress);
+                                    
+                                    // Restore frame display
+                                    const restoredFrame = Math.floor(editor.totalFrames * originalProgress);
+                                    editor.currentFrame = restoredFrame;
+                                    
+                                    const frameDisplay = document.querySelector('.frame-display');
+                                    if (frameDisplay) {
+                                        frameDisplay.textContent = `${restoredFrame}/${editor.totalFrames}`;
+                                    }
+                                    
+                                    // Resume playback if it was playing
+                                    if (originalPlaying) {
+                                        console.log('▶️ Resuming playback...');
+                                        editor.timeline.play();
+                                    }
+                                    
+                                    console.log(`Timeline restored to frame ${restoredFrame}/${editor.totalFrames}`);
+                                }
+                            } catch (restoreError) {
+                                console.warn('Playback restore failed:', restoreError);
+                            }
+                            
+                            return dataURL;
+                            
+                        } catch (error) {
+                            console.warn(`❌ Thumbnail capture attempt ${attempt} failed:`, error.message);
+                            
+                            if (attempt === maxRetries) {
+                                console.error('🚨 All thumbnail capture attempts failed:', error);
+                                return null;
+                            }
+                            
+                            // Wait before retry with exponential backoff
+                            await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+                        }
+                    }
+                    
+                    return null;
+                }
+                
+                // Perform the thumbnail capture
+                try {
+                    thumbnail = await captureCanvasThumbnail(editor);
+                } catch (thumbError) {
+                    console.error('❌ Thumbnail capture system failed:', thumbError);
+                }
+
+                // Update project
+                console.log('Updating project configuration...');
+                const updatedProject = projectManager.updateProjectConfig(currentProject.id, config);
+                
+                if (!updatedProject) {
+                    throw new Error('Failed to update project configuration');
+                }
+
+                // Update thumbnail if generated
+                if (thumbnail) {
+                    console.log('Updating project thumbnail...');
+                    const thumbnailUpdated = projectManager.updateProjectThumbnail(currentProject.id, thumbnail);
+                    console.log('Thumbnail update result:', thumbnailUpdated ? 'Success' : 'Failed');
+                } else {
+                    console.warn('No thumbnail to save');
+                }
+
+                // Update save status
+                const saveStatus = document.querySelector('.save-status');
+                if (saveStatus) {
+                    saveStatus.textContent = 'Saved';
+                    setTimeout(() => {
+                        saveStatus.textContent = 'Auto-saved';
+                    }, 2000);
+                }
+
+                console.log('✅ Project saved successfully:', currentProject.name);
+                
+                // Show success feedback
+                const saveBtn = document.getElementById('save-preset-btn');
+                if (saveBtn) {
+                    const originalText = saveBtn.innerHTML;
+                    saveBtn.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="currentColor"/>
+                        </svg>
+                        Saved!
+                    `;
+                    setTimeout(() => {
+                        saveBtn.innerHTML = originalText;
+                    }, 2000);
+                }
+
+            } catch (error) {
+                console.error('❌ Failed to save project:', error);
+                alert(`Failed to save project: ${error.message}\nCheck the console for details.`);
+            }
+        }
+
+        // Auto-save functionality with async handling
+        let autoSaveTimer;
+        let isAutoSaveInProgress = false;
+        
+        function scheduleAutoSave() {
+            if (autoSaveTimer) clearTimeout(autoSaveTimer);
+            
+            autoSaveTimer = setTimeout(async () => {
+                if (currentProject && !isAutoSaveInProgress) {
+                    try {
+                        isAutoSaveInProgress = true;
+                        console.log('🔄 Auto-save triggered - awaiting async save...');
+                        
+                        // Update save status indicator during auto-save
+                        const saveStatus = document.querySelector('.save-status');
+                        if (saveStatus) {
+                            const originalText = saveStatus.textContent;
+                            saveStatus.textContent = 'Auto-saving...';
+                            
+                            await saveCurrentProject();
+                            
+                            saveStatus.textContent = 'Auto-saved';
+                            console.log('✅ Auto-save completed successfully');
+                            
+                        } else {
+                            await saveCurrentProject();
+                            console.log('✅ Auto-save completed successfully');
+                        }
+                        
+                    } catch (error) {
+                        console.error('❌ Auto-save failed:', error);
+                        
+                        // Update status to show auto-save failed
+                        const saveStatus = document.querySelector('.save-status');
+                        if (saveStatus) {
+                            saveStatus.textContent = 'Auto-save failed';
+                            setTimeout(() => {
+                                saveStatus.textContent = 'Auto-saved';
+                            }, 5000);
+                        }
+                    } finally {
+                        isAutoSaveInProgress = false;
+                        
+                        // Schedule next auto-save only if previous one completed
+                        scheduleAutoSave();
+                    }
+                }
+            }, 30000); // Auto-save every 30 seconds
+        }
+
+        // Export functions for template engine to use (if not already set)
+        if (!window.projectIntegration) {
+            window.projectIntegration = {
+                currentProject,
+                saveCurrentProject,
+                scheduleAutoSave
+            };
+        }
+
+        // Initialize Simple Icon Gallery - Clean, Reliable Version
+        function initializeIconGalleries() {
+            console.log('🎨 Initializing Simple Icon Gallery Integration...');
+            
+            // Wait for template editor to be ready
+            if (!window.templateEditor) {
+                console.log('⏳ Waiting for template editor...');
+                setTimeout(initializeIconGalleries, 200);
+                return;
+            }
+
+            const editor = window.templateEditor;
+            
+            // Check if editor is fully initialized
+            if (!editor.stage) {
+                console.log('⏳ Waiting for template editor stage...');
+                setTimeout(initializeIconGalleries, 200);
+                return;
+            }
+
+            // Create ONE shared SimpleIconGallery instance for all buttons
+            if (!window.simpleIconGallery) {
+                window.simpleIconGallery = new SimpleIconGallery({
+                    iconBasePath: 'templates/template_002/assets/icons/'
+                });
+                console.log('✅ SimpleIconGallery created');
+            }
+
+            // Helper function to create simple icon trigger buttons
+            function createSimpleIconButton(container, placeholder, onSelectCallback) {
+                const button = document.createElement('button');
+                button.className = 'simple-icon-trigger';
+                button.style.cssText = `
+                    background: #333;
+                    color: #ccc;
+                    border: 1px solid #555;
+                    border-radius: 6px;
+                    padding: 12px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                    width: 100%;
+                `;
+                
+                button.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <rect x="2" y="2" width="16" height="16" stroke="currentColor" stroke-width="2" rx="2"/>
+                        <path d="M6 10h8M10 6v8" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <span>${placeholder}</span>
+                `;
+                
+                // Hover effects
+                button.addEventListener('mouseenter', () => {
+                    button.style.background = '#444';
+                    button.style.borderColor = '#0066ff';
+                    button.style.color = 'white';
+                });
+                
+                button.addEventListener('mouseleave', () => {
+                    button.style.background = '#333';
+                    button.style.borderColor = '#555';
+                    button.style.color = '#ccc';
+                });
+                
+                button.addEventListener('click', () => {
+                    console.log(`Opening simple gallery for: ${placeholder}`);
+                    window.simpleIconGallery.open(onSelectCallback);
+                });
+                
+                container.appendChild(button);
+                return button;
+            }
+
+            // Initialize Top Icon Selector (now using static HTML button)
+            const topButton = document.getElementById('static-top-icon-button');
+            if (topButton) {
+                // Store default icon data
+                const defaultTopIcon = 'icon-023-celebration.svg';
+                const defaultTopIconPath = 'templates/template_002/assets/icons/' + defaultTopIcon;
+                
+                topButton.iconData = {
+                    filename: defaultTopIcon,
+                    name: 'Default Top Icon',
+                    path: defaultTopIconPath,
+                    fullPath: defaultTopIconPath
+                };
+                
+                // Hover effects
+                topButton.addEventListener('mouseenter', () => {
+                    topButton.style.borderColor = '#0066ff';
+                    topButton.style.background = '#444';
+                });
+                
+                topButton.addEventListener('mouseleave', () => {
+                    topButton.style.borderColor = '#555';
+                    topButton.style.background = '#333';
+                });
+                
+                // Click handler
+                topButton.addEventListener('click', () => {
+                    console.log('Opening gallery for top icon');
+                    window.simpleIconGallery.open((iconData) => {
+                        console.log('Top icon selected:', iconData);
+                        
+                        // Update canvas
+                        if (editor.updateTopIconFromGallery) {
+                            editor.updateTopIconFromGallery(iconData);
+                        }
+                        
+                        // Update button icon preview
+                        const iconPreview = topButton.querySelector('.top-icon-preview-area');
+                        iconPreview.innerHTML = '';
+                        
+                        const newImg = document.createElement('img');
+                        newImg.src = iconData.path;
+                        newImg.style.cssText = `
+                            max-width: 100%;
+                            max-height: 100%;
+                            filter: brightness(0) saturate(100%) invert(100%);
+                        `;
+                        newImg.onload = () => {
+                            iconPreview.appendChild(newImg);
+                        };
+                        
+                        // Store icon data
+                        topButton.iconData = iconData;
+                        
+                        // Visual feedback
+                        topButton.style.borderColor = '#0066ff';
+                    });
+                });
+                
+                // Load default top icon on canvas
+                setTimeout(() => {
+                    if (editor.updateTopIconFromGallery) {
+                        editor.updateTopIconFromGallery(topButton.iconData);
+                    }
+                }, 100);
+                
+                window.topIconButton = topButton;
+                console.log('✅ Top icon selector initialized (static HTML)');
+            }
+
+            // Initialize Bottom Icons Selectors
+            const bottomIconsGrid = document.getElementById('bottom-icons-grid');
+            
+            // Ensure bottom icons config exists
+            if (!editor.bottomIconsConfig) {
+                editor.bottomIconsConfig = { count: 4 };
+                console.log('🔧 Initialized bottom icons config with default count: 4');
+            }
+            
+            if (bottomIconsGrid) {
+                function updateBottomIconsUI() {
+                    // Get icon count from slider value directly to ensure sync
+                    const iconCountSlider = document.getElementById('icon-count');
+                    const iconCount = iconCountSlider ? parseInt(iconCountSlider.value) : 6;
+                    
+                    console.log(`🔧 Updating bottom icons UI for count: ${iconCount}`);
+                    
+                    // Update the editor config to match
+                    if (editor.bottomIconsConfig) {
+                        editor.bottomIconsConfig.count = iconCount;
+                    }
+                    
+                    // Clear existing
+                    bottomIconsGrid.innerHTML = '';
+                    window.bottomIconButtons = [];
+
+                    // Update grid layout based on icon count
+                    if (iconCount === 0) {
+                        bottomIconsGrid.style.display = 'none';
+                        return;
+                    } else {
+                        bottomIconsGrid.style.display = 'flex';
+                        bottomIconsGrid.style.flexDirection = 'row';
+                        bottomIconsGrid.style.gap = '2px';
+                        bottomIconsGrid.style.alignItems = 'center';
+                        bottomIconsGrid.style.justifyContent = 'flex-start';
+                        bottomIconsGrid.style.flexWrap = 'nowrap';
+                    }
+
+                    // Create icon selectors for current count
+                    for (let i = 0; i < iconCount; i++) {
+                        const slotDiv = document.createElement('div');
+                        slotDiv.className = 'bottom-icon-slot';
+                        slotDiv.style.cssText = `
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 0;
+                        `;
+                        
+                        // Use Celebration 1 for all default icons
+                        const defaultIcon = 'icon-023-celebration.svg';
+                        
+                        const button = document.createElement('button');
+                        button.className = 'icon-preview-button';
+                        button.style.cssText = `
+                            width: 36px;
+                            height: 36px;
+                            background: #333;
+                            border: 1px solid #555;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            position: relative;
+                            transition: all 0.2s;
+                            padding: 2px;
+                        `;
+                        
+                        // No slot number - removed for cleaner look
+                        
+                        // Add icon preview area
+                        const iconPreview = document.createElement('div');
+                        iconPreview.className = 'icon-preview-area';
+                        iconPreview.style.cssText = `
+                            width: 18px;
+                            height: 18px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        `;
+                        button.appendChild(iconPreview);
+                        
+                        // Load default icon
+                        const defaultIconPath = 'templates/template_002/assets/icons/' + defaultIcon;
+                        const img = document.createElement('img');
+                        img.src = defaultIconPath;
+                        img.style.cssText = `
+                            max-width: 100%;
+                            max-height: 100%;
+                            filter: brightness(0) saturate(100%) invert(100%);
+                        `;
+                        img.onload = () => {
+                            iconPreview.appendChild(img);
+                        };
+                        img.onerror = () => {
+                            // Fallback if icon doesn't load
+                            iconPreview.innerHTML = '⭐';
+                            iconPreview.style.color = 'white';
+                        };
+                        
+                        // Store default icon data for this slot
+                        button.iconData = {
+                            filename: defaultIcon,
+                            name: `Default ${i + 1}`,
+                            path: defaultIconPath,
+                            fullPath: defaultIconPath
+                        };
+                        
+                        // Hover effects
+                        button.addEventListener('mouseenter', () => {
+                            button.style.borderColor = '#0066ff';
+                            button.style.background = '#444';
+                        });
+                        
+                        button.addEventListener('mouseleave', () => {
+                            button.style.borderColor = '#555';
+                            button.style.background = '#333';
+                        });
+                        
+                        // Click handler to open gallery
+                        button.addEventListener('click', () => {
+                            console.log(`Opening gallery for bottom icon slot ${i + 1}`);
+                            window.simpleIconGallery.open(((slotIndex) => {
+                                return (iconData) => {
+                                    console.log(`Bottom icon ${slotIndex + 1} selected:`, iconData);
+                                    
+                                    // Update canvas
+                                    if (editor.updateBottomIconFromGallery) {
+                                        editor.updateBottomIconFromGallery(iconData, slotIndex);
+                                    }
+                                    
+                                    // Update button icon preview
+                                    const button = window.bottomIconButtons[slotIndex];
+                                    const iconPreview = button.querySelector('.icon-preview-area');
+                                    
+                                    // Clear existing icon
+                                    iconPreview.innerHTML = '';
+                                    
+                                    // Add new icon
+                                    const newImg = document.createElement('img');
+                                    newImg.src = iconData.path;
+                                    newImg.style.cssText = `
+                                        max-width: 100%;
+                                        max-height: 100%;
+                                        filter: brightness(0) saturate(100%) invert(100%);
+                                    `;
+                                    newImg.onload = () => {
+                                        iconPreview.appendChild(newImg);
+                                    };
+                                    
+                                    // Store icon data
+                                    button.iconData = iconData;
+                                    
+                                    // Visual feedback
+                                    button.style.borderColor = '#0066ff';
+                                };
+                            })(i));
+                        });
+                        
+                        slotDiv.appendChild(button);
+                        bottomIconsGrid.appendChild(slotDiv);
+                        window.bottomIconButtons[i] = button;
+                        
+                        // Load default icon on canvas
+                        if (editor.updateBottomIconFromGallery) {
+                            editor.updateBottomIconFromGallery(button.iconData, i);
+                        }
+                    }
+                    
+                    console.log(`✅ Created ${iconCount} simple bottom icon selectors`);
+                }
+
+                // Initial setup
+                updateBottomIconsUI();
+
+                // Listen for icon count changes
+                const iconCountSlider = document.getElementById('icon-count');
+                if (iconCountSlider) {
+                    // Update the display value immediately
+                    const updateSliderValue = () => {
+                        const valueDisplay = iconCountSlider.nextElementSibling;
+                        if (valueDisplay && valueDisplay.classList.contains('slider-value')) {
+                            valueDisplay.textContent = iconCountSlider.value;
+                        }
+                    };
+                    
+                    iconCountSlider.addEventListener('input', () => {
+                        const newCount = parseInt(iconCountSlider.value);
+                        console.log(`🎚️ Slider changed to: ${newCount}`);
+                        
+                        // Update slider display
+                        updateSliderValue();
+                        
+                        // 🔥 FIX: Use smart icon count update that preserves selections
+                        if (editor.updateBottomIconCount) {
+                            editor.updateBottomIconCount(newCount);
+                        } else {
+                            console.warn('⚠️ Smart icon count update not available, falling back to old method');
+                            // Fallback to old method if new one isn't available
+                            if (editor.bottomIconsConfig) {
+                                editor.bottomIconsConfig.count = newCount;
+                            }
+                            updateBottomIconsUI();
+                            if (editor.createBottomIconsExact) {
+                                editor.createBottomIconsExact();
+                                editor.recalculateLayout();
+                                editor.stage.batchDraw();
+                            }
+                        }
+                    });
+                    
+                    // Initial slider value update
+                    updateSliderValue();
+                }
+
+                console.log('✅ Bottom icons selectors initialized');
+            }
+
+            console.log('🎨 Simple Icon Gallery Integration complete!');
+            
+            // Debug helper for icon count synchronization
+            window.debugIconCount = function() {
+                const slider = document.getElementById('icon-count');
+                const grid = document.getElementById('bottom-icons-grid');
+                const buttons = window.bottomIconButtons || [];
+                
+                console.log('🔍 Icon Count Debug Info:');
+                console.log('- Slider value:', slider ? slider.value : 'Not found');
+                console.log('- Editor config count:', window.templateEditor?.bottomIconsConfig?.count);
+                console.log('- Grid children count:', grid ? grid.children.length : 'Grid not found');
+                console.log('- Button array length:', buttons.length);
+                console.log('- Actual panels in DOM:', grid ? Array.from(grid.children).map((child, i) => `Panel ${i + 1}: ${child.className}`).join(', ') : 'None');
+            };
+        }
+
+        // Start icon gallery initialization after DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Give a moment for other initializations
+            setTimeout(initializeIconGalleries, 500);
+            
+            // Initialize branded color palette
+            setTimeout(initializeBrandedColorPalette, 600);
+            
+            // Setup debug mode toggle after a delay to ensure template editor is ready
+            setTimeout(setupDebugModeToggle, 1000);
+        });
+        
+        // Initialize Branded Color Palette System
+        async function initializeBrandedColorPalette() {
+            console.log('🎨 Initializing Branded Color Palette...');
+            
+            try {
+                // Wait for template editor to be ready
+                if (!window.templateEditor) {
+                    console.log('⏳ Waiting for template editor...');
+                    setTimeout(initializeBrandedColorPalette, 200);
+                    return;
+                }
+                
+                // Create color palette instance
+                const colorPalette = new WixColorPalette();
+                window.wixColorPalette = colorPalette;
+                
+                // Set up color change callback
+                colorPalette.onSelectionChange = (selection) => {
+                    console.log(`🎨 Color changed: ${selection.background} + ${selection.foreground}`);
+                };
+                
+                // Initialize the palette
+                await colorPalette.initialize();
+                
+                // Setup transparency button
+                setupBrandedTransparencyButton(colorPalette);
+                
+                // Mark as branded palette active
+                document.body.classList.add('branded-palette-active');
+                
+                console.log('✅ Branded Color Palette system activated');
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize branded color palette:', error);
+                showBrandedColorError();
+            }
+        }
+        
+        function setupBrandedTransparencyButton(colorPalette) {
+            const transparencyBtn = document.getElementById('transparency-btn');
+            if (!transparencyBtn) return;
+            
+            transparencyBtn.addEventListener('click', () => {
+                colorPalette.selectTransparency();
+                console.log('🔍 Transparency selected via branded system');
+            });
+        }
+        
+        function showBrandedColorError() {
+            const gallery = document.getElementById('branded-color-gallery');
+            if (gallery) {
+                gallery.innerHTML = `
+                    <div class="branded-color-error">
+                        Failed to load brand color palette. Please check that wix_palette.md exists.
+                    </div>
+                `;
+            }
+        }
+
+        // Add debugging helpers
+        window.projectIntegration.debugInfo = () => {
+            console.log('=== PROJECT INTEGRATION DEBUG ===');
+            console.log('Current Project:', currentProject);
+            console.log('Project ID from URL:', projectId);
+            console.log('Template Editor:', window.templateEditor);
+            console.log('Project Manager:', projectManager);
+            console.log('Save Button:', document.getElementById('save-preset-btn'));
+            console.log('LocalStorage Projects:', localStorage.getItem('wix_user_projects'));
+            if (currentProject) {
+                console.log('Current Project Data:', localStorage.getItem('wix_project_' + currentProject.id));
+            }
+        };
+
+        // Test helper for complete save/load workflow
+        window.projectIntegration.testWorkflow = async () => {
+            console.log('🧪 TESTING COMPLETE SAVE/LOAD WORKFLOW');
+            
+            if (!currentProject) {
+                console.error('❌ No project loaded for testing');
+                return;
+            }
+            
+            const editor = window.templateEditor;
+            if (!editor) {
+                console.error('❌ No template editor available');
+                return;
+            }
+
+            // 1. Test current state capture
+            console.log('📊 Current Editor State:');
+            console.log('- Texts:', {
+                topTitle: document.getElementById('top-title')?.value,
+                mainTitle: document.getElementById('main-title')?.value,
+                subtitle1: document.getElementById('subtitle1')?.value,
+                subtitle2: document.getElementById('subtitle2')?.value
+            });
+            console.log('- Colors:', {
+                text: editor.getCurrentTextColor ? editor.getCurrentTextColor() : 'unknown',
+                background: editor.currentBackgroundColor
+            });
+            console.log('- Visibility:', editor.layerVisibility);
+
+            // 2. Test save (properly await the async function)
+            console.log('💾 Testing save...');
+            try {
+                await saveCurrentProject();
+                console.log('✅ Test save completed successfully');
+            } catch (error) {
+                console.error('❌ Test save failed:', error);
+            }
+
+            // 3. Test reload (simulate returning later)
+            console.log('🔄 Testing reload...');
+            if (editor.loadProjectData) {
+                editor.loadProjectData();
+                console.log('✅ Reload triggered');
+            }
+
+            console.log('🏁 Test completed. Check if text/colors/settings are preserved.');
+        };
+
+        // Enhanced debugging tools for thumbnail issues
+        window.projectIntegration.debugThumbnails = () => {
+            console.log('🖼️ === THUMBNAIL DEBUG INFO ===');
+            
+            const projects = projectManager.getAllProjects();
+            const stats = projectManager.getStorageStats();
+            
+            console.log('Storage Statistics:', stats);
+            console.log('\n📊 Project Thumbnail Status:');
+            
+            projects.forEach((project, index) => {
+                const thumbnailInfo = {
+                    name: project.name,
+                    id: project.id,
+                    hasThumbnail: !!project.thumbnail,
+                    thumbnailSize: project.thumbnail ? `${Math.round(project.thumbnail.length/1024)}KB` : 'None',
+                    thumbnailType: project.thumbnail ? project.thumbnail.substring(5, 15) : 'N/A',
+                    modified: project.modified
+                };
+                console.log(`${index + 1}. ${project.name}:`, thumbnailInfo);
+            });
+        };
+
+        // Canvas debugging helper
+        window.projectIntegration.debugCanvas = () => {
+            console.log('🎨 === CANVAS DEBUG INFO ===');
+            
+            const editor = window.templateEditor;
+            if (!editor) {
+                console.error('❌ No template editor available');
+                return;
+            }
+            
+            if (!editor.stage) {
+                console.error('❌ No stage available');
+                return;
+            }
+            
+            try {
+                const stage = editor.stage;
+                const canvas = stage.getCanvas();
+                
+                console.log('Stage Info:', {
+                    width: stage.width(),
+                    height: stage.height(),
+                    scaleX: stage.scaleX(),
+                    scaleY: stage.scaleY(),
+                    visible: stage.visible()
+                });
+                
+                console.log('Canvas Info:', {
+                    available: !!canvas,
+                    _canvas: !!canvas?._canvas,
+                    canvas: !!canvas?.canvas,
+                    element: !!canvas?.getElement(),
+                    context: !!canvas?.getContext()
+                });
+                
+                if (canvas && canvas._canvas) {
+                    const htmlCanvas = canvas._canvas;
+                    console.log('HTML Canvas:', {
+                        width: htmlCanvas.width,
+                        height: htmlCanvas.height,
+                        style: htmlCanvas.style.cssText,
+                        parentElement: !!htmlCanvas.parentElement
+                    });
+                    
+                    // Try to capture a test thumbnail
+                    console.log('🧪 Testing thumbnail capture...');
+                    const testThumb = document.createElement('canvas');
+                    testThumb.width = 100;
+                    testThumb.height = 100;
+                    const ctx = testThumb.getContext('2d');
+                    
+                    try {
+                        ctx.drawImage(htmlCanvas, 0, 0, htmlCanvas.width, htmlCanvas.height, 0, 0, 100, 100);
+                        const dataURL = testThumb.toDataURL('image/jpeg', 0.8);
+                        console.log('✅ Test thumbnail capture successful:', {
+                            size: `${Math.round(dataURL.length/1024)}KB`,
+                            preview: dataURL.substring(0, 50) + '...'
+                        });
+                    } catch (error) {
+                        console.error('❌ Test thumbnail capture failed:', error);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Canvas debug failed:', error);
+            }
+        };
+
+        // Storage management helper
+        window.projectIntegration.manageStorage = {
+            checkUsage: () => projectManager.checkStorageUsage(),
+            cleanup: (keepCount = 10, daysOld = 30) => projectManager.cleanupOldProjects(keepCount, daysOld),
+            optimize: (quality = 0.6) => projectManager.optimizeThumbnails(quality),
+            getStats: () => projectManager.getStorageStats(),
+            
+            // Emergency cleanup
+            emergencyCleanup: () => {
+                console.log('🚨 EMERGENCY STORAGE CLEANUP');
+                const stats = projectManager.checkStorageUsage();
+                
+                if (stats?.isCritical) {
+                    console.log('Critical storage detected, performing aggressive cleanup...');
+                    const cleanup = projectManager.cleanupOldProjects(5, 7); // Keep only 5 projects, 7 days old
+                    const optimize = projectManager.optimizeThumbnails(0.5); // Very low quality
+                    
+                    console.log('Emergency cleanup results:', { cleanup, optimize });
+                    
+                    // Recheck after cleanup
+                    const newStats = projectManager.checkStorageUsage();
+                    console.log('Storage after cleanup:', newStats);
+                    
+                    return { cleanup, optimize, newStats };
+                } else {
+                    console.log('Storage not critical, emergency cleanup not needed');
+                    return null;
+                }
+            }
+        };
+
+        // Navigation prevention during save operations
+        let isSaveInProgress = false;
+        
+        // Setup debug mode toggle
+        function setupDebugModeToggle() {
+            const debugToggle = document.getElementById('debug-mode-toggle');
+            if (debugToggle && window.templateEditor) {
+                debugToggle.addEventListener('change', (e) => {
+                    const isEnabled = e.target.checked;
+                    console.log(`🐛 Debug toggle changed: ${isEnabled}`);
+                    
+                    if (window.templateEditor.toggleDebugMode) {
+                        window.templateEditor.toggleDebugMode(isEnabled);
+                    } else {
+                        console.warn('❌ Template editor debug mode not available');
+                    }
+                });
+                
+                console.log('✅ Debug mode toggle event listener connected');
+            } else {
+                console.warn('⚠️ Debug toggle or template editor not found, retrying...');
+                // Retry in case template editor isn't ready yet
+                setTimeout(setupDebugModeToggle, 200);
+            }
+        }
+        
+        // Update the save function to track save state
+        const originalSaveCurrentProject = saveCurrentProject;
+        saveCurrentProject = async function() {
+            isSaveInProgress = true;
+            console.log('🔒 Save in progress - navigation protected');
+            
+            try {
+                const result = await originalSaveCurrentProject.apply(this, arguments);
+                return result;
+            } finally {
+                isSaveInProgress = false;
+                console.log('🔓 Save completed - navigation allowed');
+            }
+        };
+        
+        // Prevent navigation during save
+        window.addEventListener('beforeunload', (e) => {
+            if (isSaveInProgress) {
+                const message = 'Save in progress! Leaving now may lose your changes.';
+                e.preventDefault();
+                e.returnValue = message;
+                return message;
+            }
+        });
+        
+        // Prevent clicking back button during save
+        const backBtn = document.querySelector('.back-btn');
+        if (backBtn) {
+            const originalClickHandler = backBtn.onclick;
+            backBtn.onclick = function(e) {
+                if (isSaveInProgress) {
+                    e.preventDefault();
+                    alert('Save in progress! Please wait for save to complete before leaving.');
+                    return false;
+                }
+                if (originalClickHandler) {
+                    return originalClickHandler.apply(this, arguments);
+                }
+                return true;
+            };
+        }
+        
+        console.log('🛡️ Navigation protection during save operations enabled');
+
+        // Function to load localhost-saved project data
+        function loadLocalhostSavedProject() {
+            try {
+                const savedData = localStorage.getItem('wix-video-localhost-project');
+                if (!savedData) {
+                    console.log('No localhost project data found');
+                    return;
+                }
+                
+                const projectData = JSON.parse(savedData);
+                console.log('Loading localhost project data:', projectData);
+                
+                // Update project name in header
+                const projectNameElement = document.querySelector('.project-name');
+                if (projectNameElement && projectData.name) {
+                    projectNameElement.textContent = projectData.name;
+                }
+                
+                // Restore text values
+                if (projectData.texts) {
+                    Object.keys(projectData.texts).forEach(textKey => {
+                        const input = document.getElementById(textKey === 'topTitle' ? 'top-title' : 
+                                                           textKey === 'mainTitle' ? 'main-title' : textKey);
+                        if (input && projectData.texts[textKey]) {
+                            input.value = projectData.texts[textKey];
+                        }
+                    });
+                }
+                
+                // Restore template editor data if available
+                if (window.templateEditor) {
+                    // Restore layer visibility
+                    if (projectData.visibility) {
+                        Object.keys(projectData.visibility).forEach(layer => {
+                            if (window.templateEditor.layerVisibility && typeof window.templateEditor.layerVisibility[layer] !== 'undefined') {
+                                window.templateEditor.layerVisibility[layer] = projectData.visibility[layer];
+                            }
+                        });
+                    }
+                    
+                    // Restore icon configuration
+                    if (projectData.iconConfig) {
+                        if (projectData.iconConfig.topIcon && window.templateEditor.topIconConfig) {
+                            window.templateEditor.topIconConfig = { ...window.templateEditor.topIconConfig, ...projectData.iconConfig.topIcon };
+                        }
+                        if (projectData.iconConfig.bottomIcons && window.templateEditor.bottomIconsConfig) {
+                            window.templateEditor.bottomIconsConfig = { ...window.templateEditor.bottomIconsConfig, ...projectData.iconConfig.bottomIcons };
+                        }
+                    }
+                    
+                    // Trigger recreation of template objects with restored data
+                    console.log('Recreating template objects with restored data...');
+                    window.templateEditor.createTemplateObjects();
+                }
+                
+                // Update save status
+                const saveStatus = document.querySelector('.save-status');
+                if (saveStatus) {
+                    saveStatus.textContent = 'Loaded from localhost';
+                    setTimeout(() => {
+                        saveStatus.textContent = 'Auto-saved';
+                    }, 2000);
+                }
+                
+                console.log('✅ Localhost project data loaded successfully');
+                
+            } catch (error) {
+                console.error('❌ Failed to load localhost project data:', error);
+            }
+        }
+
+        // Auto-save functionality with async handling
+    </script>
+</body>
+</html> 
