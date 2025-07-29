@@ -1,10 +1,9 @@
 {
-  "totalIcons": 64,
+  "totalIcons": 61,
   "categories": [
     "arrow",
     "celebration",
     "stars",
-    "technology",
     "misc"
   ],
   "icons": {
@@ -368,29 +367,11 @@
       "category": "stars",
       "path": "templates/template_001/assets/icons/icon-060-stars.svg"
     },
-    "61": {
-      "originalName": "Technology.svg",
-      "newName": "icon-061-technology.svg",
-      "category": "technology",
-      "path": "templates/template_001/assets/icons/icon-061-technology.svg"
-    },
     "62": {
       "originalName": "Union.svg",
       "newName": "icon-062-misc.svg",
       "category": "misc",
       "path": "templates/template_001/assets/icons/icon-062-misc.svg"
-    },
-    "63": {
-      "originalName": "Vector.svg",
-      "newName": "icon-063-misc.svg",
-      "category": "misc",
-      "path": "templates/template_001/assets/icons/icon-063-misc.svg"
-    },
-    "64": {
-      "originalName": "Vector-1.svg",
-      "newName": "icon-064-misc.svg",
-      "category": "misc",
-      "path": "templates/template_001/assets/icons/icon-064-misc.svg"
     }
   },
   "generatedAt": "2025-07-22T13:20:47.900Z"

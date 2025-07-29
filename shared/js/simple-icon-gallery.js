@@ -60,23 +60,15 @@ class SimpleIconGallery {
             });
         }
         
-        // Special icons (061-064)
+        // Only include misc icon 062 (the only one that actually exists)
         icons.push({
-            id: 'technology-061',
-            filename: 'icon-061-technology.svg',
-            name: 'Technology',
+            id: 'misc-062',
+            filename: 'icon-062-misc.svg',
+            name: 'Misc',
             category: 'misc'
         });
         
-        for (let i = 62; i <= 64; i++) {
-            icons.push({
-                id: `misc-${i.toString().padStart(3, '0')}`,
-                filename: `icon-${i.toString().padStart(3, '0')}-misc.svg`,
-                name: `Misc ${i - 61}`,
-                category: 'misc'
-            });
-        }
-        
+        console.log(`🎨 Generated icon list with ${icons.length} icons (matching actual files)`);
         return icons;
     }
     
@@ -860,6 +852,33 @@ class SimpleIconGallery {
         setTimeout(() => {
             this.close();
         }, 200);
+    }
+
+    /**
+     * Refresh the icon gallery - regenerate icon list and clear caches
+     */
+    refresh() {
+        console.log('🔄 Refreshing icon gallery...');
+        
+        // Regenerate icon list from current files
+        this.icons = this.generateIconList();
+        
+        // Reload custom icons from storage
+        this.customIcons = this.loadCustomIcons();
+        
+        // Clear any cached elements
+        if (this.modal && this.modal.isConnected) {
+            this.modal.remove();
+            this.modal = null;
+        }
+        
+        console.log(`✅ Icon gallery refreshed - ${this.icons.length} preset icons, ${this.customIcons.length} custom icons`);
+        
+        return {
+            presetIcons: this.icons.length,
+            customIcons: this.customIcons.length,
+            totalIcons: this.icons.length + this.customIcons.length
+        };
     }
 }
 
