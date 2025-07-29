@@ -1758,3 +1758,232 @@ button:focus {
 .debug-mode-checkbox:checked ~ .debug-toggle-text {
     color: var(--accent-blue);
 } 
+
+/* ================================
+   BRANDED COLOR PALETTE STYLES
+   ================================ */
+
+.branded-color-gallery {
+    margin-top: var(--spacing-md);
+}
+
+.branded-color-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.branded-color-header h4 {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.color-count {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.color-combinations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+    gap: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--bg-tertiary);
+}
+
+.color-combinations-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.color-combinations-grid::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 3px;
+}
+
+.color-combinations-grid::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.color-combinations-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+.color-combination-thumb {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    background: none;
+    border: 2px solid transparent;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 60px;
+    position: relative;
+}
+
+.color-combination-thumb:hover {
+    border-color: var(--border-light);
+    background: var(--hover-bg);
+    transform: translateY(-1px);
+}
+
+.color-combination-thumb.selected,
+.color-combination-thumb[aria-pressed="true"] {
+    border-color: var(--accent-blue);
+    background: rgba(0, 102, 255, 0.1);
+    box-shadow: 0 0 0 1px var(--accent-blue);
+}
+
+.color-combination-thumb:focus {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+.color-combo-preview {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.color-combo-bg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.color-combo-fg {
+    font-size: 11px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    user-select: none;
+    line-height: 1;
+}
+
+.color-combo-id {
+    font-size: 10px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-align: center;
+    line-height: 1;
+}
+
+.color-combination-thumb.selected .color-combo-id,
+.color-combination-thumb[aria-pressed="true"] .color-combo-id {
+    color: var(--accent-blue);
+    font-weight: 600;
+}
+
+/* Enhanced color display thumbs - now display-only */
+.color-thumb {
+    cursor: default !important;
+    pointer-events: none;
+}
+
+.color-thumb-inner {
+    pointer-events: none;
+}
+
+/* Transparency button enhancement */
+.transparency-btn {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.transparency-btn:hover {
+    transform: scale(1.05);
+    border-color: var(--accent-blue);
+}
+
+.transparency-btn.active {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px var(--accent-blue);
+}
+
+/* Loading and error states */
+.branded-color-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.branded-color-loading::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    margin-right: var(--spacing-sm);
+    border: 2px solid var(--border-color);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.branded-color-error {
+    padding: var(--spacing-md);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    text-align: center;
+    border: 1px dashed var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--bg-tertiary);
+}
+
+/* Hide original color picker popup when branded palette is active */
+.branded-palette-active .color-picker-popup,
+.branded-palette-active .color-picker-overlay {
+    display: none !important;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .color-combinations-grid {
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+        gap: 6px;
+        max-height: 240px;
+    }
+    
+    .color-combination-thumb {
+        min-height: 55px;
+        padding: 4px;
+    }
+    
+    .color-combo-preview {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .color-combo-fg {
+        font-size: 10px;
+    }
+    
+    .color-combo-id {
+        font-size: 9px;
+    }
+} 

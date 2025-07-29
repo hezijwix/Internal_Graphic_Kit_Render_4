@@ -177,59 +177,49 @@
                     </button>
                 </div>
                 <div class="section-content">
-                    <div class="color-group">
-                        <label>Text Color</label>
-                        <div class="color-picker-container">
-                            <button class="color-thumb" id="text-color-thumb" style="background-color: #FFFFFF" data-color="#FFFFFF" aria-label="Open text color picker">
-                                <span class="color-thumb-inner"></span>
-                            </button>
-                            <span class="color-value" id="text-color-value">#FFFFFF</span>
+                    <!-- Current Color Selection Display -->
+                    <div class="current-color-selection">
+                        <div class="color-group">
+                            <label>Text Color</label>
+                            <div class="color-picker-container">
+                                <div class="color-thumb" id="text-color-thumb" style="background-color: #FFFFFF" data-color="#FFFFFF">
+                                    <span class="color-thumb-inner"></span>
+                                </div>
+                                <span class="color-value" id="text-color-value">#FFFFFF</span>
+                            </div>
+                        </div>
+                        <div class="color-group">
+                            <label>Background Color</label>
+                            <div class="color-picker-container">
+                                <div class="color-thumb" id="bg-color-thumb" style="background-color: #0D0D0D" data-color="#0D0D0D">
+                                    <span class="color-thumb-inner"></span>
+                                </div>
+                                <button class="transparency-btn" id="transparency-btn" data-color="transparent" aria-label="Transparent Background" title="Transparent Background">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <rect width="16" height="16" fill="url(#checkerboard)"/>
+                                        <defs>
+                                            <pattern id="checkerboard" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+                                                <rect x="0" y="0" width="4" height="4" fill="#E5E5E5"/>
+                                                <rect x="4" y="4" width="4" height="4" fill="#E5E5E5"/>
+                                                <rect x="4" y="0" width="4" height="4" fill="#CCCCCC"/>
+                                                <rect x="0" y="4" width="4" height="4" fill="#CCCCCC"/>
+                                            </pattern>
+                                        </defs>
+                                    </svg>
+                                </button>
+                                <span class="color-value" id="bg-color-value">#0D0D0D</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="color-group">
-                        <label>Background Color</label>
-                        <div class="color-picker-container">
-                            <button class="color-thumb" id="bg-color-thumb" style="background-color: #0D0D0D" data-color="#0D0D0D" aria-label="Open background color picker">
-                                <span class="color-thumb-inner"></span>
-                            </button>
-                            <button class="transparency-btn" id="transparency-btn" data-color="transparent" aria-label="Transparent Background" title="Transparent Background">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <rect width="16" height="16" fill="url(#checkerboard)"/>
-                                    <defs>
-                                        <pattern id="checkerboard" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
-                                            <rect x="0" y="0" width="4" height="4" fill="#E5E5E5"/>
-                                            <rect x="4" y="4" width="4" height="4" fill="#E5E5E5"/>
-                                            <rect x="4" y="0" width="4" height="4" fill="#CCCCCC"/>
-                                            <rect x="0" y="4" width="4" height="4" fill="#CCCCCC"/>
-                                        </pattern>
-                                    </defs>
-                                </svg>
-                            </button>
-                            <span class="color-value" id="bg-color-value">#0D0D0D</span>
+
+                    <!-- Branded Color Palette Gallery -->
+                    <div class="branded-color-gallery" id="branded-color-gallery">
+                        <div class="branded-color-loading">
+                            Loading brand colors...
                         </div>
                     </div>
                 </div>
             </section>
-
-            <!-- Color Picker Popup -->
-            <div class="color-picker-popup" id="color-picker-popup">
-                <div class="color-picker-header">
-                    <h4 id="color-picker-title">Choose Color</h4>
-                    <button class="close-picker" id="close-picker" aria-label="Close color picker">×</button>
-                </div>
-                <div class="color-picker-content">
-                    <input type="color" id="color-input" value="#FFFFFF">
-                    <div class="color-preview">
-                        <div class="color-preview-current" id="color-preview-current"></div>
-                        <span class="color-hex" id="color-hex">#FFFFFF</span>
-                    </div>
-                    <div class="color-picker-actions">
-                        <button class="btn-secondary" id="cancel-color">Cancel</button>
-                        <button class="btn-primary" id="apply-color">Apply</button>
-                    </div>
-                </div>
-            </div>
-            <div class="color-picker-overlay" id="color-picker-overlay"></div>
 
             <!-- Bottom Icons Section -->
             <section class="panel-section" data-section="bottom-icons">
@@ -497,6 +487,7 @@
 
     <script src="shared/js/project-manager.js"></script>
     <script src="shared/js/simple-icon-gallery.js"></script>
+    <script src="shared/js/wix-color-palette.js"></script>
     <script src="shared/js/template-engine.js"></script>
     
     <!-- Animation System -->
@@ -711,7 +702,7 @@
                 } catch (error) {
                     console.error('❌ Localhost save failed:', error);
                     alert(`Failed to save: ${error.message}`);
-                    return;
+                return;
                 }
             }
 
@@ -1568,10 +1559,72 @@
             // Give a moment for other initializations
             setTimeout(initializeIconGalleries, 500);
             
+            // Initialize branded color palette
+            setTimeout(initializeBrandedColorPalette, 600);
+            
             // Setup debug mode toggle after a delay to ensure template editor is ready
             setTimeout(setupDebugModeToggle, 1000);
         });
         
+        // Initialize Branded Color Palette System
+        async function initializeBrandedColorPalette() {
+            console.log('🎨 Initializing Branded Color Palette...');
+            
+            try {
+                // Wait for template editor to be ready
+                if (!window.templateEditor) {
+                    console.log('⏳ Waiting for template editor...');
+                    setTimeout(initializeBrandedColorPalette, 200);
+                    return;
+                }
+                
+                // Create color palette instance
+                const colorPalette = new WixColorPalette();
+                window.wixColorPalette = colorPalette;
+                
+                // Set up color change callback
+                colorPalette.onSelectionChange = (selection) => {
+                    console.log(`🎨 Color changed: ${selection.background} + ${selection.foreground}`);
+                };
+                
+                // Initialize the palette
+                await colorPalette.initialize();
+                
+                // Setup transparency button
+                setupBrandedTransparencyButton(colorPalette);
+                
+                // Mark as branded palette active
+                document.body.classList.add('branded-palette-active');
+                
+                console.log('✅ Branded Color Palette system activated');
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize branded color palette:', error);
+                showBrandedColorError();
+            }
+        }
+        
+        function setupBrandedTransparencyButton(colorPalette) {
+            const transparencyBtn = document.getElementById('transparency-btn');
+            if (!transparencyBtn) return;
+            
+            transparencyBtn.addEventListener('click', () => {
+                colorPalette.selectTransparency();
+                console.log('🔍 Transparency selected via branded system');
+            });
+        }
+        
+        function showBrandedColorError() {
+            const gallery = document.getElementById('branded-color-gallery');
+            if (gallery) {
+                gallery.innerHTML = `
+                    <div class="branded-color-error">
+                        Failed to load brand color palette. Please check that wix_palette.md exists.
+                    </div>
+                `;
+            }
+        }
+
         // Add debugging helpers
         window.projectIntegration.debugInfo = () => {
             console.log('=== PROJECT INTEGRATION DEBUG ===');

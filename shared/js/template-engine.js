@@ -773,65 +773,27 @@ class TemplateEditor {
     // Color Picker Management
     
     setupColorPicker() {
-        this.currentColorType = null;
-        this.currentColorThumb = null;
+        // Old color picker functionality disabled - now using branded color palette
+        console.log('🎨 Color picker setup - using branded color palette system');
         
-        // Color thumb click handlers
+        // Remove click handlers from color thumbs (they're now display-only)
         const textColorThumb = document.getElementById('text-color-thumb');
         const bgColorThumb = document.getElementById('bg-color-thumb');
-        const transparencyBtn = document.getElementById('transparency-btn');
         
         if (textColorThumb) {
-            textColorThumb.addEventListener('click', () => {
-                this.openColorPicker('Text Color', textColorThumb);
-            });
+            textColorThumb.style.cursor = 'default';
+            console.log('✅ Text color thumb set to display-only');
         }
         
         if (bgColorThumb) {
-            bgColorThumb.addEventListener('click', () => {
-                this.openColorPicker('Background Color', bgColorThumb);
-            });
+            bgColorThumb.style.cursor = 'default';
+            console.log('✅ Background color thumb set to display-only');
         }
         
-        if (transparencyBtn) {
-            transparencyBtn.addEventListener('click', () => {
-                this.selectTransparency();
-            });
-        }
+        // Note: Transparency button will be handled by branded palette initialization
+        console.log('✅ Transparency button will be handled by branded color palette');
         
-        // Color picker popup handlers
-        const colorPickerOverlay = document.getElementById('color-picker-overlay');
-        const closePicker = document.getElementById('close-picker');
-        const cancelColor = document.getElementById('cancel-color');
-        const applyColor = document.getElementById('apply-color');
-        const colorInput = document.getElementById('color-input');
-        
-        if (colorPickerOverlay) {
-            colorPickerOverlay.addEventListener('click', () => this.closeColorPicker());
-        }
-        
-        if (closePicker) {
-            closePicker.addEventListener('click', () => this.closeColorPicker());
-        }
-        
-        if (cancelColor) {
-            cancelColor.addEventListener('click', () => this.closeColorPicker());
-        }
-        
-        if (applyColor) {
-            applyColor.addEventListener('click', () => this.applySelectedColor());
-        }
-        
-        if (colorInput) {
-            colorInput.addEventListener('input', (e) => this.updateColorPreview(e.target.value));
-        }
-        
-        // Keyboard handlers
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isColorPickerOpen()) {
-                this.closeColorPicker();
-            }
-        });
+        console.log('🎨 Ready for branded color palette integration');
     }
     
     openColorPicker(colorType, thumbElement) {
